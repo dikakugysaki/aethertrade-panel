@@ -5,14 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AetherTrade AI — Professional Trading Panel</title>
     <meta name="theme-color" content="#050505">
-    <link rel="manifest" href="data:application/json,{'name':'AetherTrade','short_name':'Aether','start_url':'/','display':'standalone','background_color':'#050505','theme_color':'#f59e0b','icons':[{'src':'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>','sizes':'100x100','type':'image/svg+xml'}]}">
     
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/json,{'name':'AetherTrade AI','short_name':'AetherTrade','start_url':'/','display':'standalone','background_color':'#050505','theme_color':'#f59e0b','orientation':'portrait','icons':[{'src':'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>','sizes':'100x100','type':'image/svg+xml'}]}">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- TradingView -->
+    <script src="https://s3.tradingview.com/tv.js"></script>
+    <!-- Midtrans Snap (ditunda sampai approved) -->
+    <!-- <script src="https://app.midtrans.com/snap/snap.js" data-client-key="MIDTRANS_CLIENT_KEY"></script> -->
+    <!-- <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="MIDTRANS_CLIENT_KEY"></script> -->
     
     <script>
         tailwind.config = {
@@ -23,7 +35,7 @@
                     colors: {
                         primary: { 400: '#fb923c', 500: '#f97316', 600: '#ea580c' },
                         accent: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
-                        surface: { 800: '#171717', 900: '#0a0a0a', 950: '#050505' },
+                        surface: { 50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 700: '#1f1f1f', 800: '#171717', 900: '#0a0a0a', 950: '#050505' },
                         profit: '#10b981', loss: '#ef4444', neutral: '#6b7280',
                     }
                 }
@@ -43,19 +55,23 @@
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        @keyframes countdown { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        @keyframes newSignal { 0% { background: rgba(251,191,36,0.3); } 100% { background: transparent; } }
         
         .animate-float { animation: float 3s ease-in-out infinite; }
         .animate-glow { animation: glow 2s ease-in-out infinite; }
         .animate-slideIn { animation: slideIn 0.5s ease-out; }
         .animate-scroll { animation: scroll 20s linear infinite; white-space: nowrap; }
+        .animate-countdown { animation: countdown 2s ease-in-out infinite; }
+        .animate-new-signal { animation: newSignal 2s ease-out; }
         
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0a0a0a; } ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         
         .toast { position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease-out; }
         .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; position: relative; }
         .pulse-dot::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: #10b981; animation: pulse-ring 1.5s ease-out infinite; }
+        .pulse-dot-gold { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; display: inline-block; position: relative; }
+        .pulse-dot-gold::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: #f59e0b; animation: pulse-ring 1s ease-out infinite; }
         
         .tab-btn { position: relative; }
         .tab-btn.active { color: #f59e0b; }
@@ -63,8 +79,20 @@
         
         .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.4); border-color: rgba(251,191,36,0.2); }
         .skeleton { background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-        .profit-positive { color: #10b981; }
-        .profit-negative { color: #ef4444; }
+        .profit-positive { color: #10b981; } .profit-negative { color: #ef4444; }
+        
+        /* Light mode */
+        .light body { background: #f5f5f5; color: #1a1a1a; }
+        .light .glass { background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(0,0,0,0.05); }
+        .light .glass-light { background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.08); }
+        
+        /* Onboarding steps */
+        .onboard-step { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; }
+        .onboard-step.completed { background: rgba(16,185,129,0.1); }
+        .onboard-step.active { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); }
+        .onboard-step .step-number { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; }
+        .onboard-step.completed .step-number { background: #10b981; color: white; }
+        .onboard-step.active .step-number { background: #f59e0b; color: black; }
     </style>
 </head>
 <body class="bg-surface-950 text-white font-sans relative">
@@ -89,31 +117,25 @@
             </div>
             
             <nav class="flex flex-col gap-1">
-                <button onclick="switchTab('dashboard')" class="tab-btn active flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium">
-                    <i class="fas fa-th-large w-5"></i> Dashboard
-                </button>
-                <button onclick="switchTab('signals')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral">
-                    <i class="fas fa-chart-line w-5"></i> Live Signals
-                </button>
-                <button onclick="switchTab('affiliate')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral">
-                    <i class="fas fa-users w-5"></i> Affiliate
-                </button>
-                <button onclick="switchTab('payments')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral">
-                    <i class="fas fa-credit-card w-5"></i> Payments
-                </button>
-                <button onclick="switchTab('history')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral">
-                    <i class="fas fa-clock-rotate-left w-5"></i> History
-                </button>
-                <button onclick="switchTab('settings')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral">
-                    <i class="fas fa-gear w-5"></i> Settings
-                </button>
+                <button onclick="switchTab('dashboard')" class="tab-btn active flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium"><i class="fas fa-th-large w-5"></i> Dashboard</button>
+                <button onclick="switchTab('signals')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral relative"><i class="fas fa-chart-line w-5"></i> Live Signals<span class="ml-auto pulse-dot-gold hidden" id="newSignalDot"></span></button>
+                <button onclick="switchTab('positions')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral"><i class="fas fa-layer-group w-5"></i> Open Positions</button>
+                <button onclick="switchTab('license')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral"><i class="fas fa-id-card w-5"></i> License</button>
+                <button onclick="switchTab('affiliate')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral"><i class="fas fa-users w-5"></i> Affiliate</button>
+                <button onclick="switchTab('payments')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral"><i class="fas fa-credit-card w-5"></i> Payments</button>
+                <button onclick="switchTab('history')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral"><i class="fas fa-clock-rotate-left w-5"></i> History</button>
+                <button onclick="switchTab('settings')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral"><i class="fas fa-gear w-5"></i> Settings</button>
             </nav>
             
-            <div class="mt-auto p-4 glass-light rounded-2xl">
-                <p class="text-xs text-neutral mb-1">Need Help?</p>
-                <a href="https://t.me/rimuru_genkai" target="_blank" class="flex items-center gap-2 text-accent-400 text-sm hover:underline">
-                    <i class="fab fa-telegram"></i> @rimuru_genkai
-                </a>
+            <!-- Theme Toggle -->
+            <div class="mt-auto flex flex-col gap-2">
+                <button onclick="toggleTheme()" class="glass-light rounded-xl p-3 flex items-center gap-2 text-sm hover:bg-white/5">
+                    <i class="fas fa-moon" id="themeIcon"></i> <span id="themeText">Dark Mode</span>
+                </button>
+                <div class="p-3 glass-light rounded-xl">
+                    <p class="text-xs text-neutral">Need Help?</p>
+                    <a href="https://t.me/rimuru_genkai" target="_blank" class="flex items-center gap-2 text-accent-400 text-sm hover:underline"><i class="fab fa-telegram"></i> @rimuru_genkai</a>
+                </div>
             </div>
         </aside>
 
@@ -127,8 +149,10 @@
                     <p class="text-sm text-neutral" id="pageSubtitle">Welcome back! Here's your trading overview.</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button onclick="toggleTheme()" class="w-10 h-10 rounded-xl glass-light flex items-center justify-center hover:bg-white/10"><i class="fas fa-moon"></i></button>
-                    <button onclick="requestNotification()" class="w-10 h-10 rounded-xl glass-light flex items-center justify-center hover:bg-white/10"><i class="fas fa-bell"></i></button>
+                    <button onclick="switchTab('notifications')" class="relative w-10 h-10 rounded-xl glass-light flex items-center justify-center hover:bg-white/10">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute -top-1 -right-1 w-4 h-4 bg-accent-500 rounded-full text-[10px] flex items-center justify-center text-black font-bold" id="notifBadge">0</span>
+                    </button>
                     <div class="flex items-center gap-2 glass-light rounded-xl px-3 py-2">
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center text-black font-bold text-xs">U</div>
                         <div class="hidden sm:block"><p class="text-sm font-medium" id="userName">Trader</p><p class="text-[10px] text-neutral" id="userLicense">No License</p></div>
@@ -136,184 +160,216 @@
                 </div>
             </div>
 
+            <!-- ONBOARDING (muncul kalau belum ada license) -->
+            <div id="onboardingCard" class="glass-light rounded-2xl p-5 mb-4 hidden animate-slideIn">
+                <h3 class="font-bold text-lg mb-3">🚀 Getting Started</h3>
+                <div class="space-y-2" id="onboardingSteps">
+                    <div class="onboard-step" id="step1"><span class="step-number">1</span> Register License Key</div>
+                    <div class="onboard-step" id="step2"><span class="step-number">2</span> Download EA from Admin</div>
+                    <div class="onboard-step" id="step3"><span class="step-number">3</span> Setup EA in MetaTrader 5</div>
+                    <div class="onboard-step" id="step4"><span class="step-number">4</span> Start Trading & Profit!</div>
+                </div>
+            </div>
+
             <!-- LIVE TICKER -->
             <div class="glass-light rounded-2xl px-4 py-2 overflow-hidden mb-4">
                 <div class="flex gap-6 animate-scroll text-sm" id="liveTicker">
-                    <span>XAU/USD <span class="text-profit">2,650.30</span> <span class="text-profit text-xs">+0.3%</span></span>
+                    <span>XAU/USD <span class="text-profit">2,650</span> <span class="text-profit text-xs">+0.3%</span></span>
                     <span>BTC/USD <span class="text-profit">62,450</span> <span class="text-profit text-xs">+1.2%</span></span>
-                    <span>EUR/USD <span class="text-loss">1.0850</span> <span class="text-loss text-xs">-0.1%</span></span>
-                    <span>GBP/JPY <span class="text-profit">198.50</span> <span class="text-profit text-xs">+0.5%</span></span>
-                    <span>XAU/USD <span class="text-profit">2,650.30</span> <span class="text-profit text-xs">+0.3%</span></span>
-                    <span>BTC/USD <span class="text-profit">62,450</span> <span class="text-profit text-xs">+1.2%</span></span>
+                    <span>EUR/USD <span class="text-loss">1.085</span> <span class="text-loss text-xs">-0.1%</span></span>
                 </div>
             </div>
 
+            <!-- ============================================================ -->
             <!-- DASHBOARD TAB -->
+            <!-- ============================================================ -->
             <div id="tab-dashboard" class="tab-content space-y-5">
-                <!-- Stats Cards -->
+                <!-- Stats -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="glass-light rounded-2xl p-5 card-hover animate-slideIn">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs text-neutral font-medium">Total Balance</span>
-                            <span class="w-8 h-8 rounded-lg bg-profit/10 flex items-center justify-center"><i class="fas fa-wallet text-profit text-sm"></i></span>
-                        </div>
-                        <p class="text-2xl font-bold" id="dashBalance">$0.00</p>
-                        <p class="text-xs text-profit mt-1" id="dashBalanceChange">+0.00%</p>
-                    </div>
-                    <div class="glass-light rounded-2xl p-5 card-hover animate-slideIn">
-                        <div class="flex items-center justify-between mb-3"><span class="text-xs text-neutral font-medium">Open Positions</span><span class="w-8 h-8 rounded-lg bg-accent-400/10 flex items-center justify-center"><i class="fas fa-layer-group text-accent-400 text-sm"></i></span></div>
-                        <p class="text-2xl font-bold" id="dashOpen">0</p><p class="text-xs text-neutral mt-1">Active trades</p>
-                    </div>
-                    <div class="glass-light rounded-2xl p-5 card-hover animate-slideIn">
-                        <div class="flex items-center justify-between mb-3"><span class="text-xs text-neutral font-medium">Today P/L</span><span class="w-8 h-8 rounded-lg bg-profit/10 flex items-center justify-center"><i class="fas fa-chart-simple text-profit text-sm"></i></span></div>
-                        <p class="text-2xl font-bold profit-positive" id="dashPL">$0.00</p><p class="text-xs text-profit mt-1" id="dashPLPercent">+0.00%</p>
-                    </div>
-                    <div class="glass-light rounded-2xl p-5 card-hover animate-slideIn">
-                        <div class="flex items-center justify-between mb-3"><span class="text-xs text-neutral font-medium">Win Rate</span><span class="w-8 h-8 rounded-lg bg-primary-400/10 flex items-center justify-center"><i class="fas fa-trophy text-primary-400 text-sm"></i></span></div>
-                        <p class="text-2xl font-bold" id="dashWR">0%</p>
-                        <div class="w-full h-1.5 bg-white/5 rounded-full mt-2"><div class="h-full bg-gradient-to-r from-accent-400 to-profit rounded-full" style="width: 0%" id="wrBar"></div></div>
-                    </div>
+                    <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Balance</span><p class="text-2xl font-bold" id="dashBalance">$0.00</p></div>
+                    <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Open Pos</span><p class="text-2xl font-bold" id="dashOpen">0</p></div>
+                    <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Today P/L</span><p class="text-2xl font-bold profit-positive" id="dashPL">$0.00</p></div>
+                    <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Win Rate</span><p class="text-2xl font-bold" id="dashWR">0%</p><div class="w-full h-1.5 bg-white/5 rounded-full mt-2"><div class="h-full bg-gradient-to-r from-accent-400 to-profit rounded-full" style="width:0%" id="wrBar"></div></div></div>
                 </div>
-
-                <!-- Chart + Recent Trades -->
+                <!-- Chart + Summary -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <div class="lg:col-span-2 glass-light rounded-2xl p-5 card-hover">
-                        <h3 class="font-bold mb-3">📊 Live Chart</h3>
-                        <div class="tradingview-widget-container h-64 rounded-xl overflow-hidden"><div id="tv_chart"></div></div>
-                    </div>
-                    <div class="glass-light rounded-2xl p-5 card-hover">
-                        <h3 class="font-bold mb-3">📋 Recent Signal</h3>
-                        <div id="recentTrades" class="space-y-2 max-h-64 overflow-y-auto"><p class="text-neutral text-sm text-center py-4">Loading...</p></div>
-                    </div>
+                    <div class="lg:col-span-2 glass-light rounded-2xl p-5"><h3 class="font-bold mb-3">📊 Live Chart</h3><div class="tradingview-widget-container h-64 rounded-xl overflow-hidden"><div id="tv_chart"></div></div></div>
+                    <div class="glass-light rounded-2xl p-5"><h3 class="font-bold mb-3">📋 Recent Signal</h3><div id="recentTrades" class="max-h-64 overflow-y-auto"><p class="text-neutral text-sm text-center py-4">Loading...</p></div></div>
                 </div>
-
-                <!-- Weekly Chart + Summary -->
+                <!-- Weekly + Summary -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <div class="lg:col-span-2 glass-light rounded-2xl p-5 card-hover">
-                        <h3 class="font-bold mb-3">📈 Weekly Performance</h3>
-                        <canvas id="perfChart" height="200"></canvas>
-                    </div>
-                    <div class="glass-light rounded-2xl p-5 card-hover flex flex-col justify-center">
-                        <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center text-2xl">🏆</div><div><p class="font-bold">Member</p><p class="text-xs text-neutral" id="memberExpires">Register to start</p></div></div>
-                        <div class="text-center"><p class="text-xs text-neutral">Total Profit</p><p class="text-3xl font-black text-profit" id="totalProfit">$0.00</p></div>
+                    <div class="lg:col-span-2 glass-light rounded-2xl p-5"><h3 class="font-bold mb-3">📈 Weekly</h3><canvas id="perfChart" height="200"></canvas></div>
+                    <div class="glass-light rounded-2xl p-5 flex flex-col justify-center text-center">
+                        <p class="text-3xl mb-2">🏆</p><p class="font-bold text-lg">Member</p><p class="text-xs text-neutral" id="memberExpires">Register to start</p><p class="text-3xl font-black text-profit mt-3" id="totalProfit">$0.00</p>
                     </div>
                 </div>
             </div>
 
+            <!-- ============================================================ -->
             <!-- SIGNALS TAB -->
+            <!-- ============================================================ -->
             <div id="tab-signals" class="tab-content hidden space-y-4">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div class="glass-light rounded-2xl p-5 card-hover relative overflow-hidden">
+                    <div class="glass-light rounded-2xl p-5 card-hover relative overflow-hidden" id="xauCard">
                         <div class="absolute top-0 right-0 w-20 h-20 bg-accent-400/5 rounded-bl-full"></div>
-                        <h3 class="font-bold text-lg mb-3 flex items-center gap-2">🥇 XAU/USD <span class="text-xs text-neutral">Gold</span></h3>
-                        <div id="xauSignalLive" class="space-y-2"><p class="text-neutral text-sm">⏳ Waiting for signal...</p></div>
+                        <h3 class="font-bold text-lg mb-3 flex items-center gap-2">🥇 XAU/USD <span class="text-xs text-neutral">Gold</span> <span class="pulse-dot-gold hidden" id="xauNewDot"></span></h3>
+                        <div id="xauSignalLive"><p class="text-neutral text-sm">⏳ Waiting...</p></div>
                     </div>
-                    <div class="glass-light rounded-2xl p-5 card-hover relative overflow-hidden">
+                    <div class="glass-light rounded-2xl p-5 card-hover relative overflow-hidden" id="btcCard">
                         <div class="absolute top-0 right-0 w-20 h-20 bg-primary-400/5 rounded-bl-full"></div>
-                        <h3 class="font-bold text-lg mb-3 flex items-center gap-2">₿ BTC/USD <span class="text-xs text-neutral">Bitcoin</span></h3>
-                        <div id="btcSignalLive" class="space-y-2"><p class="text-neutral text-sm">⏳ Waiting for signal...</p></div>
+                        <h3 class="font-bold text-lg mb-3 flex items-center gap-2">₿ BTC/USD <span class="text-xs text-neutral">Bitcoin</span> <span class="pulse-dot-gold hidden" id="btcNewDot"></span></h3>
+                        <div id="btcSignalLive"><p class="text-neutral text-sm">⏳ Waiting...</p></div>
                     </div>
                 </div>
             </div>
 
+            <!-- ============================================================ -->
+            <!-- POSITIONS TAB (NEW!) -->
+            <!-- ============================================================ -->
+            <div id="tab-positions" class="tab-content hidden">
+                <h2 class="text-2xl font-bold mb-4"><i class="fas fa-layer-group text-gold"></i> Open Positions</h2>
+                <div id="positionsList" class="space-y-3">
+                    <p class="text-neutral text-center py-8">No open positions or register license first.</p>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- LICENSE TAB (NEW DETAILED!) -->
+            <!-- ============================================================ -->
+            <div id="tab-license" class="tab-content hidden space-y-4">
+                <div class="glass-light rounded-2xl p-5 card-hover">
+                    <h3 class="font-bold text-lg mb-4">🔑 License Details</h3>
+                    <div id="licenseDetails" class="space-y-2">
+                        <p class="text-neutral">Register license to see details.</p>
+                    </div>
+                </div>
+                <!-- Payment History -->
+                <div class="glass-light rounded-2xl p-5 card-hover">
+                    <h3 class="font-bold text-lg mb-4">💳 Payment History</h3>
+                    <div id="paymentHistory"><p class="text-neutral text-sm">No payments yet.</p></div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
             <!-- AFFILIATE TAB -->
+            <!-- ============================================================ -->
             <div id="tab-affiliate" class="tab-content hidden space-y-4">
                 <div class="glass-light rounded-2xl p-5 card-hover">
-                    <h3 class="font-bold text-lg mb-3">🤝 Your Referral Program</h3>
-                    <div class="flex flex-col sm:flex-row gap-3 mb-4">
-                        <input type="text" id="affLink" readonly class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono">
-                        <button onclick="copyText('affLink')" class="bg-accent-500 hover:bg-accent-600 text-black font-bold px-6 py-3 rounded-xl text-sm flex items-center gap-2"><i class="fas fa-copy"></i> Copy</button>
-                    </div>
-                    <p class="text-sm text-neutral">💰 Earn <span class="text-accent-400 font-bold">20% commission</span> from every sale!</p>
+                    <h3 class="font-bold text-lg mb-3">🤝 Referral Program</h3>
+                    <div class="flex gap-2 mb-3"><input type="text" id="affLink" readonly class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono"><button onclick="copyText('affLink')" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-xl text-sm"><i class="fas fa-copy"></i></button></div>
+                    <p class="text-sm text-neutral">💰 Earn <span class="text-accent-400 font-bold">20%</span> commission!</p>
                 </div>
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="glass-light rounded-2xl p-4 text-center card-hover"><p class="text-xs text-neutral">Total Earned</p><p class="text-xl font-bold text-accent-400 mt-1" id="affTotal">Rp 0</p></div>
-                    <div class="glass-light rounded-2xl p-4 text-center card-hover"><p class="text-xs text-neutral">Pending</p><p class="text-xl font-bold text-yellow-500 mt-1" id="affPending">Rp 0</p></div>
-                    <div class="glass-light rounded-2xl p-4 text-center card-hover"><p class="text-xs text-neutral">Referrals</p><p class="text-xl font-bold mt-1" id="affReferrals">0</p></div>
-                    <div class="glass-light rounded-2xl p-4 text-center card-hover"><p class="text-xs text-neutral">Paid Out</p><p class="text-xl font-bold text-profit mt-1" id="affPaid">Rp 0</p></div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div class="glass-light rounded-2xl p-4 text-center"><p class="text-xs text-neutral">Total</p><p class="text-xl font-bold text-accent-400" id="affTotal">Rp 0</p></div>
+                    <div class="glass-light rounded-2xl p-4 text-center"><p class="text-xs text-neutral">Pending</p><p class="text-xl font-bold text-yellow-500" id="affPending">Rp 0</p></div>
+                    <div class="glass-light rounded-2xl p-4 text-center"><p class="text-xs text-neutral">Referrals</p><p class="text-xl font-bold" id="affReferrals">0</p></div>
+                    <div class="glass-light rounded-2xl p-4 text-center"><p class="text-xs text-neutral">Paid</p><p class="text-xl font-bold text-profit" id="affPaid">Rp 0</p></div>
+                </div>
+                <button onclick="showWithdrawModal()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-6 py-3 rounded-xl text-sm">💰 Withdraw</button>
+                
+                <!-- Leaderboard -->
+                <div class="glass-light rounded-2xl p-5 card-hover">
+                    <h3 class="font-bold text-lg mb-3">🏆 Top Affiliates</h3>
+                    <div id="affLeaderboard"><p class="text-neutral text-sm">Loading...</p></div>
                 </div>
             </div>
 
+            <!-- ============================================================ -->
             <!-- PAYMENTS TAB -->
+            <!-- ============================================================ -->
             <div id="tab-payments" class="tab-content hidden space-y-4">
                 <div class="glass-light rounded-2xl p-5 card-hover">
                     <h3 class="font-bold text-lg mb-4">💳 Purchase License</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div onclick="selectPackage('basic', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer hover:border-accent-400 border border-white/5"><p class="text-2xl mb-1">🥈</p><p class="font-bold text-lg">Basic</p><p class="text-3xl font-black text-accent-400 my-2">Rp 50K</p><p class="text-xs text-neutral">30 Days • 5 Pairs</p></div>
-                        <div onclick="selectPackage('pro', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer hover:border-accent-400 border border-white/5"><p class="text-2xl mb-1">🥇</p><p class="font-bold text-lg">Pro</p><p class="text-3xl font-black text-accent-400 my-2">Rp 120K</p><p class="text-xs text-neutral">90 Days • 8 Pairs</p></div>
-                        <div onclick="selectPackage('vip', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer hover:border-accent-400 border border-white/5"><p class="text-2xl mb-1">💎</p><p class="font-bold text-lg">VIP</p><p class="text-3xl font-black text-accent-400 my-2">Rp 198K</p><p class="text-xs text-neutral">180 Days • 10 Pairs</p></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div onclick="selectPackage('pro', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer border border-white/5"><p class="text-2xl">🥈</p><p class="font-bold text-lg">Pro</p><p class="text-sm text-neutral">Analisa Manual AI</p><p class="text-2xl font-black text-accent-400 my-2">Rp 150K</p><p class="text-xs text-neutral">/bulan</p></div>
+                        <div onclick="selectPackage('max', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer border border-white/5"><p class="text-2xl">🥇</p><p class="font-bold text-lg">Max</p><p class="text-sm text-neutral">Manual + Auto Trading</p><p class="text-2xl font-black text-accent-400 my-2">Rp 350K</p><p class="text-xs text-neutral">/bulan</p></div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <button onclick="selectMonths(1, this)" class="month-btn glass rounded-xl px-4 py-2 text-sm border border-white/5">1 Mo</button>
+                        <button onclick="selectMonths(3, this)" class="month-btn glass rounded-xl px-4 py-2 text-sm border border-white/5">3 Mo <span class="text-xs text-profit">-10%</span></button>
+                        <button onclick="selectMonths(6, this)" class="month-btn glass rounded-xl px-4 py-2 text-sm border border-white/5">6 Mo <span class="text-xs text-profit">-17%</span></button>
+                        <button onclick="selectMonths(12, this)" class="month-btn glass rounded-xl px-4 py-2 text-sm border border-white/5">12 Mo <span class="text-xs text-profit">-25%</span></button>
                     </div>
                     <div id="paymentDetails" class="hidden glass-light rounded-2xl p-5 text-center">
-                        <p class="text-lg font-bold mb-3">QRIS Payment</p>
-                        <div class="bg-white rounded-xl p-4 inline-block mb-3"><p class="text-black text-sm font-bold">[QR Code]</p></div>
-                        <p class="text-sm text-neutral mb-3">Total: <span class="text-accent-400 font-bold text-lg" id="payTotal">Rp 0</span></p>
-                        <button onclick="processPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-8 py-4 rounded-xl text-lg w-full sm:w-auto hover:scale-105 transform">💰 I Have Paid — Get License</button>
+                        <p class="text-lg font-bold mb-3">Payment</p>
+                        <p class="text-2xl font-black text-accent-400" id="payTotal">Rp 0</p>
+                        <p class="text-xs text-neutral" id="payPerMonth"></p>
+                        <p class="text-xs text-profit hidden" id="payDiscount"></p>
+                        <button onclick="processPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-8 py-4 rounded-xl text-lg w-full sm:w-auto mt-4">💰 Pay Now — Get License</button>
+                        <p class="text-xs text-neutral mt-2" id="paymentNote">⚠️ Midtrans pending approval — manual payment for now.</p>
                     </div>
                 </div>
             </div>
 
+            <!-- ============================================================ -->
             <!-- HISTORY TAB -->
+            <!-- ============================================================ -->
             <div id="tab-history" class="tab-content hidden">
-                <div class="glass-light rounded-2xl p-5 card-hover">
-                    <h3 class="font-bold text-lg mb-4">📜 Trade History</h3>
-                    <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-neutral border-b border-white/5"><th class="text-left py-3">Date</th><th class="text-left py-3">Pair</th><th class="text-left py-3">Type</th><th class="text-right py-3">Entry</th><th class="text-right py-3">Exit</th><th class="text-right py-3">P/L</th></tr></thead><tbody id="historyBody"><tr><td colspan="6" class="text-center py-8 text-neutral">No trades yet</td></tr></tbody></table></div>
-                </div>
+                <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-4">📜 Trade History</h3><table class="w-full text-sm"><thead><tr class="text-neutral border-b border-white/5"><th class="text-left py-3">Date</th><th class="text-left py-3">Pair</th><th class="text-left py-3">Type</th><th class="text-right py-3">Entry</th><th class="text-right py-3">P/L</th></tr></thead><tbody id="historyBody"><tr><td colspan="5" class="text-center py-8 text-neutral">No trades yet</td></tr></tbody></table></div>
             </div>
 
+            <!-- ============================================================ -->
             <!-- SETTINGS TAB -->
+            <!-- ============================================================ -->
             <div id="tab-settings" class="tab-content hidden space-y-4">
-                <div class="glass-light rounded-2xl p-5 card-hover">
-                    <h3 class="font-bold text-lg mb-4">🔑 License Registration</h3>
-                    <div class="flex gap-2"><input type="text" id="regKey" placeholder="AT-XXXX-XXXX" class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm"><button onclick="registerLicense()" class="bg-accent-500 text-black font-bold px-6 py-3 rounded-xl text-sm">Register</button></div>
-                </div>
+                <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3">🔑 Register License</h3><div class="flex gap-2"><input type="text" id="regKey" placeholder="AT-XXXX-XXXX" class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm"><button onclick="registerLicense()" class="bg-accent-500 text-black font-bold px-6 py-3 rounded-xl text-sm">Register</button></div></div>
+                <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3">📱 Telegram</h3><p class="text-sm text-neutral mb-2">Get entry/close notifications.</p><button onclick="window.open('https://t.me/AetherTradeBot','_blank')" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-lg text-sm"><i class="fab fa-telegram"></i> Open Bot</button><p class="text-xs text-neutral mt-2">Send <code class="bg-black px-2 py-1 rounded">/register LICENSE_KEY</code></p></div>
+                <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3">🎨 Theme</h3><button onclick="toggleTheme()" class="glass rounded-xl px-4 py-2 text-sm"><span id="themeBtnText">Switch to Light</span></button></div>
             </div>
 
         </main>
     </div>
 
-    <!-- MOBILE BOTTOM NAV -->
+    <!-- MOBILE NAV -->
     <nav class="lg:hidden fixed bottom-0 left-0 right-0 glass border-t border-white/5 flex justify-around py-3 z-50">
-        <button onclick="switchTab('dashboard')" class="flex flex-col items-center gap-1 text-accent-400 text-xs"><i class="fas fa-th-large text-lg"></i> Home</button>
-        <button onclick="switchTab('signals')" class="flex flex-col items-center gap-1 text-neutral text-xs"><i class="fas fa-chart-line text-lg"></i> Signals</button>
-        <button onclick="switchTab('affiliate')" class="flex flex-col items-center gap-1 text-neutral text-xs"><i class="fas fa-users text-lg"></i> Affiliate</button>
-        <button onclick="switchTab('payments')" class="flex flex-col items-center gap-1 text-neutral text-xs"><i class="fas fa-credit-card text-lg"></i> Pay</button>
-        <button onclick="switchTab('settings')" class="flex flex-col items-center gap-1 text-neutral text-xs"><i class="fas fa-gear text-lg"></i> Settings</button>
+        <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-accent-400 text-xs"><i class="fas fa-home text-lg"></i></button>
+        <button onclick="switchTab('signals')" class="flex flex-col items-center text-neutral text-xs"><i class="fas fa-chart-line text-lg"></i></button>
+        <button onclick="switchTab('positions')" class="flex flex-col items-center text-neutral text-xs"><i class="fas fa-layer-group text-lg"></i></button>
+        <button onclick="switchTab('license')" class="flex flex-col items-center text-neutral text-xs"><i class="fas fa-id-card text-lg"></i></button>
+        <button onclick="switchTab('settings')" class="flex flex-col items-center text-neutral text-xs"><i class="fas fa-gear text-lg"></i></button>
     </nav>
 
-    <!-- TRADINGVIEW WIDGET SCRIPT -->
-    <script src="https://s3.tradingview.com/tv.js"></script>
+    <!-- WITHDRAW MODAL -->
+    <div id="withdrawModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+        <div class="glass-light rounded-2xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">💰 Withdraw Commission</h3>
+            <p class="text-sm text-neutral mb-2">Balance: <span class="text-accent-400 font-bold" id="wdBalance">Rp 0</span></p>
+            <input type="number" id="wdAmount" placeholder="Amount (Rp)" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mb-3">
+            <select id="wdMethod" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mb-3"><option value="gopay">GoPay</option><option value="dana">Dana</option><option value="bank">Bank</option></select>
+            <input type="text" id="wdAccount" placeholder="Account number" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mb-3">
+            <div class="flex gap-2"><button onclick="submitWithdraw()" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-lg text-sm flex-1">Withdraw</button><button onclick="document.getElementById('withdrawModal').classList.add('hidden')" class="glass rounded-xl px-4 py-2 text-sm">Cancel</button></div>
+        </div>
+    </div>
 
+    <!-- ============================================================ -->
+    <!-- SCRIPTS -->
+    <!-- ============================================================ -->
     <script>
         // ============================================================
-        // PARTICLE BACKGROUND
+        // CONFIG (MUDAH DIUBAH)
         // ============================================================
-        const pCanvas = document.getElementById('particleCanvas');
-        const pCtx = pCanvas.getContext('2d');
-        pCanvas.width = window.innerWidth;
-        pCanvas.height = window.innerHeight;
-        const particles = [];
-        for (let i = 0; i < 40; i++) {
-            particles.push({ x: Math.random()*pCanvas.width, y: Math.random()*pCanvas.height, vx: (Math.random()-0.5)*0.3, vy: (Math.random()-0.5)*0.3, size: Math.random()*1.5 });
-        }
-        function animateParticles() {
-            pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
-            particles.forEach(p => {
-                p.x += p.vx; p.y += p.vy;
-                if (p.x<0||p.x>pCanvas.width) p.vx*=-1;
-                if (p.y<0||p.y>pCanvas.height) p.vy*=-1;
-                pCtx.beginPath(); pCtx.arc(p.x,p.y,p.size,0,Math.PI*2);
-                pCtx.fillStyle='rgba(251,191,36,0.2)'; pCtx.fill();
-            });
-            requestAnimationFrame(animateParticles);
-        }
-        animateParticles();
-        window.addEventListener('resize',()=>{pCanvas.width=window.innerWidth;pCanvas.height=window.innerHeight;});
+        const CONFIG = {
+            firebaseURL: "https://aethertrade-signals-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            // Midtrans — ganti setelah approved
+            midtransEnabled: false,
+            midtransClientKey: "MIDTRANS_CLIENT_KEY",
+            midtransServerURL: "https://aethertrade.duckdns.org:8888",
+            // Admin license (untuk public signals)
+            adminLicense: "AT-AB100702CB5771F2",
+            // Theme
+            theme: localStorage.getItem('at_theme') || 'dark',
+            // Packages
+            packages: {
+                pro: { name: '🥈 Pro', desc: 'Analisa Manual AI', pricePerMonth: 150000, features: ['manual'] },
+                max: { name: '🥇 Max', desc: 'Manual + Auto Trading', pricePerMonth: 350000, features: ['manual', 'autotrade'] }
+            },
+            discounts: { 1: 0, 2: 0.05, 3: 0.10, 6: 0.17, 12: 0.25 }
+        };
 
         // ============================================================
         // FIREBASE
         // ============================================================
-        const firebaseConfig = { databaseURL: "https://aethertrade-signals-default-rtdb.asia-southeast1.firebasedatabase.app/" };
-        firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp({ databaseURL: CONFIG.firebaseURL });
         const db = firebase.database();
 
         // ============================================================
@@ -324,51 +380,32 @@
             package: '', expires: '',
             affiliateId: new URLSearchParams(window.location.search).get('ref') || ''
         };
-        let selectedPackage = '';
+        let paymentState = { package: '', months: 1, price: 0 };
+        let lastSignals = {};
+
+        // ============================================================
+        // PARTICLE BG
+        // ============================================================
+        const pCanvas = document.getElementById('particleCanvas'), pCtx = pCanvas.getContext('2d');
+        pCanvas.width = innerWidth; pCanvas.height = innerHeight;
+        const particles = Array.from({length:40}, () => ({ x: Math.random()*pCanvas.width, y: Math.random()*pCanvas.height, vx: (Math.random()-0.5)*0.3, vy: (Math.random()-0.5)*0.3, size: Math.random()*1.5 }));
+        function animParticles() {
+            pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+            particles.forEach(p => { p.x+=p.vx; p.y+=p.vy; if(p.x<0||p.x>pCanvas.width)p.vx*=-1; if(p.y<0||p.y>pCanvas.height)p.vy*=-1; pCtx.beginPath(); pCtx.arc(p.x,p.y,p.size,0,Math.PI*2); pCtx.fillStyle='rgba(251,191,36,0.2)'; pCtx.fill(); });
+            requestAnimationFrame(animParticles);
+        }
+        animParticles();
+        addEventListener('resize',()=>{pCanvas.width=innerWidth;pCanvas.height=innerHeight;});
 
         // ============================================================
         // TRADINGVIEW CHART
         // ============================================================
-        new TradingView.widget({
-            "container_id": "tv_chart",
-            "symbol": "OANDA:XAUUSD",
-            "interval": "15",
-            "theme": "dark",
-            "style": "1",
-            "locale": "en",
-            "toolbar_bg": "#0a0a0a",
-            "hide_top_toolbar": true,
-            "save_image": false,
-            "height": "100%",
-            "width": "100%"
-        });
+        new TradingView.widget({ container_id:"tv_chart", symbol:"OANDA:XAUUSD", interval:"15", theme:"dark", style:"1", locale:"en", toolbar_bg:"#0a0a0a", hide_top_toolbar:true, save_image:false, height:"100%", width:"100%" });
 
         // ============================================================
-        // CHART.JS PERFORMANCE
+        // CHART.JS
         // ============================================================
-        const perfCtx = document.getElementById('perfChart').getContext('2d');
-        new Chart(perfCtx, {
-            type: 'line',
-            data: {
-                labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-                datasets: [{
-                    label: 'Profit/Loss',
-                    data: [50,-20,80,120,-10,90,200],
-                    borderColor: '#f59e0b',
-                    backgroundColor: 'rgba(245,158,11,0.1)',
-                    fill: true, tension: 0.4,
-                    pointRadius: 4, pointBackgroundColor: '#f59e0b'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(255,255,255,0.03)' } },
-                    y: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(255,255,255,0.03)' } }
-                }
-            }
-        });
+        new Chart(document.getElementById('perfChart').getContext('2d'), { type:'line', data:{ labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets:[{ label:'P/L', data:[50,-20,80,120,-10,90,200], borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.1)', fill:true, tension:0.4, pointRadius:4 }] }, options:{ responsive:true, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{color:'#6b7280'}, grid:{color:'rgba(255,255,255,0.03)'} }, y:{ ticks:{color:'#6b7280'}, grid:{color:'rgba(255,255,255,0.03)'} } } } });
 
         // ============================================================
         // TAB SWITCHING
@@ -376,88 +413,176 @@
         function switchTab(name) {
             document.querySelectorAll('.tab-content').forEach(e => e.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
-            document.getElementById('tab-'+name).classList.remove('hidden');
-            const titles = { dashboard:['Dashboard','Welcome back! Here\'s your trading overview.'], signals:['Live Signals','Real-time XAU & BTC signals'], affiliate:['Affiliate Program','Earn 20% commission'], payments:['Payments','Purchase or renew license'], history:['Trade History','Your trading performance'], settings:['Settings','Manage your account'] };
-            document.getElementById('pageTitle').textContent = titles[name][0];
-            document.getElementById('pageSubtitle').textContent = titles[name][1];
-            if (name==='signals') loadSignals();
-            if (name==='dashboard') loadDashboard();
-            if (name==='affiliate') loadAffiliate();
+            const el = document.getElementById('tab-'+name); if(el) el.classList.remove('hidden');
+            const titles = { dashboard:['Dashboard','Trading overview'], signals:['Live Signals','Real-time XAU & BTC'], positions:['Open Positions','All active trades'], license:['License','Details & status'], affiliate:['Affiliate','Earn 20% commission'], payments:['Payments','Purchase license'], history:['History','Trade history'], settings:['Settings','Manage account'] };
+            document.getElementById('pageTitle').textContent = titles[name]?.[0]||name;
+            document.getElementById('pageSubtitle').textContent = titles[name]?.[1]||'';
+            if(name==='signals') loadSignals();
+            if(name==='positions') loadPositions();
+            if(name==='dashboard') loadDashboard();
+            if(name==='affiliate') loadAffiliate();
+            if(name==='license') loadLicenseDetails();
         }
 
         // ============================================================
         // DASHBOARD
         // ============================================================
         function loadDashboard() {
-            animateCounter(document.getElementById('dashBalance'), 10714.00);
-            document.getElementById('dashBalanceChange').textContent = '+8.5%';
-            document.getElementById('dashOpen').textContent = '22';
-            document.getElementById('dashPL').textContent = '+$90.68';
-            document.getElementById('dashPLPercent').textContent = '+0.85%';
+            document.getElementById('dashBalance').textContent = '$10,702.25';
+            document.getElementById('dashOpen').textContent = '20';
+            document.getElementById('dashPL').textContent = '+$60.80';
             document.getElementById('dashWR').textContent = '83.2%';
             document.getElementById('wrBar').style.width = '83.2%';
             document.getElementById('totalProfit').textContent = '+$2,450.00';
-            document.getElementById('userName').textContent = 'Admin';
             document.getElementById('userLicense').textContent = currentUser.licenseKey ? currentUser.licenseKey.substring(0,15)+'...' : 'No License';
-            document.getElementById('memberExpires').textContent = currentUser.expires ? 'Exp: '+new Date(currentUser.expires).toLocaleDateString() : 'Register to start';
             loadRecentTrades();
+            // Onboarding
+            if(!currentUser.licenseKey) { document.getElementById('onboardingCard').classList.remove('hidden'); document.getElementById('step1').classList.add('active'); }
+            else { document.getElementById('onboardingCard').classList.add('hidden'); }
         }
 
-        // ============================================================
-        // RECENT TRADES FROM FIREBASE
-        // ============================================================
         function loadRecentTrades() {
             const container = document.getElementById('recentTrades');
-            if (!currentUser.licenseKey) {
-                container.innerHTML = '<p class="text-neutral text-sm text-center py-4">Register license to see signals</p>';
-                return;
-            }
-            db.ref('signals/' + currentUser.licenseKey).on('value', snap => {
-                const data = snap.val();
-                if (data && data.dir) {
-                    const dirColor = data.dir==='BUY'?'text-profit':data.dir==='SELL'?'text-loss':'text-neutral';
-                    container.innerHTML = `
-                        <div class="glass rounded-xl p-3 text-sm">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="${dirColor} font-bold text-lg">${data.dir}</span>
-                                <span class="text-neutral text-xs">${data.pair}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-1 text-xs">
-                                <p>Entry: <span class="font-bold">$${data.entry||'-'}</span></p>
-                                <p>SL: <span class="text-loss">$${data.sl||'-'}</span></p>
-                                <p>Lot: <span>${data.lot||'-'}</span></p>
-                                <p>Strategy: <span>${data.strategy||'AI'}</span></p>
-                            </div>
-                        </div>`;
-                } else {
-                    container.innerHTML = '<p class="text-neutral text-sm text-center py-4">Waiting for signal...</p>';
-                }
+            if(!currentUser.licenseKey) { container.innerHTML='<p class="text-neutral text-sm text-center py-4">Register license</p>'; return; }
+            const pairPath = 'XAU_USD';
+            db.ref(`signals/${currentUser.licenseKey}/${pairPath}`).on('value', snap => {
+                const d = snap.val();
+                if(d?.dir) {
+                    const c = d.dir==='BUY'?'text-profit':d.dir==='SELL'?'text-loss':'text-neutral';
+                    container.innerHTML=`<div class="glass rounded-xl p-3 text-sm"><div class="flex justify-between"><span class="${c} font-bold text-lg">${d.dir}</span><span class="text-neutral text-xs">XAU/USD</span></div><div class="grid grid-cols-2 gap-1 text-xs mt-1"><p>Entry: <b>$${d.entry||'-'}</b></p><p>SL: <span class="text-loss">$${d.sl||'-'}</span></p></div></div>`;
+                } else container.innerHTML='<p class="text-neutral text-sm text-center py-4">Waiting...</p>';
             });
         }
 
         // ============================================================
-        // ANIMATED COUNTER
-        // ============================================================
-        function animateCounter(element, target, duration=1000) {
-            const start=0, startTime=performance.now();
-            function update(ct){const e=ct-startTime,p=Math.min(e/duration,1);element.textContent='$'+(start+(target-start)*p).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');if(p<1)requestAnimationFrame(update);}
-            requestAnimationFrame(update);
-        }
-
-        // ============================================================
-        // SIGNALS
+        // SIGNALS (Path per Pair)
         // ============================================================
         function loadSignals() {
-            db.ref('signals/AT-AB100702CB5771F2').on('value', snap => {
+            ['XAU_USD','BTC_USD'].forEach(pp => {
+                const targetId = pp === 'XAU_USD' ? 'xauSignalLive' : 'btcSignalLive';
+                const dotId = pp === 'XAU_USD' ? 'xauNewDot' : 'btcNewDot';
+                db.ref(`signals/${CONFIG.adminLicense}/${pp}`).on('value', snap => {
+                    const d = snap.val();
+                    const container = document.getElementById(targetId);
+                    if(d?.dir) {
+                        const emoji = d.dir==='BUY'?'🟢':d.dir==='SELL'?'🔴':'⚪';
+                        const ts = d.timestamp ? new Date(d.timestamp*1000) : new Date();
+                        const age = Math.floor((Date.now()-ts)/60000);
+                        const isNew = age < 2;
+                        
+                        container.innerHTML = `
+                            <div class="${isNew ? 'animate-new-signal rounded-xl p-2' : ''}">
+                                <div class="flex items-center gap-2"><span class="text-2xl">${emoji}</span><span class="font-bold text-lg">${d.dir}</span><span class="text-xs text-neutral">${d.strategy||'AI'}</span>${isNew ? '<span class="text-xs text-accent-400 animate-countdown">NEW</span>' : ''}</div>
+                                <div class="grid grid-cols-2 gap-2 text-sm mt-2"><div><span class="text-neutral">Entry</span><p class="font-bold">$${d.entry||'-'}</p></div><div><span class="text-neutral">SL</span><p class="font-bold text-loss">$${d.sl||'-'}</p></div><div><span class="text-neutral">Trail</span><p class="font-bold">$${d.trailStart||'-'}</p></div><div><span class="text-neutral">Step</span><p class="font-bold">${d.trailStep||'-'}</p></div></div>
+                                <p class="text-[10px] text-neutral mt-1">🕐 ${ts.toLocaleTimeString()} (${age}m ago)</p>
+                            </div>`;
+                        
+                        if(isNew) {
+                            document.getElementById(dotId).classList.remove('hidden');
+                            setTimeout(() => document.getElementById(dotId).classList.add('hidden'), 120000);
+                        }
+                    } else container.innerHTML='<p class="text-neutral text-sm">⏳ Waiting for signal...</p>';
+                });
+            });
+        }
+
+        // ============================================================
+        // POSITIONS (NEW!)
+        // ============================================================
+        function loadPositions() {
+            const container = document.getElementById('positionsList');
+            if(!currentUser.licenseKey) { container.innerHTML='<p class="text-neutral text-center py-8">Register license first.</p>'; return; }
+            // Simulasi posisi (ganti dengan data real nanti)
+            const mockPositions = [
+                { pair:'XAU/USD', dir:'BUY', entry:4178.05, sl:4061.71, lot:0.01, profit:12.50, time:'12:00', trailActive:false },
+                { pair:'XAU/USD', dir:'BUY', entry:4179.66, sl:4060.50, lot:0.01, profit:10.80, time:'12:15', trailActive:true },
+                { pair:'BTC/USD', dir:'SELL', entry:63370, sl:63470, lot:0.01, profit:-8.20, time:'12:30', trailActive:false },
+            ];
+            container.innerHTML = mockPositions.map(p => {
+                const dirC = p.dir==='BUY'?'text-profit':'text-loss';
+                const plC = p.profit>=0?'profit-positive':'profit-negative';
+                const trailIcon = p.trailActive ? '🔒' : '🔓';
+                return `<div class="glass rounded-xl p-4 flex items-center justify-between">
+                    <div><span class="${dirC} font-bold">${p.dir}</span> <span class="text-sm">${p.pair}</span><p class="text-xs text-neutral">Entry: $${p.entry} | SL: $${p.sl} | Lot: ${p.lot}</p></div>
+                    <div class="text-right"><p class="font-bold ${plC}">${p.profit>=0?'+':''}$${p.profit.toFixed(2)}</p><p class="text-xs text-neutral">${p.time} | Trail: ${trailIcon}</p></div>
+                </div>`;
+            }).join('');
+        }
+
+        // ============================================================
+        // LICENSE DETAILS (NEW!)
+        // ============================================================
+        function loadLicenseDetails() {
+            const container = document.getElementById('licenseDetails');
+            if(!currentUser.licenseKey) { container.innerHTML='<p class="text-neutral">Register license to see details.</p>'; return; }
+            db.ref('licenses/'+currentUser.licenseKey).once('value', snap => {
                 const d = snap.val();
-                if (d) {
-                    const emoji = d.dir==='BUY'?'🟢':d.dir==='SELL'?'🔴':'⚪';
-                    const html = `<div class="flex items-center gap-2"><span class="text-2xl">${emoji}</span><span class="font-bold text-lg">${d.dir||'HOLD'}</span><span class="text-xs text-neutral">${d.strategy||'AI'}</span></div>
-                    <div class="grid grid-cols-2 gap-2 text-sm"><div><span class="text-neutral">Entry</span><p class="font-bold">$${d.entry||'-'}</p></div><div><span class="text-neutral">SL</span><p class="font-bold text-loss">$${d.sl||'-'}</p></div><div><span class="text-neutral">Trail</span><p class="font-bold">$${d.trailStart||'-'}</p></div><div><span class="text-neutral">Lot</span><p class="font-bold">${d.lot||'-'}</p></div></div>`;
-                    if (d.pair==='XAU/USD') document.getElementById('xauSignalLive').innerHTML = html;
-                    if (d.pair==='BTC/USD') document.getElementById('btcSignalLive').innerHTML = html;
+                if(d) {
+                    const exp = new Date(d.expires);
+                    const now = new Date();
+                    const daysLeft = Math.ceil((exp-now)/(86400000));
+                    const isActive = d.is_active && daysLeft > 0;
+                    const statusColor = isActive ? 'text-profit' : 'text-loss';
+                    const statusText = isActive ? 'ACTIVE' : daysLeft < 0 ? 'EXPIRED' : 'INACTIVE';
+                    
+                    container.innerHTML = `
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div><span class="text-neutral">License</span><p class="font-bold font-mono">${currentUser.licenseKey}</p></div>
+                            <div><span class="text-neutral">Status</span><p class="font-bold ${statusColor}">${statusText}</p></div>
+                            <div><span class="text-neutral">Package</span><p class="font-bold">${d.package?.toUpperCase()||'-'}</p></div>
+                            <div><span class="text-neutral">Max Pairs</span><p class="font-bold">${d.max_pairs||'-'}</p></div>
+                            <div><span class="text-neutral">Created</span><p>${new Date(d.created).toLocaleDateString()}</p></div>
+                            <div><span class="text-neutral">Expires</span><p class="${daysLeft<=7&&daysLeft>0?'text-yellow-500 animate-countdown':''}">${exp.toLocaleDateString()} (${daysLeft>0?daysLeft+'d left':'Expired'})</p></div>
+                        </div>
+                        ${!isActive ? '<button onclick="switchTab(\'payments\')" class="bg-accent-500 text-black font-bold px-6 py-2 rounded-lg text-sm mt-4">🔄 Renew License</button>' : ''}
+                    `;
+                    document.getElementById('memberExpires').textContent = `Exp: ${exp.toLocaleDateString()}`;
                 }
             });
+        }
+
+        // ============================================================
+        // PAYMENTS
+        // ============================================================
+        function selectPackage(pkg, el) {
+            paymentState.package = pkg;
+            document.querySelectorAll('.pkg-card').forEach(e => e.style.borderColor='rgba(255,255,255,0.05)');
+            el.style.borderColor='#f59e0b';
+            calcPrice();
+        }
+        function selectMonths(m, el) {
+            paymentState.months = m;
+            document.querySelectorAll('.month-btn').forEach(e => e.style.borderColor='rgba(255,255,255,0.05)');
+            el.style.borderColor='#f59e0b';
+            calcPrice();
+        }
+        function calcPrice() {
+            if(!paymentState.package) return;
+            const base = CONFIG.packages[paymentState.package].pricePerMonth;
+            const discount = CONFIG.discounts[paymentState.months]||0;
+            paymentState.price = Math.round(base*paymentState.months*(1-discount));
+            document.getElementById('paymentDetails').classList.remove('hidden');
+            document.getElementById('payTotal').textContent = 'Rp '+paymentState.price.toLocaleString();
+            document.getElementById('payPerMonth').textContent = 'Rp '+Math.round(paymentState.price/paymentState.months).toLocaleString()+'/mo';
+            if(discount>0) { document.getElementById('payDiscount').classList.remove('hidden'); document.getElementById('payDiscount').textContent = '💰 Save '+(discount*100)+'%!'; }
+            else document.getElementById('payDiscount').classList.add('hidden');
+        }
+        function processPayment() {
+            if(!paymentState.package||!paymentState.months) return showToast('Select package & duration!','error');
+            if(CONFIG.midtransEnabled) { processMidtrans(); return; }
+            // Manual payment
+            const key = 'AT-'+Math.random().toString(36).substring(2,10).toUpperCase();
+            const now = new Date(), exp = new Date(now); exp.setDate(exp.getDate()+paymentState.months*30);
+            db.ref('licenses/'+key).set({ owner_name:'User-'+key.substring(3,9), package:paymentState.package, duration_months:paymentState.months, created:now.toISOString(), expires:exp.toISOString(), is_active:true, max_pairs:paymentState.package==='max'?10:5, payment_amount:paymentState.price, payment_method:'manual' }).then(() => {
+                currentUser.licenseKey=key; currentUser.package=paymentState.package; currentUser.expires=exp.toISOString(); localStorage.setItem('at_license',key);
+                document.getElementById('paymentDetails').innerHTML=`<div class="text-center"><p class="text-3xl mb-2">🎉</p><p class="text-lg font-bold text-profit mb-2">License Generated!</p><div class="bg-black border border-accent-400 rounded-xl px-4 py-3 mb-3"><p class="text-xl font-bold text-accent-400 tracking-wider">${key}</p></div><p class="text-sm text-neutral">Expires: ${exp.toLocaleDateString()}</p><button onclick="switchTab('dashboard');loadDashboard();" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-6 py-2 rounded-lg mt-3">🚀 Start</button></div>`;
+                showToast('✅ License generated!','success');
+                if(currentUser.affiliateId) { const comm=Math.round(paymentState.price*0.2); db.ref('affiliates/'+currentUser.affiliateId+'/pending_commission').transaction(c=>(c||0)+comm); db.ref('affiliates/'+currentUser.affiliateId+'/total_commission').transaction(c=>(c||0)+comm); db.ref('affiliates/'+currentUser.affiliateId+'/referrals').transaction(c=>(c||0)+1); }
+            });
+        }
+        function processMidtrans() {
+            // Akan diisi setelah Midtrans approved
+            showToast('⏳ Midtrans pending approval','error');
         }
 
         // ============================================================
@@ -466,35 +591,22 @@
         function loadAffiliate() {
             const affId = 'AFF-'+(currentUser.licenseKey||'DEMO').substring(3,9);
             document.getElementById('affLink').value = 'https://dikakugysaki.github.io/aethertrade-panel/?ref='+affId;
-        }
-
-        // ============================================================
-        // PAYMENTS
-        // ============================================================
-        function selectPackage(pkg, el) {
-            selectedPackage = pkg;
-            document.querySelectorAll('.pkg-card').forEach(e=>e.style.borderColor='rgba(255,255,255,0.05)');
-            el.style.borderColor='#f59e0b';
-            document.getElementById('paymentDetails').classList.remove('hidden');
-            const prices={basic:50000,pro:120000,vip:198000};
-            document.getElementById('payTotal').textContent='Rp '+prices[pkg].toLocaleString();
-        }
-        
-        function processPayment() {
-            if (!selectedPackage) return showToast('Select a package first!','error');
-            const prices={basic:50000,pro:120000,vip:198000};
-            const key='AT-'+Math.random().toString(36).substring(2,10).toUpperCase();
-            const now=new Date(), exp=new Date(now);
-            exp.setDate(exp.getDate()+{basic:30,pro:90,vip:180}[selectedPackage]);
-            db.ref('licenses/'+key).set({
-                owner_name:'User-'+key.substring(3,9), package:selectedPackage,
-                created:now.toISOString(), expires:exp.toISOString(), is_active:true,
-                max_pairs:{basic:5,pro:8,vip:10}[selectedPackage], payment_amount:prices[selectedPackage]
-            }).then(()=>{
-                currentUser.licenseKey=key; localStorage.setItem('at_license',key);
-                showToast('✅ License generated! '+key,'success');
-                switchTab('dashboard'); loadDashboard();
+            db.ref('affiliates/'+affId).on('value', snap => {
+                const d = snap.val()||{};
+                document.getElementById('affTotal').textContent = 'Rp '+(d.total_commission||0).toLocaleString();
+                document.getElementById('affPending').textContent = 'Rp '+(d.pending_commission||0).toLocaleString();
+                document.getElementById('affReferrals').textContent = d.referrals||0;
+                document.getElementById('affPaid').textContent = 'Rp '+(d.paid_commission||0).toLocaleString();
             });
+        }
+        function showWithdrawModal() { document.getElementById('withdrawModal').classList.remove('hidden'); }
+        function submitWithdraw() {
+            const amt=parseInt(document.getElementById('wdAmount').value), mtd=document.getElementById('wdMethod').value, acc=document.getElementById('wdAccount').value;
+            if(!amt||!acc) return showToast('Fill all fields!','error');
+            const affId='AFF-'+(currentUser.licenseKey||'DEMO').substring(3,9);
+            db.ref('affiliates/'+affId+'/withdrawals/'+Date.now()).set({ amount:amt, method:mtd, account:acc, status:'pending' });
+            document.getElementById('withdrawModal').classList.add('hidden');
+            showToast('✅ Withdrawal submitted! 1x24h processing.','success');
         }
 
         // ============================================================
@@ -502,43 +614,46 @@
         // ============================================================
         function registerLicense() {
             const key=document.getElementById('regKey').value.trim().toUpperCase();
-            if (!key) return showToast('Enter license key!','error');
-            db.ref('licenses/'+key).once('value').then(snap=>{
-                if (snap.val()?.is_active) {
-                    currentUser.licenseKey=key; localStorage.setItem('at_license',key);
-                    showToast('✅ License registered!','success');
-                    switchTab('dashboard'); loadDashboard();
-                } else showToast('❌ Invalid license!','error');
+            if(!key) return showToast('Enter license key!','error');
+            db.ref('licenses/'+key).once('value').then(snap => {
+                if(snap.val()?.is_active) { currentUser.licenseKey=key; localStorage.setItem('at_license',key); showToast('✅ License registered!','success'); switchTab('dashboard'); loadDashboard(); }
+                else showToast('❌ Invalid license!','error');
             });
         }
 
         // ============================================================
-        // NOTIFICATIONS
+        // THEME
         // ============================================================
-        function requestNotification() {
-            if ('Notification' in window) {
-                Notification.requestPermission().then(perm=>{
-                    if (perm==='granted') {
-                        new Notification('AetherTrade',{body:'✅ Notifications enabled! You will receive signal alerts.',icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📊</text></svg>'});
-                        showToast('✅ Notifications enabled!','success');
-                    }
-                });
-            }
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('at_theme', isDark?'dark':'light');
+            document.getElementById('themeIcon').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+            document.getElementById('themeText').textContent = isDark ? 'Dark Mode' : 'Light Mode';
+            document.getElementById('themeBtnText').textContent = isDark ? 'Switch to Light' : 'Switch to Dark';
         }
+        if(CONFIG.theme==='light') { document.documentElement.classList.remove('dark'); }
 
         // ============================================================
         // HELPERS
         // ============================================================
-        function copyText(id){const el=document.getElementById(id);el.select();document.execCommand('copy');showToast('✅ Copied!','success');}
-        function showToast(msg,type){const t=document.createElement('div');t.className='toast glass-light rounded-xl px-4 py-3 text-sm font-medium '+(type==='success'?'text-profit':'text-loss');t.textContent=msg;document.getElementById('toastContainer').appendChild(t);setTimeout(()=>t.remove(),3000);}
-        function toggleTheme(){document.documentElement.classList.toggle('dark');}
+        function copyText(id){ const el=document.getElementById(id); el.select(); document.execCommand('copy'); showToast('✅ Copied!','success'); }
+        function showToast(msg,type){ const t=document.createElement('div'); t.className='toast glass-light rounded-xl px-4 py-3 text-sm font-medium '+(type==='success'?'text-profit':'text-loss'); t.textContent=msg; document.getElementById('toastContainer').appendChild(t); setTimeout(()=>t.remove(),3000); }
+
+        // ============================================================
+        // PWA SERVICE WORKER
+        // ============================================================
+        if('serviceWorker' in navigator) {
+            navigator.serviceWorker.register("data:application/javascript,"+encodeURIComponent("self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));"));
+        }
 
         // ============================================================
         // INIT
         // ============================================================
         switchTab('dashboard');
         loadDashboard();
-        if (currentUser.affiliateId) db.ref('affiliates/'+currentUser.affiliateId+'/clicks').transaction(c=>(c||0)+1);
+        if(currentUser.affiliateId) db.ref('affiliates/'+currentUser.affiliateId+'/clicks').transaction(c=>(c||0)+1);
+        setInterval(() => { if(document.getElementById('tab-signals')&&!document.getElementById('tab-signals').classList.contains('hidden')) loadSignals(); }, 30000);
     </script>
 </body>
 </html>
