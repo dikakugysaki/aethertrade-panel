@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AetherTrade AI — Professional Trading Panel</title>
+    <title>AetherTrade AI � Professional Trading Panel</title>
     <meta name="theme-color" content="#050505">
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="data:application/json,{'name':'AetherTrade AI','short_name':'AetherTrade','start_url':'/','display':'standalone','background_color':'#050505','theme_color':'#f59e0b','orientation':'portrait','icons':[{'src':'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>','sizes':'100x100','type':'image/svg+xml'}]}">
+    <link rel="manifest" href="data:application/json,{'name':'AetherTrade AI','short_name':'AetherTrade','start_url':'/','display':'standalone','background_color':'#050505','theme_color':'#f59e0b','orientation':'portrait','icons':[{'src':'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>','sizes':'100x100','type':'image/svg+xml'}]}">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,9 +22,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- TradingView -->
     <script src="https://s3.tradingview.com/tv.js"></script>
-    <!-- Midtrans Snap (ditunda sampai approved) -->
-    <!-- <script src="https://app.midtrans.com/snap/snap.js" data-client-key="MIDTRANS_CLIENT_KEY"></script> -->
-    <!-- <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="MIDTRANS_CLIENT_KEY"></script> -->
     
     <script>
         tailwind.config = {
@@ -46,24 +43,28 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.2s ease; }
         body { font-family: 'Inter', sans-serif; background: #050505; overflow-x: hidden; }
-        .glass { background: rgba(23, 23, 23, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        .glass { background: rgba(23, 23, 23, 0.85); backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
         .glass-light { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); }
         
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         @keyframes glow { 0%,100% { box-shadow: 0 0 20px rgba(251,191,36,0.1); } 50% { box-shadow: 0 0 40px rgba(251,191,36,0.3); } }
         @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         @keyframes countdown { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         @keyframes newSignal { 0% { background: rgba(251,191,36,0.3); } 100% { background: transparent; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         
         .animate-float { animation: float 3s ease-in-out infinite; }
         .animate-glow { animation: glow 2s ease-in-out infinite; }
         .animate-slideIn { animation: slideIn 0.5s ease-out; }
+        .animate-slideInRight { animation: slideInRight 0.3s ease-out; }
         .animate-scroll { animation: scroll 20s linear infinite; white-space: nowrap; }
         .animate-countdown { animation: countdown 2s ease-in-out infinite; }
         .animate-new-signal { animation: newSignal 2s ease-out; }
+        .animate-spin { animation: spin 1s linear infinite; }
         
         ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0a0a0a; } ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         
@@ -73,7 +74,7 @@
         .pulse-dot-gold { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; display: inline-block; position: relative; }
         .pulse-dot-gold::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: #f59e0b; animation: pulse-ring 1s ease-out infinite; }
         
-        .tab-btn { position: relative; }
+        .tab-btn { position: relative; cursor: pointer; }
         .tab-btn.active { color: #f59e0b; }
         .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, #f59e0b, #fbbf24); border-radius: 1px; }
         
@@ -81,18 +82,26 @@
         .skeleton { background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
         .profit-positive { color: #10b981; } .profit-negative { color: #ef4444; }
         
-        /* Light mode */
-        .light body { background: #f5f5f5; color: #1a1a1a; }
-        .light .glass { background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(0,0,0,0.05); }
-        .light .glass-light { background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.08); }
-        
-        /* Onboarding steps */
         .onboard-step { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; }
         .onboard-step.completed { background: rgba(16,185,129,0.1); }
         .onboard-step.active { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); }
         .onboard-step .step-number { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; }
         .onboard-step.completed .step-number { background: #10b981; color: white; }
         .onboard-step.active .step-number { background: #f59e0b; color: black; }
+        
+        .tooltip-container { position: relative; }
+        .tooltip-container .tooltip-text { visibility: hidden; opacity: 0; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1f1f1f; color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 11px; white-space: nowrap; z-index: 100; transition: all 0.2s; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+        
+        .achievement-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .achievement-badge.earned { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+        .achievement-badge.locked { background: rgba(107,114,128,0.1); color: #6b7280; border: 1px solid rgba(107,114,128,0.2); }
+        
+        .session-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
+        .session-active { background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+        .session-inactive { background: #374151; }
+        
+        .wellness-tip { background: linear-gradient(135deg, rgba(16,185,129,0.05), rgba(245,158,11,0.05)); border: 1px solid rgba(16,185,129,0.1); }
     </style>
 </head>
 <body class="bg-surface-950 text-white font-sans relative">
@@ -116,16 +125,51 @@
                 </div>
             </div>
             
-            <nav class="flex flex-col gap-1">
-                <button onclick="switchTab('dashboard')" class="tab-btn active flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium"><i class="fas fa-th-large w-5"></i> Dashboard</button>
-                <button onclick="switchTab('signals')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral relative"><i class="fas fa-chart-line w-5"></i> Live Signals<span class="ml-auto pulse-dot-gold hidden" id="newSignalDot"></span></button>
-                <button onclick="switchTab('positions')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral"><i class="fas fa-layer-group w-5"></i> Open Positions</button>
-                <button onclick="switchTab('license')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral"><i class="fas fa-id-card w-5"></i> License</button>
-                <button onclick="switchTab('affiliate')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral"><i class="fas fa-users w-5"></i> Affiliate</button>
-                <button onclick="switchTab('payments')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral"><i class="fas fa-credit-card w-5"></i> Payments</button>
-                <button onclick="switchTab('history')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral"><i class="fas fa-clock-rotate-left w-5"></i> History</button>
-                <button onclick="switchTab('settings')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral"><i class="fas fa-gear w-5"></i> Settings</button>
+            <nav class="flex flex-col gap-1" id="desktopNav">
+                <button onclick="switchTab('dashboard')" class="tab-btn active flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium tooltip-container">
+                    <i class="fas fa-th-large w-5"></i> Dashboard
+                    <span class="tooltip-text">Trading overview & stats</span>
+                </button>
+                <button onclick="switchTab('signals')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral relative tooltip-container">
+                    <i class="fas fa-chart-line w-5"></i> Live Signals
+                    <span class="ml-auto pulse-dot-gold hidden" id="newSignalDot"></span>
+                    <span class="tooltip-text">Real-time XAU & BTC signals</span>
+                </button>
+                <button onclick="switchTab('positions')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral tooltip-container">
+                    <i class="fas fa-layer-group w-5"></i> Open Positions
+                    <span class="tooltip-text">Active trades & P/L</span>
+                </button>
+                <button onclick="switchTab('license')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral tooltip-container">
+                    <i class="fas fa-id-card w-5"></i> License
+                    <span class="tooltip-text">License details & status</span>
+                </button>
+                <button onclick="switchTab('affiliate')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral tooltip-container">
+                    <i class="fas fa-users w-5"></i> Affiliate
+                    <span class="tooltip-text">Referral program & earnings</span>
+                </button>
+                <button onclick="switchTab('payments')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral tooltip-container">
+                    <i class="fas fa-credit-card w-5"></i> Payments
+                    <span class="tooltip-text">Purchase license</span>
+                </button>
+                <button onclick="switchTab('history')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral tooltip-container">
+                    <i class="fas fa-clock-rotate-left w-5"></i> History
+                    <span class="tooltip-text">Trade history & performance</span>
+                </button>
+                <button onclick="switchTab('settings')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral tooltip-container">
+                    <i class="fas fa-gear w-5"></i> Settings
+                    <span class="tooltip-text">Account & preferences</span>
+                </button>
             </nav>
+            
+            <!-- Market Session Indicator -->
+            <div class="glass-light rounded-xl p-3 mt-2">
+                <p class="text-xs text-neutral mb-2"> Market Sessions</p>
+                <div class="space-y-1 text-xs" id="sessionIndicator">
+                    <div class="flex items-center gap-2"><span class="session-indicator session-inactive" id="asiaDot"></span> Asia</div>
+                    <div class="flex items-center gap-2"><span class="session-indicator session-inactive" id="londonDot"></span> London</div>
+                    <div class="flex items-center gap-2"><span class="session-indicator session-inactive" id="nyDot"></span> New York</div>
+                </div>
+            </div>
             
             <!-- Theme Toggle -->
             <div class="mt-auto flex flex-col gap-2">
@@ -145,24 +189,41 @@
             <!-- TOP BAR -->
             <div class="flex items-center justify-between mb-6 animate-slideIn">
                 <div>
-                    <h2 class="text-2xl font-bold" id="pageTitle">Dashboard</h2>
+                    <h2 class="text-2xl font-bold" id="pageTitle"> Dashboard</h2>
                     <p class="text-sm text-neutral" id="pageSubtitle">Welcome back! Here's your trading overview.</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button onclick="switchTab('notifications')" class="relative w-10 h-10 rounded-xl glass-light flex items-center justify-center hover:bg-white/10">
-                        <i class="fas fa-bell"></i>
-                        <span class="absolute -top-1 -right-1 w-4 h-4 bg-accent-500 rounded-full text-[10px] flex items-center justify-center text-black font-bold" id="notifBadge">0</span>
-                    </button>
+                    <!-- Wellness Timer -->
+                    <div class="tooltip-container">
+                        <button onclick="showWellnessTip()" class="w-10 h-10 rounded-xl glass-light flex items-center justify-center hover:bg-white/10">
+                            <i class="fas fa-heart text-loss"></i>
+                        </button>
+                        <span class="tooltip-text">Trading wellness</span>
+                    </div>
+                    
+                    <!-- Notification Bell -->
+                    <div class="tooltip-container">
+                        <button onclick="switchTab('settings')" class="relative w-10 h-10 rounded-xl glass-light flex items-center justify-center hover:bg-white/10">
+                            <i class="fas fa-bell"></i>
+                            <span class="absolute -top-1 -right-1 w-4 h-4 bg-accent-500 rounded-full text-[10px] flex items-center justify-center text-black font-bold" id="notifBadge">0</span>
+                        </button>
+                        <span class="tooltip-text">Notifications</span>
+                    </div>
+                    
+                    <!-- User Profile -->
                     <div class="flex items-center gap-2 glass-light rounded-xl px-3 py-2">
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center text-black font-bold text-xs">U</div>
-                        <div class="hidden sm:block"><p class="text-sm font-medium" id="userName">Trader</p><p class="text-[10px] text-neutral" id="userLicense">No License</p></div>
+                        <div class="hidden sm:block">
+                            <p class="text-sm font-medium" id="userName">Trader</p>
+                            <p class="text-[10px] text-neutral" id="userLicense">No License</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ONBOARDING (muncul kalau belum ada license) -->
+            <!-- ONBOARDING CARD -->
             <div id="onboardingCard" class="glass-light rounded-2xl p-5 mb-4 hidden animate-slideIn">
-                <h3 class="font-bold text-lg mb-3">🚀 Getting Started</h3>
+                <h3 class="font-bold text-lg mb-3"> Getting Started</h3>
                 <div class="space-y-2" id="onboardingSteps">
                     <div class="onboard-step" id="step1"><span class="step-number">1</span> Register License Key</div>
                     <div class="onboard-step" id="step2"><span class="step-number">2</span> Download EA from Admin</div>
@@ -177,6 +238,8 @@
                     <span>XAU/USD <span class="text-profit">2,650</span> <span class="text-profit text-xs">+0.3%</span></span>
                     <span>BTC/USD <span class="text-profit">62,450</span> <span class="text-profit text-xs">+1.2%</span></span>
                     <span>EUR/USD <span class="text-loss">1.085</span> <span class="text-loss text-xs">-0.1%</span></span>
+                    <span>GBP/USD <span class="text-profit">1.270</span> <span class="text-profit text-xs">+0.2%</span></span>
+                    <span>USD/JPY <span class="text-loss">154.20</span> <span class="text-loss text-xs">-0.4%</span></span>
                 </div>
             </div>
 
@@ -184,23 +247,55 @@
             <!-- DASHBOARD TAB -->
             <!-- ============================================================ -->
             <div id="tab-dashboard" class="tab-content space-y-5">
-                <!-- Stats -->
+                <!-- Stats Cards -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Balance</span><p class="text-2xl font-bold" id="dashBalance">$0.00</p></div>
-                    <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Open Pos</span><p class="text-2xl font-bold" id="dashOpen">0</p></div>
-                    <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Today P/L</span><p class="text-2xl font-bold profit-positive" id="dashPL">$0.00</p></div>
-                    <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Win Rate</span><p class="text-2xl font-bold" id="dashWR">0%</p><div class="w-full h-1.5 bg-white/5 rounded-full mt-2"><div class="h-full bg-gradient-to-r from-accent-400 to-profit rounded-full" style="width:0%" id="wrBar"></div></div></div>
+                    <div class="glass-light rounded-2xl p-5 card-hover tooltip-container">
+                        <span class="text-xs text-neutral">Balance</span>
+                        <p class="text-2xl font-bold" id="dashBalance">$0.00</p>
+                        <span class="tooltip-text">Total account equity</span>
+                    </div>
+                    <div class="glass-light rounded-2xl p-5 card-hover tooltip-container">
+                        <span class="text-xs text-neutral">Open Pos</span>
+                        <p class="text-2xl font-bold" id="dashOpen">0</p>
+                        <span class="tooltip-text">Active positions</span>
+                    </div>
+                    <div class="glass-light rounded-2xl p-5 card-hover tooltip-container">
+                        <span class="text-xs text-neutral">Today P/L</span>
+                        <p class="text-2xl font-bold profit-positive" id="dashPL">$0.00</p>
+                        <span class="tooltip-text">Today's profit/loss</span>
+                    </div>
+                    <div class="glass-light rounded-2xl p-5 card-hover tooltip-container">
+                        <span class="text-xs text-neutral">Win Rate</span>
+                        <p class="text-2xl font-bold" id="dashWR">0%</p>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full mt-2"><div class="h-full bg-gradient-to-r from-accent-400 to-profit rounded-full" style="width:0%" id="wrBar"></div></div>
+                        <span class="tooltip-text">Overall win percentage</span>
+                    </div>
                 </div>
-                <!-- Chart + Summary -->
+                
+                <!-- Chart + Recent Signals -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <div class="lg:col-span-2 glass-light rounded-2xl p-5"><h3 class="font-bold mb-3">📊 Live Chart</h3><div class="tradingview-widget-container h-64 rounded-xl overflow-hidden"><div id="tv_chart"></div></div></div>
-                    <div class="glass-light rounded-2xl p-5"><h3 class="font-bold mb-3">📋 Recent Signal</h3><div id="recentTrades" class="max-h-64 overflow-y-auto"><p class="text-neutral text-sm text-center py-4">Loading...</p></div></div>
+                    <div class="lg:col-span-2 glass-light rounded-2xl p-5">
+                        <h3 class="font-bold mb-3"> Live Chart</h3>
+                        <div class="tradingview-widget-container h-64 rounded-xl overflow-hidden"><div id="tv_chart"></div></div>
+                    </div>
+                    <div class="glass-light rounded-2xl p-5">
+                        <h3 class="font-bold mb-3"> Recent Signal</h3>
+                        <div id="recentTrades" class="max-h-64 overflow-y-auto"><p class="text-neutral text-sm text-center py-4">Loading...</p></div>
+                    </div>
                 </div>
-                <!-- Weekly + Summary -->
+                
+                <!-- Performance + Summary -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <div class="lg:col-span-2 glass-light rounded-2xl p-5"><h3 class="font-bold mb-3">📈 Weekly</h3><canvas id="perfChart" height="200"></canvas></div>
+                    <div class="lg:col-span-2 glass-light rounded-2xl p-5">
+                        <h3 class="font-bold mb-3"> Weekly Performance</h3>
+                        <canvas id="perfChart" height="200"></canvas>
+                    </div>
                     <div class="glass-light rounded-2xl p-5 flex flex-col justify-center text-center">
-                        <p class="text-3xl mb-2">🏆</p><p class="font-bold text-lg">Member</p><p class="text-xs text-neutral" id="memberExpires">Register to start</p><p class="text-3xl font-black text-profit mt-3" id="totalProfit">$0.00</p>
+                        <p class="text-3xl mb-2"></p>
+                        <p class="font-bold text-lg">Member</p>
+                        <p class="text-xs text-neutral" id="memberExpires">Register to start</p>
+                        <p class="text-3xl font-black text-profit mt-3" id="totalProfit">$0.00</p>
+                        <div class="mt-3" id="achievementBadges"></div>
                     </div>
                 </div>
             </div>
@@ -209,43 +304,65 @@
             <!-- SIGNALS TAB -->
             <!-- ============================================================ -->
             <div id="tab-signals" class="tab-content hidden space-y-4">
+                <!-- Market Sentiment -->
+                <div class="glass-light rounded-2xl p-5">
+                    <h3 class="font-bold mb-3"> Market Sentiment</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span> Bearish</span><span> Bullish</span></div>
+                            <div class="h-3 bg-surface-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-loss via-yellow-500 to-profit" style="width: 65%" id="sentimentBar"></div>
+                            </div>
+                            <p class="text-xs text-neutral mt-1" id="sentimentText">Market leans bullish (65%)</p>
+                        </div>
+                        <div class="text-sm">
+                            <p class="text-neutral"> Tip: <span id="sentimentTip">Wait for pullback before entry</span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Signal Cards -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div class="glass-light rounded-2xl p-5 card-hover relative overflow-hidden" id="xauCard">
                         <div class="absolute top-0 right-0 w-20 h-20 bg-accent-400/5 rounded-bl-full"></div>
-                        <h3 class="font-bold text-lg mb-3 flex items-center gap-2">🥇 XAU/USD <span class="text-xs text-neutral">Gold</span> <span class="pulse-dot-gold hidden" id="xauNewDot"></span></h3>
-                        <div id="xauSignalLive"><p class="text-neutral text-sm">⏳ Waiting...</p></div>
+                        <h3 class="font-bold text-lg mb-3 flex items-center gap-2"> XAU/USD <span class="text-xs text-neutral">Gold</span> <span class="pulse-dot-gold hidden" id="xauNewDot"></span></h3>
+                        <div id="xauSignalLive"><p class="text-neutral text-sm"> Waiting...</p></div>
                     </div>
                     <div class="glass-light rounded-2xl p-5 card-hover relative overflow-hidden" id="btcCard">
                         <div class="absolute top-0 right-0 w-20 h-20 bg-primary-400/5 rounded-bl-full"></div>
-                        <h3 class="font-bold text-lg mb-3 flex items-center gap-2">₿ BTC/USD <span class="text-xs text-neutral">Bitcoin</span> <span class="pulse-dot-gold hidden" id="btcNewDot"></span></h3>
-                        <div id="btcSignalLive"><p class="text-neutral text-sm">⏳ Waiting...</p></div>
+                        <h3 class="font-bold text-lg mb-3 flex items-center gap-2"> BTC/USD <span class="text-xs text-neutral">Bitcoin</span> <span class="pulse-dot-gold hidden" id="btcNewDot"></span></h3>
+                        <div id="btcSignalLive"><p class="text-neutral text-sm"> Waiting...</p></div>
                     </div>
                 </div>
             </div>
 
             <!-- ============================================================ -->
-            <!-- POSITIONS TAB (NEW!) -->
+            <!-- POSITIONS TAB -->
             <!-- ============================================================ -->
-            <div id="tab-positions" class="tab-content hidden">
-                <h2 class="text-2xl font-bold mb-4"><i class="fas fa-layer-group text-gold"></i> Open Positions</h2>
+            <div id="tab-positions" class="tab-content hidden space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold"><i class="fas fa-layer-group text-accent-400"></i> Open Positions</h2>
+                    <button onclick="emergencyStop()" class="glass border-2 border-loss text-loss font-bold px-4 py-2 rounded-xl hover:bg-loss/20 text-sm">
+                         EMERGENCY STOP
+                    </button>
+                </div>
                 <div id="positionsList" class="space-y-3">
                     <p class="text-neutral text-center py-8">No open positions or register license first.</p>
                 </div>
             </div>
 
             <!-- ============================================================ -->
-            <!-- LICENSE TAB (NEW DETAILED!) -->
+            <!-- LICENSE TAB -->
             <!-- ============================================================ -->
             <div id="tab-license" class="tab-content hidden space-y-4">
                 <div class="glass-light rounded-2xl p-5 card-hover">
-                    <h3 class="font-bold text-lg mb-4">🔑 License Details</h3>
+                    <h3 class="font-bold text-lg mb-4"> License Details</h3>
                     <div id="licenseDetails" class="space-y-2">
                         <p class="text-neutral">Register license to see details.</p>
                     </div>
                 </div>
-                <!-- Payment History -->
                 <div class="glass-light rounded-2xl p-5 card-hover">
-                    <h3 class="font-bold text-lg mb-4">💳 Payment History</h3>
+                    <h3 class="font-bold text-lg mb-4"> Payment History</h3>
                     <div id="paymentHistory"><p class="text-neutral text-sm">No payments yet.</p></div>
                 </div>
             </div>
@@ -255,9 +372,14 @@
             <!-- ============================================================ -->
             <div id="tab-affiliate" class="tab-content hidden space-y-4">
                 <div class="glass-light rounded-2xl p-5 card-hover">
-                    <h3 class="font-bold text-lg mb-3">🤝 Referral Program</h3>
-                    <div class="flex gap-2 mb-3"><input type="text" id="affLink" readonly class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono"><button onclick="copyText('affLink')" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-xl text-sm"><i class="fas fa-copy"></i></button></div>
-                    <p class="text-sm text-neutral">💰 Earn <span class="text-accent-400 font-bold">20%</span> commission!</p>
+                    <h3 class="font-bold text-lg mb-3"> Referral Program</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="affLink" readonly class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono">
+                        <button onclick="copyText('affLink')" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-xl text-sm hover:bg-accent-400">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <p class="text-sm text-neutral"> Earn <span class="text-accent-400 font-bold">20%</span> commission on every referral!</p>
                 </div>
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     <div class="glass-light rounded-2xl p-4 text-center"><p class="text-xs text-neutral">Total</p><p class="text-xl font-bold text-accent-400" id="affTotal">Rp 0</p></div>
@@ -265,11 +387,10 @@
                     <div class="glass-light rounded-2xl p-4 text-center"><p class="text-xs text-neutral">Referrals</p><p class="text-xl font-bold" id="affReferrals">0</p></div>
                     <div class="glass-light rounded-2xl p-4 text-center"><p class="text-xs text-neutral">Paid</p><p class="text-xl font-bold text-profit" id="affPaid">Rp 0</p></div>
                 </div>
-                <button onclick="showWithdrawModal()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-6 py-3 rounded-xl text-sm">💰 Withdraw</button>
+                <button onclick="showWithdrawModal()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-6 py-3 rounded-xl text-sm hover:scale-[1.02] transition-transform"> Withdraw</button>
                 
-                <!-- Leaderboard -->
                 <div class="glass-light rounded-2xl p-5 card-hover">
-                    <h3 class="font-bold text-lg mb-3">🏆 Top Affiliates</h3>
+                    <h3 class="font-bold text-lg mb-3"> Top Affiliates</h3>
                     <div id="affLeaderboard"><p class="text-neutral text-sm">Loading...</p></div>
                 </div>
             </div>
@@ -278,50 +399,147 @@
             <!-- PAYMENTS TAB -->
             <!-- ============================================================ -->
             <div id="tab-payments" class="tab-content hidden space-y-4">
+                <!-- STEP 1: User Info -->
                 <div class="glass-light rounded-2xl p-5 card-hover">
-                    <h3 class="font-bold text-lg mb-4">💳 Purchase License</h3>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-full bg-accent-500 flex items-center justify-center text-black font-bold">1</div>
+                        <h3 class="font-bold text-lg"> Your Information</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-sm text-neutral mb-2 block">Name <span class="text-loss">*</span></label>
+                            <input type="text" id="regName" placeholder="Enter your name" 
+                                   class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-sm text-neutral mb-2 block">Referral Code (Optional)</label>
+                            <input type="text" id="regReferral" placeholder="Enter code for discount" 
+                                   class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm">
+                            <p class="text-xs text-accent-400 mt-1" id="referralStatus"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Package -->
+                <div class="glass-light rounded-2xl p-5 card-hover">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-full bg-accent-500 flex items-center justify-center text-black font-bold">2</div>
+                        <h3 class="font-bold text-lg"> Choose Package</h3>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div onclick="selectPackage('pro', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer border border-white/5"><p class="text-2xl">🥈</p><p class="font-bold text-lg">Pro</p><p class="text-sm text-neutral">Analisa Manual AI</p><p class="text-2xl font-black text-accent-400 my-2">Rp 150K</p><p class="text-xs text-neutral">/bulan</p></div>
-                        <div onclick="selectPackage('max', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer border border-white/5"><p class="text-2xl">🥇</p><p class="font-bold text-lg">Max</p><p class="text-sm text-neutral">Manual + Auto Trading</p><p class="text-2xl font-black text-accent-400 my-2">Rp 350K</p><p class="text-xs text-neutral">/bulan</p></div>
+                        <div onclick="selectPackage('pro', this)" class="pkg-card glass rounded-2xl p-6 text-center cursor-pointer border-2 border-white/5 hover:border-accent-400/50 transition-all">
+                            <p class="text-4xl mb-2"></p>
+                            <p class="font-bold text-xl">Pro</p>
+                            <p class="text-sm text-neutral">Analisa Manual AI</p>
+                            <div class="my-3 space-y-1 text-xs text-neutral">
+                                <p> AI Signal Analysis</p>
+                                <p> Telegram Notifications</p>
+                                <p> Entry/Exit Points</p>
+                            </div>
+                            <p class="text-3xl font-black text-accent-400 my-2">Rp 150K</p>
+                            <p class="text-xs text-neutral">/bulan</p>
+                        </div>
+                        <div onclick="selectPackage('max', this)" class="pkg-card glass rounded-2xl p-6 text-center cursor-pointer border-2 border-white/5 hover:border-accent-400/50 transition-all relative">
+                            <div class="absolute top-3 right-3 bg-accent-500 text-black text-xs px-2 py-1 rounded-full font-bold">POPULER</div>
+                            <p class="text-4xl mb-2"></p>
+                            <p class="font-bold text-xl">Max</p>
+                            <p class="text-sm text-neutral">Manual + Auto Trading</p>
+                            <div class="my-3 space-y-1 text-xs text-neutral">
+                                <p> Semua fitur Pro</p>
+                                <p> Auto Trading EA</p>
+                                <p> Multi-Pair Support</p>
+                            </div>
+                            <p class="text-3xl font-black text-accent-400 my-2">Rp 350K</p>
+                            <p class="text-xs text-neutral">/bulan</p>
+                        </div>
                     </div>
                     <div class="flex flex-wrap gap-2 mb-4">
-                        <button onclick="selectMonths(1, this)" class="month-btn glass rounded-xl px-4 py-2 text-sm border border-white/5">1 Mo</button>
-                        <button onclick="selectMonths(3, this)" class="month-btn glass rounded-xl px-4 py-2 text-sm border border-white/5">3 Mo <span class="text-xs text-profit">-10%</span></button>
-                        <button onclick="selectMonths(6, this)" class="month-btn glass rounded-xl px-4 py-2 text-sm border border-white/5">6 Mo <span class="text-xs text-profit">-17%</span></button>
-                        <button onclick="selectMonths(12, this)" class="month-btn glass rounded-xl px-4 py-2 text-sm border border-white/5">12 Mo <span class="text-xs text-profit">-25%</span></button>
+                        <button onclick="selectMonths(1, this)" class="month-btn glass rounded-xl px-4 py-3 text-sm border border-white/5 hover:border-accent-400/50">1 Month</button>
+                        <button onclick="selectMonths(3, this)" class="month-btn glass rounded-xl px-4 py-3 text-sm border border-white/5 hover:border-accent-400/50">3 Months <span class="text-xs text-profit">-10%</span></button>
+                        <button onclick="selectMonths(6, this)" class="month-btn glass rounded-xl px-4 py-3 text-sm border border-white/5 hover:border-accent-400/50">6 Months <span class="text-xs text-profit">-17%</span></button>
+                        <button onclick="selectMonths(12, this)" class="month-btn glass rounded-xl px-4 py-3 text-sm border border-white/5 hover:border-accent-400/50">12 Months <span class="text-xs text-profit">-25%</span></button>
                     </div>
-                    <div id="paymentDetails" class="hidden glass-light rounded-2xl p-5 text-center">
-                        <p class="text-lg font-bold mb-3">Payment</p>
-                        <p class="text-2xl font-black text-accent-400" id="payTotal">Rp 0</p>
-                        <p class="text-xs text-neutral" id="payPerMonth"></p>
-                        <p class="text-xs text-profit hidden" id="payDiscount"></p>
-                        <button onclick="processPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-8 py-4 rounded-xl text-lg w-full sm:w-auto mt-4">💰 Pay Now — Get License</button>
-                        <p class="text-xs text-neutral mt-2" id="paymentNote">⚠️ Midtrans pending approval — manual payment for now.</p>
+                </div>
+
+                <!-- STEP 3: Summary -->
+                <div id="paymentSummary" class="glass-light rounded-2xl p-5 card-hover hidden">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-full bg-accent-500 flex items-center justify-center text-black font-bold">3</div>
+                        <h3 class="font-bold text-lg"> Confirmation</h3>
                     </div>
+                    <div class="glass rounded-xl p-4 mb-4">
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between"><span class="text-neutral">Name</span><span class="font-bold" id="sumName">-</span></div>
+                            <div class="flex justify-between"><span class="text-neutral">Package</span><span class="font-bold" id="sumPackage">-</span></div>
+                            <div class="flex justify-between"><span class="text-neutral">Duration</span><span class="font-bold" id="sumDuration">-</span></div>
+                            <div class="flex justify-between border-t border-white/5 pt-2"><span class="text-neutral">Total</span><span class="text-xl font-black text-accent-400" id="sumTotal">Rp 0</span></div>
+                        </div>
+                    </div>
+                    <button onclick="processPaymentWithUserData()" class="w-full bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-8 py-4 rounded-xl text-lg hover:scale-[1.02] transition-transform">
+                         Pay Now & Get License
+                    </button>
                 </div>
             </div>
 
             <!-- ============================================================ -->
             <!-- HISTORY TAB -->
             <!-- ============================================================ -->
-            <div id="tab-history" class="tab-content hidden">
-                <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-4">📜 Trade History</h3><table class="w-full text-sm"><thead><tr class="text-neutral border-b border-white/5"><th class="text-left py-3">Date</th><th class="text-left py-3">Pair</th><th class="text-left py-3">Type</th><th class="text-right py-3">Entry</th><th class="text-right py-3">P/L</th></tr></thead><tbody id="historyBody"><tr><td colspan="5" class="text-center py-8 text-neutral">No trades yet</td></tr></tbody></table></div>
+            <div id="tab-history" class="tab-content hidden space-y-4">
+                <div class="glass-light rounded-2xl p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-lg"> Trade History</h3>
+                        <button onclick="exportHistory()" class="glass rounded-xl px-4 py-2 text-sm hover:bg-white/5">
+                            <i class="fas fa-download"></i> Export CSV
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead><tr class="text-neutral border-b border-white/5"><th class="text-left py-3">Date</th><th class="text-left py-3">Pair</th><th class="text-left py-3">Type</th><th class="text-right py-3">Entry</th><th class="text-right py-3">P/L</th></tr></thead>
+                            <tbody id="historyBody"><tr><td colspan="5" class="text-center py-8 text-neutral">No trades yet</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <!-- ============================================================ -->
             <!-- SETTINGS TAB -->
             <!-- ============================================================ -->
             <div id="tab-settings" class="tab-content hidden space-y-4">
-                <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3">🔑 Register License</h3><div class="flex gap-2"><input type="text" id="regKey" placeholder="AT-XXXX-XXXX" class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm"><button onclick="registerLicense()" class="bg-accent-500 text-black font-bold px-6 py-3 rounded-xl text-sm">Register</button></div></div>
-                <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3">📱 Telegram</h3><p class="text-sm text-neutral mb-2">Get entry/close notifications.</p><button onclick="window.open('https://t.me/AetherTradeBot','_blank')" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-lg text-sm"><i class="fab fa-telegram"></i> Open Bot</button><p class="text-xs text-neutral mt-2">Send <code class="bg-black px-2 py-1 rounded">/register LICENSE_KEY</code></p></div>
-                <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3">🎨 Theme</h3><button onclick="toggleTheme()" class="glass rounded-xl px-4 py-2 text-sm"><span id="themeBtnText">Switch to Light</span></button></div>
+                <div class="glass-light rounded-2xl p-5">
+                    <h3 class="font-bold text-lg mb-3"> Register License</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="regKey" placeholder="AT-XXXX-XXXX" class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm">
+                        <button onclick="registerLicense()" class="bg-accent-500 text-black font-bold px-6 py-3 rounded-xl text-sm hover:bg-accent-400">Register</button>
+                    </div>
+                    <p class="text-xs text-neutral mt-2">Enter your license key to activate premium features.</p>
+                </div>
+                <div class="glass-light rounded-2xl p-5">
+                    <h3 class="font-bold text-lg mb-3"> Telegram Bot</h3>
+                    <p class="text-sm text-neutral mb-2">Get entry/close notifications directly to Telegram.</p>
+                    <button onclick="window.open('https://t.me/AetherTradeBot','_blank')" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-lg text-sm hover:bg-accent-400">
+                        <i class="fab fa-telegram"></i> Open Bot
+                    </button>
+                    <p class="text-xs text-neutral mt-2">Send <code class="bg-black px-2 py-1 rounded">/register LICENSE_KEY</code> to the bot</p>
+                </div>
+                <div class="glass-light rounded-2xl p-5">
+                    <h3 class="font-bold text-lg mb-3"> Theme</h3>
+                    <button onclick="toggleTheme()" class="glass rounded-xl px-4 py-2 text-sm hover:bg-white/5"><span id="themeBtnText">Switch to Light</span></button>
+                </div>
+                <div class="glass-light rounded-2xl p-5">
+                    <h3 class="font-bold text-lg mb-3"> Notification Preferences</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="notifSignals" checked> Signal alerts</label>
+                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="notifUpdates"> TP/SL updates</label>
+                        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="notifNews"> Market news</label>
+                    </div>
+                </div>
             </div>
 
         </main>
     </div>
 
     <!-- MOBILE NAV -->
-    <nav class="lg:hidden fixed bottom-0 left-0 right-0 glass border-t border-white/5 flex justify-around py-3 z-50">
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 glass border-t border-white/5 flex justify-around py-3 z-50" id="mobileNav">
         <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-accent-400 text-xs"><i class="fas fa-home text-lg"></i></button>
         <button onclick="switchTab('signals')" class="flex flex-col items-center text-neutral text-xs"><i class="fas fa-chart-line text-lg"></i></button>
         <button onclick="switchTab('positions')" class="flex flex-col items-center text-neutral text-xs"><i class="fas fa-layer-group text-lg"></i></button>
@@ -332,12 +550,36 @@
     <!-- WITHDRAW MODAL -->
     <div id="withdrawModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
         <div class="glass-light rounded-2xl p-6 w-full max-w-md">
-            <h3 class="text-xl font-bold mb-4">💰 Withdraw Commission</h3>
+            <h3 class="text-xl font-bold mb-4"> Withdraw Commission</h3>
             <p class="text-sm text-neutral mb-2">Balance: <span class="text-accent-400 font-bold" id="wdBalance">Rp 0</span></p>
             <input type="number" id="wdAmount" placeholder="Amount (Rp)" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mb-3">
-            <select id="wdMethod" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mb-3"><option value="gopay">GoPay</option><option value="dana">Dana</option><option value="bank">Bank</option></select>
+            <select id="wdMethod" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mb-3"><option value="gopay">GoPay</option><option value="dana">Dana</option><option value="bank">Bank Transfer</option></select>
             <input type="text" id="wdAccount" placeholder="Account number" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mb-3">
-            <div class="flex gap-2"><button onclick="submitWithdraw()" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-lg text-sm flex-1">Withdraw</button><button onclick="document.getElementById('withdrawModal').classList.add('hidden')" class="glass rounded-xl px-4 py-2 text-sm">Cancel</button></div>
+            <div class="flex gap-2"><button onclick="submitWithdraw()" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-lg text-sm flex-1 hover:bg-accent-400">Withdraw</button><button onclick="document.getElementById('withdrawModal').classList.add('hidden')" class="glass rounded-xl px-4 py-2 text-sm">Cancel</button></div>
+        </div>
+    </div>
+
+    <!-- FLOATING HELP BUTTON -->
+    <div class="fixed bottom-6 right-6 z-40 group hidden lg:block">
+        <button class="w-14 h-14 bg-accent-500 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all text-black font-bold text-xl">?</button>
+        <div class="absolute bottom-16 right-0 w-72 bg-surface-800 rounded-xl p-4 hidden group-hover:block border border-white/10">
+            <h4 class="font-bold mb-2 text-sm"> Quick Tips</h4>
+            <ul class="text-xs space-y-2 text-neutral">
+                <li>� Set SL selalu di bawah support</li>
+                <li>� Risk max 2% per trade</li>
+                <li>� Jangan overtrade saat merah</li>
+                <li>� Gunakan trailing stop</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- WELLNESS TIP POPUP -->
+    <div id="wellnessPopup" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+        <div class="wellness-tip rounded-2xl p-6 w-full max-w-sm text-center">
+            <p class="text-3xl mb-3" id="wellnessIcon"></p>
+            <p class="font-bold text-lg mb-2">Trading Wellness</p>
+            <p class="text-sm text-neutral" id="wellnessMessage">You've been trading for a while. Take a break!</p>
+            <button onclick="document.getElementById('wellnessPopup').classList.add('hidden')" class="bg-accent-500 text-black font-bold px-6 py-2 rounded-lg mt-4 text-sm">Got it!</button>
         </div>
     </div>
 
@@ -346,24 +588,17 @@
     <!-- ============================================================ -->
     <script>
         // ============================================================
-        // CONFIG (MUDAH DIUBAH)
+        // CONFIG
         // ============================================================
         const CONFIG = {
             firebaseURL: "https://aethertrade-signals-default-rtdb.asia-southeast1.firebasedatabase.app/",
-            // Midtrans — ganti setelah approved
-            midtransEnabled: false,
-            midtransClientKey: "MIDTRANS_CLIENT_KEY",
-            midtransServerURL: "https://aethertrade.duckdns.org:8888",
-            // Admin license (untuk public signals)
             adminLicense: "AT-AB100702CB5771F2",
-            // Theme
             theme: localStorage.getItem('at_theme') || 'dark',
-            // Packages
             packages: {
-                pro: { name: '🥈 Pro', desc: 'Analisa Manual AI', pricePerMonth: 150000, features: ['manual'] },
-                max: { name: '🥇 Max', desc: 'Manual + Auto Trading', pricePerMonth: 350000, features: ['manual', 'autotrade'] }
+                pro: { name: ' Pro', desc: 'Analisa Manual AI', pricePerMonth: 150000, features: ['manual'] },
+                max: { name: ' Max', desc: 'Manual + Auto Trading', pricePerMonth: 350000, features: ['manual', 'autotrade'] }
             },
-            discounts: { 1: 0, 2: 0.05, 3: 0.10, 6: 0.17, 12: 0.25 }
+            discounts: { 1: 0, 3: 0.10, 6: 0.17, 12: 0.25 }
         };
 
         // ============================================================
@@ -371,17 +606,29 @@
         // ============================================================
         firebase.initializeApp({ databaseURL: CONFIG.firebaseURL });
         const db = firebase.database();
+        let firebaseConnected = false;
+
+        db.ref('.info/connected').on('value', (snap) => {
+            firebaseConnected = snap.val() === true;
+            if (!firebaseConnected) {
+                showToast(' Reconnecting to server...', 'warning');
+            }
+        });
 
         // ============================================================
         // STATE
         // ============================================================
         let currentUser = {
             licenseKey: localStorage.getItem('at_license') || '',
-            package: '', expires: '',
+            username: localStorage.getItem('at_username') || '',
+            package: '', 
+            expires: '',
             affiliateId: new URLSearchParams(window.location.search).get('ref') || ''
         };
-        let paymentState = { package: '', months: 1, price: 0 };
+        let paymentState = { package: '', months: 1, price: 0, originalPrice: 0, discountAmount: 0 };
         let lastSignals = {};
+        let tradingSessionStart = Date.now();
+        let tvWidget = null;
 
         // ============================================================
         // PARTICLE BG
@@ -398,30 +645,161 @@
         addEventListener('resize',()=>{pCanvas.width=innerWidth;pCanvas.height=innerHeight;});
 
         // ============================================================
-        // TRADINGVIEW CHART
+        // MARKET SESSION INDICATOR
         // ============================================================
-        new TradingView.widget({ container_id:"tv_chart", symbol:"OANDA:XAUUSD", interval:"15", theme:"dark", style:"1", locale:"en", toolbar_bg:"#0a0a0a", hide_top_toolbar:true, save_image:false, height:"100%", width:"100%" });
+        function updateSessionIndicator() {
+            const now = new Date();
+            const hours = now.getUTCHours();
+            
+            // Asia: 00:00-09:00 UTC
+            const asiaActive = hours >= 0 && hours < 9;
+            document.getElementById('asiaDot').className = `session-indicator ${asiaActive ? 'session-active' : 'session-inactive'}`;
+            
+            // London: 08:00-17:00 UTC
+            const londonActive = hours >= 8 && hours < 17;
+            document.getElementById('londonDot').className = `session-indicator ${londonActive ? 'session-active' : 'session-inactive'}`;
+            
+            // NY: 13:00-22:00 UTC
+            const nyActive = hours >= 13 && hours < 22;
+            document.getElementById('nyDot').className = `session-indicator ${nyActive ? 'session-active' : 'session-inactive'}`;
+        }
+        setInterval(updateSessionIndicator, 60000);
+        updateSessionIndicator();
+
+        // ============================================================
+        // TRADINGVIEW CHART (Fixed)
+        // ============================================================
+        function initTradingView() {
+            const container = document.getElementById('tv_chart');
+            if (!container || container.offsetParent === null) {
+                setTimeout(initTradingView, 1000);
+                return;
+            }
+            
+            if (tvWidget) {
+                try { tvWidget.remove(); } catch(e) {}
+                tvWidget = null;
+            }
+            
+            try {
+                tvWidget = new TradingView.widget({
+                    container_id: "tv_chart",
+                    symbol: "OANDA:XAUUSD",
+                    interval: "15",
+                    theme: "dark",
+                    style: "1",
+                    locale: "en",
+                    toolbar_bg: "#0a0a0a",
+                    hide_top_toolbar: true,
+                    save_image: false,
+                    height: "100%",
+                    width: "100%",
+                    autosize: true
+                });
+            } catch(e) {
+                console.log('TradingView init delayed, retrying...');
+                setTimeout(initTradingView, 2000);
+            }
+        }
 
         // ============================================================
         // CHART.JS
         // ============================================================
-        new Chart(document.getElementById('perfChart').getContext('2d'), { type:'line', data:{ labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets:[{ label:'P/L', data:[50,-20,80,120,-10,90,200], borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.1)', fill:true, tension:0.4, pointRadius:4 }] }, options:{ responsive:true, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{color:'#6b7280'}, grid:{color:'rgba(255,255,255,0.03)'} }, y:{ ticks:{color:'#6b7280'}, grid:{color:'rgba(255,255,255,0.03)'} } } } });
+        let perfChart;
+        function initPerfChart() {
+            const ctx = document.getElementById('perfChart');
+            if (!ctx) return;
+            if (perfChart) perfChart.destroy();
+            perfChart = new Chart(ctx.getContext('2d'), { 
+                type:'line', 
+                data:{ 
+                    labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], 
+                    datasets:[{ 
+                        label:'P/L', 
+                        data:[50,-20,80,120,-10,90,200], 
+                        borderColor:'#f59e0b', 
+                        backgroundColor:'rgba(245,158,11,0.1)', 
+                        fill:true, 
+                        tension:0.4, 
+                        pointRadius:4,
+                        pointBackgroundColor: '#f59e0b'
+                    }] 
+                }, 
+                options:{ 
+                    responsive:true, 
+                    maintainAspectRatio: false,
+                    plugins:{ legend:{display:false} }, 
+                    scales:{ 
+                        x:{ ticks:{color:'#6b7280'}, grid:{color:'rgba(255,255,255,0.03)'} }, 
+                        y:{ ticks:{color:'#6b7280'}, grid:{color:'rgba(255,255,255,0.03)'} } 
+                    } 
+                } 
+            });
+        }
 
         // ============================================================
-        // TAB SWITCHING
+        // TAB SWITCHING (Fixed)
         // ============================================================
         function switchTab(name) {
+            console.log(' Switching to tab:', name);
+            
+            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(e => e.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
-            const el = document.getElementById('tab-'+name); if(el) el.classList.remove('hidden');
-            const titles = { dashboard:['Dashboard','Trading overview'], signals:['Live Signals','Real-time XAU & BTC'], positions:['Open Positions','All active trades'], license:['License','Details & status'], affiliate:['Affiliate','Earn 20% commission'], payments:['Payments','Purchase license'], history:['History','Trade history'], settings:['Settings','Manage account'] };
-            document.getElementById('pageTitle').textContent = titles[name]?.[0]||name;
-            document.getElementById('pageSubtitle').textContent = titles[name]?.[1]||'';
-            if(name==='signals') loadSignals();
-            if(name==='positions') loadPositions();
-            if(name==='dashboard') loadDashboard();
-            if(name==='affiliate') loadAffiliate();
-            if(name==='license') loadLicenseDetails();
+            
+            // Remove active from ALL buttons
+            document.querySelectorAll('.tab-btn, #mobileNav button').forEach(e => {
+                e.classList.remove('active', 'text-accent-400');
+                e.classList.add('text-neutral');
+            });
+            
+            // Show selected tab
+            const tabEl = document.getElementById('tab-' + name);
+            if (tabEl) tabEl.classList.remove('hidden');
+            
+            // Update desktop nav
+            document.querySelectorAll('#desktopNav .tab-btn').forEach(btn => {
+                const onclick = btn.getAttribute('onclick') || '';
+                if (onclick.includes(`'${name}'`)) {
+                    btn.classList.add('active');
+                    btn.classList.remove('text-neutral');
+                }
+            });
+            
+            // Update mobile nav
+            document.querySelectorAll('#mobileNav button').forEach(btn => {
+                const onclick = btn.getAttribute('onclick') || '';
+                if (onclick.includes(`'${name}'`)) {
+                    btn.classList.add('text-accent-400');
+                    btn.classList.remove('text-neutral');
+                }
+            });
+            
+            // Update titles
+            const titles = {
+                dashboard: [' Dashboard', 'Trading overview'],
+                signals: [' Live Signals', 'Real-time XAU & BTC'],
+                positions: [' Open Positions', 'All active trades'],
+                license: [' License', 'Details & status'],
+                affiliate: [' Affiliate', 'Earn 20% commission'],
+                payments: [' Payments', 'Purchase license'],
+                history: [' History', 'Trade history'],
+                settings: [' Settings', 'Manage account']
+            };
+            document.getElementById('pageTitle').textContent = titles[name]?.[0] || name;
+            document.getElementById('pageSubtitle').textContent = titles[name]?.[1] || '';
+            
+            // Load content
+            if (name === 'signals') loadSignals();
+            if (name === 'positions') loadPositions();
+            if (name === 'dashboard') loadDashboard();
+            if (name === 'affiliate') loadAffiliate();
+            if (name === 'license') loadLicenseDetails();
+            
+            // Init chart if dashboard
+            if (name === 'dashboard') {
+                setTimeout(initTradingView, 500);
+                setTimeout(initPerfChart, 300);
+            }
         }
 
         // ============================================================
@@ -434,74 +812,160 @@
             document.getElementById('dashWR').textContent = '83.2%';
             document.getElementById('wrBar').style.width = '83.2%';
             document.getElementById('totalProfit').textContent = '+$2,450.00';
+            
+            if (currentUser.username) {
+                document.getElementById('userName').textContent = currentUser.username;
+            }
             document.getElementById('userLicense').textContent = currentUser.licenseKey ? currentUser.licenseKey.substring(0,15)+'...' : 'No License';
+            
             loadRecentTrades();
-            // Onboarding
-            if(!currentUser.licenseKey) { document.getElementById('onboardingCard').classList.remove('hidden'); document.getElementById('step1').classList.add('active'); }
-            else { document.getElementById('onboardingCard').classList.add('hidden'); }
+            updateAchievements();
+            
+            if(!currentUser.licenseKey) { 
+                document.getElementById('onboardingCard').classList.remove('hidden'); 
+                document.getElementById('step1').classList.add('active');
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step3').classList.remove('active');
+                document.getElementById('step4').classList.remove('active');
+            } else { 
+                document.getElementById('onboardingCard').classList.add('hidden'); 
+            }
+            
+            // Load user stats
+            if (currentUser.username) {
+                db.ref('users/' + currentUser.username).once('value')
+                    .then(snap => {
+                        const data = snap.val();
+                        if (data) {
+                            document.getElementById('totalProfit').textContent = '+$' + ((data.total_profit || 0)).toFixed(2);
+                            const exp = new Date(data.license_expires);
+                            document.getElementById('memberExpires').textContent = `Exp: ${exp.toLocaleDateString()}`;
+                        }
+                    }).catch(() => {});
+            }
         }
 
         function loadRecentTrades() {
             const container = document.getElementById('recentTrades');
-            if(!currentUser.licenseKey) { container.innerHTML='<p class="text-neutral text-sm text-center py-4">Register license</p>'; return; }
-            const pairPath = 'XAU_USD';
-            db.ref(`signals/${currentUser.licenseKey}/${pairPath}`).on('value', snap => {
+            if(!currentUser.licenseKey) { 
+                container.innerHTML='<p class="text-neutral text-sm text-center py-4">Register license to see signals</p>'; 
+                return; 
+            }
+            db.ref(`signals/${CONFIG.adminLicense}/XAU_USD`).on('value', snap => {
                 const d = snap.val();
                 if(d?.dir) {
                     const c = d.dir==='BUY'?'text-profit':d.dir==='SELL'?'text-loss':'text-neutral';
                     container.innerHTML=`<div class="glass rounded-xl p-3 text-sm"><div class="flex justify-between"><span class="${c} font-bold text-lg">${d.dir}</span><span class="text-neutral text-xs">XAU/USD</span></div><div class="grid grid-cols-2 gap-1 text-xs mt-1"><p>Entry: <b>$${d.entry||'-'}</b></p><p>SL: <span class="text-loss">$${d.sl||'-'}</span></p></div></div>`;
-                } else container.innerHTML='<p class="text-neutral text-sm text-center py-4">Waiting...</p>';
+                } else container.innerHTML='<p class="text-neutral text-sm text-center py-4">Waiting for signal...</p>';
+            }, error => {
+                container.innerHTML='<p class="text-loss text-sm text-center py-4"> Connection error</p>';
             });
         }
 
         // ============================================================
-        // SIGNALS (Path per Pair)
+        // ACHIEVEMENT SYSTEM
+        // ============================================================
+        function updateAchievements() {
+            const container = document.getElementById('achievementBadges');
+            if (!container) return;
+            
+            const achievements = [
+                { id: 'firstTrade', icon: '', label: 'First Trade', earned: currentUser.licenseKey ? true : false },
+                { id: 'streak', icon: '', label: '5 Wins', earned: false },
+                { id: 'volume', icon: '', label: 'Whale', earned: false }
+            ];
+            
+            container.innerHTML = achievements.map(a => 
+                `<span class="achievement-badge ${a.earned ? 'earned' : 'locked'}">${a.icon} ${a.label}</span>`
+            ).join(' ');
+        }
+
+        // ============================================================
+        // SIGNALS (Fixed with error handling)
         // ============================================================
         function loadSignals() {
-            ['XAU_USD','BTC_USD'].forEach(pp => {
+            const pairs = ['XAU_USD', 'BTC_USD'];
+            
+            pairs.forEach(pp => {
                 const targetId = pp === 'XAU_USD' ? 'xauSignalLive' : 'btcSignalLive';
                 const dotId = pp === 'XAU_USD' ? 'xauNewDot' : 'btcNewDot';
-                db.ref(`signals/${CONFIG.adminLicense}/${pp}`).on('value', snap => {
-                    const d = snap.val();
-                    const container = document.getElementById(targetId);
-                    if(d?.dir) {
-                        const emoji = d.dir==='BUY'?'🟢':d.dir==='SELL'?'🔴':'⚪';
-                        const ts = d.timestamp ? new Date(d.timestamp*1000) : new Date();
-                        const age = Math.floor((Date.now()-ts)/60000);
-                        const isNew = age < 2;
-                        
-                        container.innerHTML = `
-                            <div class="${isNew ? 'animate-new-signal rounded-xl p-2' : ''}">
-                                <div class="flex items-center gap-2"><span class="text-2xl">${emoji}</span><span class="font-bold text-lg">${d.dir}</span><span class="text-xs text-neutral">${d.strategy||'AI'}</span>${isNew ? '<span class="text-xs text-accent-400 animate-countdown">NEW</span>' : ''}</div>
-                                <div class="grid grid-cols-2 gap-2 text-sm mt-2"><div><span class="text-neutral">Entry</span><p class="font-bold">$${d.entry||'-'}</p></div><div><span class="text-neutral">SL</span><p class="font-bold text-loss">$${d.sl||'-'}</p></div><div><span class="text-neutral">Trail</span><p class="font-bold">$${d.trailStart||'-'}</p></div><div><span class="text-neutral">Step</span><p class="font-bold">${d.trailStep||'-'}</p></div></div>
-                                <p class="text-[10px] text-neutral mt-1">🕐 ${ts.toLocaleTimeString()} (${age}m ago)</p>
-                            </div>`;
-                        
-                        if(isNew) {
-                            document.getElementById(dotId).classList.remove('hidden');
-                            setTimeout(() => document.getElementById(dotId).classList.add('hidden'), 120000);
+                const container = document.getElementById(targetId);
+                
+                if (!container) return;
+                
+                container.innerHTML = '<p class="text-neutral text-sm"><i class="fas fa-spinner animate-spin"></i> Loading...</p>';
+                
+                db.ref(`signals/${CONFIG.adminLicense}/${pp}`).once('value')
+                    .then(snap => {
+                        if (!snap.exists()) {
+                            container.innerHTML = '<p class="text-neutral text-sm"> No signal data yet</p>';
+                            return;
                         }
-                    } else container.innerHTML='<p class="text-neutral text-sm">⏳ Waiting for signal...</p>';
-                });
+                        
+                        db.ref(`signals/${CONFIG.adminLicense}/${pp}`).on('value', snap => {
+                            const d = snap.val();
+                            updateSignalDisplay(targetId, dotId, pp, d);
+                        }, error => {
+                            container.innerHTML = '<p class="text-loss text-sm"> Connection error</p>';
+                        });
+                    })
+                    .catch(err => {
+                        container.innerHTML = '<p class="text-loss text-sm"> Cannot load signals</p>';
+                    });
             });
         }
 
+        function updateSignalDisplay(targetId, dotId, pp, d) {
+            const container = document.getElementById(targetId);
+            if (!container) return;
+            
+            if(d?.dir) {
+                const emoji = d.dir==='BUY'?'':d.dir==='SELL'?'':'';
+                const ts = d.timestamp ? new Date(d.timestamp*1000) : new Date();
+                const age = Math.floor((Date.now()-ts)/60000);
+                const isNew = age < 2;
+                
+                container.innerHTML = `
+                    <div class="${isNew ? 'animate-new-signal rounded-xl p-2' : ''}">
+                        <div class="flex items-center gap-2"><span class="text-2xl">${emoji}</span><span class="font-bold text-lg">${d.dir}</span><span class="text-xs text-neutral">${d.strategy||'AI'}</span>${isNew ? '<span class="text-xs text-accent-400 animate-countdown">NEW</span>' : ''}</div>
+                        <div class="grid grid-cols-2 gap-2 text-sm mt-2"><div><span class="text-neutral">Entry</span><p class="font-bold">$${d.entry||'-'}</p></div><div><span class="text-neutral">SL</span><p class="font-bold text-loss">$${d.sl||'-'}</p></div><div><span class="text-neutral">Trail</span><p class="font-bold">$${d.trailStart||'-'}</p></div><div><span class="text-neutral">Step</span><p class="font-bold">${d.trailStep||'-'}</p></div></div>
+                        <p class="text-[10px] text-neutral mt-1"> ${ts.toLocaleTimeString()} (${age}m ago)</p>
+                    </div>`;
+                
+                if(isNew) {
+                    const dot = document.getElementById(dotId);
+                    if (dot) {
+                        dot.classList.remove('hidden');
+                        setTimeout(() => dot.classList.add('hidden'), 120000);
+                    }
+                }
+            } else {
+                container.innerHTML='<p class="text-neutral text-sm"> Waiting for signal...</p>';
+            }
+        }
+
         // ============================================================
-        // POSITIONS (NEW!)
+        // POSITIONS (Fixed)
         // ============================================================
         function loadPositions() {
             const container = document.getElementById('positionsList');
-            if(!currentUser.licenseKey) { container.innerHTML='<p class="text-neutral text-center py-8">Register license first.</p>'; return; }
-            // Simulasi posisi (ganti dengan data real nanti)
+            if (!container) return;
+            
+            if(!currentUser.licenseKey) { 
+                container.innerHTML='<p class="text-neutral text-center py-8">Register license first.</p>'; 
+                return; 
+            }
+            
             const mockPositions = [
                 { pair:'XAU/USD', dir:'BUY', entry:4178.05, sl:4061.71, lot:0.01, profit:12.50, time:'12:00', trailActive:false },
                 { pair:'XAU/USD', dir:'BUY', entry:4179.66, sl:4060.50, lot:0.01, profit:10.80, time:'12:15', trailActive:true },
                 { pair:'BTC/USD', dir:'SELL', entry:63370, sl:63470, lot:0.01, profit:-8.20, time:'12:30', trailActive:false },
             ];
+            
             container.innerHTML = mockPositions.map(p => {
                 const dirC = p.dir==='BUY'?'text-profit':'text-loss';
                 const plC = p.profit>=0?'profit-positive':'profit-negative';
-                const trailIcon = p.trailActive ? '🔒' : '🔓';
+                const trailIcon = p.trailActive ? '' : '';
                 return `<div class="glass rounded-xl p-4 flex items-center justify-between">
                     <div><span class="${dirC} font-bold">${p.dir}</span> <span class="text-sm">${p.pair}</span><p class="text-xs text-neutral">Entry: $${p.entry} | SL: $${p.sl} | Lot: ${p.lot}</p></div>
                     <div class="text-right"><p class="font-bold ${plC}">${p.profit>=0?'+':''}$${p.profit.toFixed(2)}</p><p class="text-xs text-neutral">${p.time} | Trail: ${trailIcon}</p></div>
@@ -510,79 +974,323 @@
         }
 
         // ============================================================
-        // LICENSE DETAILS (NEW!)
+        // EMERGENCY STOP (New Feature)
         // ============================================================
-        function loadLicenseDetails() {
-            const container = document.getElementById('licenseDetails');
-            if(!currentUser.licenseKey) { container.innerHTML='<p class="text-neutral">Register license to see details.</p>'; return; }
-            db.ref('licenses/'+currentUser.licenseKey).once('value', snap => {
-                const d = snap.val();
-                if(d) {
-                    const exp = new Date(d.expires);
-                    const now = new Date();
-                    const daysLeft = Math.ceil((exp-now)/(86400000));
-                    const isActive = d.is_active && daysLeft > 0;
-                    const statusColor = isActive ? 'text-profit' : 'text-loss';
-                    const statusText = isActive ? 'ACTIVE' : daysLeft < 0 ? 'EXPIRED' : 'INACTIVE';
-                    
-                    container.innerHTML = `
-                        <div class="grid grid-cols-2 gap-3 text-sm">
-                            <div><span class="text-neutral">License</span><p class="font-bold font-mono">${currentUser.licenseKey}</p></div>
-                            <div><span class="text-neutral">Status</span><p class="font-bold ${statusColor}">${statusText}</p></div>
-                            <div><span class="text-neutral">Package</span><p class="font-bold">${d.package?.toUpperCase()||'-'}</p></div>
-                            <div><span class="text-neutral">Max Pairs</span><p class="font-bold">${d.max_pairs||'-'}</p></div>
-                            <div><span class="text-neutral">Created</span><p>${new Date(d.created).toLocaleDateString()}</p></div>
-                            <div><span class="text-neutral">Expires</span><p class="${daysLeft<=7&&daysLeft>0?'text-yellow-500 animate-countdown':''}">${exp.toLocaleDateString()} (${daysLeft>0?daysLeft+'d left':'Expired'})</p></div>
-                        </div>
-                        ${!isActive ? '<button onclick="switchTab(\'payments\')" class="bg-accent-500 text-black font-bold px-6 py-2 rounded-lg text-sm mt-4">🔄 Renew License</button>' : ''}
-                    `;
-                    document.getElementById('memberExpires').textContent = `Exp: ${exp.toLocaleDateString()}`;
+        function emergencyStop() {
+            if (confirm(' EMERGENCY STOP: This will close ALL positions and disable auto-trading. Continue?')) {
+                if (currentUser.licenseKey) {
+                    db.ref(`users/${currentUser.username || currentUser.licenseKey}/emergency_stop`).set({
+                        activated: true,
+                        timestamp: Date.now()
+                    }).catch(() => {});
                 }
-            });
+                showToast(' Emergency stop activated. All trading halted.', 'warning');
+                
+                // Visual feedback
+                document.getElementById('positionsList').innerHTML = 
+                    '<div class="text-center py-8"><p class="text-4xl mb-3"></p><p class="text-lg font-bold text-loss">EMERGENCY STOP ACTIVATED</p><p class="text-sm text-neutral">All positions closing...</p></div>';
+            }
         }
 
         // ============================================================
-        // PAYMENTS
+        // LICENSE DETAILS (Fixed)
+        // ============================================================
+        function loadLicenseDetails() {
+            const container = document.getElementById('licenseDetails');
+            if (!container) return;
+            
+            if(!currentUser.licenseKey) { 
+                container.innerHTML='<p class="text-neutral">Register license to see details.</p>'; 
+                return; 
+            }
+            
+            container.innerHTML = '<p class="text-neutral"><i class="fas fa-spinner animate-spin"></i> Loading...</p>';
+            
+            db.ref('licenses/'+currentUser.licenseKey).once('value')
+                .then(snap => {
+                    const d = snap.val();
+                    if(d) {
+                        const exp = new Date(d.expires);
+                        const now = new Date();
+                        const daysLeft = Math.ceil((exp-now)/(86400000));
+                        const isActive = d.is_active && daysLeft > 0;
+                        const statusColor = isActive ? 'text-profit' : 'text-loss';
+                        const statusText = isActive ? 'ACTIVE' : daysLeft < 0 ? 'EXPIRED' : 'INACTIVE';
+                        
+                        container.innerHTML = `
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div><span class="text-neutral">License</span><p class="font-bold font-mono">${currentUser.licenseKey}</p></div>
+                                <div><span class="text-neutral">Status</span><p class="font-bold ${statusColor}">${statusText}</p></div>
+                                <div><span class="text-neutral">Package</span><p class="font-bold">${d.package?.toUpperCase()||'-'}</p></div>
+                                <div><span class="text-neutral">Max Pairs</span><p class="font-bold">${d.max_pairs||'-'}</p></div>
+                                <div><span class="text-neutral">Created</span><p>${new Date(d.created).toLocaleDateString()}</p></div>
+                                <div><span class="text-neutral">Expires</span><p class="${daysLeft<=7&&daysLeft>0?'text-yellow-500 animate-countdown':''}">${exp.toLocaleDateString()} (${daysLeft>0?daysLeft+'d left':'Expired'})</p></div>
+                            </div>
+                            ${!isActive ? '<button onclick="switchTab(\'payments\')" class="bg-accent-500 text-black font-bold px-6 py-2 rounded-lg text-sm mt-4"> Renew License</button>' : ''}
+                        `;
+                        document.getElementById('memberExpires').textContent = `Exp: ${exp.toLocaleDateString()}`;
+                    } else {
+                        container.innerHTML = '<p class="text-loss">License not found in database.</p>';
+                    }
+                })
+                .catch(err => {
+                    container.innerHTML = '<p class="text-loss"> Error loading license details.</p>';
+                });
+        }
+
+        // ============================================================
+        // PAYMENTS WITH USER DATA (Fixed)
         // ============================================================
         function selectPackage(pkg, el) {
             paymentState.package = pkg;
             document.querySelectorAll('.pkg-card').forEach(e => e.style.borderColor='rgba(255,255,255,0.05)');
-            el.style.borderColor='#f59e0b';
-            calcPrice();
+            if (el) el.style.borderColor='#f59e0b';
+            if (paymentState.months) calcPrice();
         }
+        
         function selectMonths(m, el) {
             paymentState.months = m;
-            document.querySelectorAll('.month-btn').forEach(e => e.style.borderColor='rgba(255,255,255,0.05)');
-            el.style.borderColor='#f59e0b';
-            calcPrice();
-        }
-        function calcPrice() {
-            if(!paymentState.package) return;
-            const base = CONFIG.packages[paymentState.package].pricePerMonth;
-            const discount = CONFIG.discounts[paymentState.months]||0;
-            paymentState.price = Math.round(base*paymentState.months*(1-discount));
-            document.getElementById('paymentDetails').classList.remove('hidden');
-            document.getElementById('payTotal').textContent = 'Rp '+paymentState.price.toLocaleString();
-            document.getElementById('payPerMonth').textContent = 'Rp '+Math.round(paymentState.price/paymentState.months).toLocaleString()+'/mo';
-            if(discount>0) { document.getElementById('payDiscount').classList.remove('hidden'); document.getElementById('payDiscount').textContent = '💰 Save '+(discount*100)+'%!'; }
-            else document.getElementById('payDiscount').classList.add('hidden');
-        }
-        function processPayment() {
-            if(!paymentState.package||!paymentState.months) return showToast('Select package & duration!','error');
-            if(CONFIG.midtransEnabled) { processMidtrans(); return; }
-            // Manual payment
-            const key = 'AT-'+Math.random().toString(36).substring(2,10).toUpperCase();
-            const now = new Date(), exp = new Date(now); exp.setDate(exp.getDate()+paymentState.months*30);
-            db.ref('licenses/'+key).set({ owner_name:'User-'+key.substring(3,9), package:paymentState.package, duration_months:paymentState.months, created:now.toISOString(), expires:exp.toISOString(), is_active:true, max_pairs:paymentState.package==='max'?10:5, payment_amount:paymentState.price, payment_method:'manual' }).then(() => {
-                currentUser.licenseKey=key; currentUser.package=paymentState.package; currentUser.expires=exp.toISOString(); localStorage.setItem('at_license',key);
-                document.getElementById('paymentDetails').innerHTML=`<div class="text-center"><p class="text-3xl mb-2">🎉</p><p class="text-lg font-bold text-profit mb-2">License Generated!</p><div class="bg-black border border-accent-400 rounded-xl px-4 py-3 mb-3"><p class="text-xl font-bold text-accent-400 tracking-wider">${key}</p></div><p class="text-sm text-neutral">Expires: ${exp.toLocaleDateString()}</p><button onclick="switchTab('dashboard');loadDashboard();" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-6 py-2 rounded-lg mt-3">🚀 Start</button></div>`;
-                showToast('✅ License generated!','success');
-                if(currentUser.affiliateId) { const comm=Math.round(paymentState.price*0.2); db.ref('affiliates/'+currentUser.affiliateId+'/pending_commission').transaction(c=>(c||0)+comm); db.ref('affiliates/'+currentUser.affiliateId+'/total_commission').transaction(c=>(c||0)+comm); db.ref('affiliates/'+currentUser.affiliateId+'/referrals').transaction(c=>(c||0)+1); }
+            document.querySelectorAll('.month-btn').forEach(e => { 
+                e.style.borderColor='rgba(255,255,255,0.05)'; 
+                e.style.background = ''; 
             });
+            if (el) {
+                el.style.borderColor='#f59e0b';
+                el.style.background = 'rgba(245,158,11,0.1)';
+            }
+            if (paymentState.package) calcPrice();
         }
-        function processMidtrans() {
-            // Akan diisi setelah Midtrans approved
-            showToast('⏳ Midtrans pending approval','error');
+        
+        function calcPrice() {
+            const name = document.getElementById('regName')?.value.trim();
+            if (!name) {
+                showToast(' Please enter your name first!', 'error');
+                document.getElementById('regName')?.focus();
+                return;
+            }
+            
+            if(!paymentState.package) return;
+            
+            const base = CONFIG.packages[paymentState.package].pricePerMonth;
+            const discount = CONFIG.discounts[paymentState.months] || 0;
+            
+            const referralCode = document.getElementById('regReferral')?.value.trim();
+            let referralDiscount = 0;
+            if (referralCode) {
+                referralDiscount = 0.05;
+            }
+            
+            const totalDiscount = discount + referralDiscount;
+            paymentState.price = Math.round(base * paymentState.months * (1 - totalDiscount));
+            paymentState.originalPrice = base * paymentState.months;
+            paymentState.discountAmount = paymentState.originalPrice - paymentState.price;
+            
+            document.getElementById('sumName').textContent = name;
+            document.getElementById('sumPackage').textContent = CONFIG.packages[paymentState.package].name;
+            document.getElementById('sumDuration').textContent = `${paymentState.months} month(s)`;
+            document.getElementById('sumTotal').textContent = `Rp ${paymentState.price.toLocaleString()}`;
+            
+            document.getElementById('paymentSummary').classList.remove('hidden');
+            document.getElementById('paymentSummary').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Check referral code
+        document.addEventListener('DOMContentLoaded', () => {
+            const referralInput = document.getElementById('regReferral');
+            if (referralInput) {
+                referralInput.addEventListener('input', function() {
+                    const code = this.value.trim();
+                    const statusEl = document.getElementById('referralStatus');
+                    if (!code) { statusEl.textContent = ''; return; }
+                    
+                    db.ref('affiliates/' + code).once('value')
+                        .then(snap => {
+                            if (snap.exists()) {
+                                statusEl.innerHTML = '<span class="text-profit"> Valid referral! 5% discount applied</span>';
+                            } else {
+                                statusEl.innerHTML = '<span class="text-loss"> Invalid referral code</span>';
+                            }
+                        }).catch(() => {
+                            statusEl.innerHTML = '<span class="text-neutral"> Cannot verify now</span>';
+                        });
+                });
+            }
+        });
+
+        async function processPaymentWithUserData() {
+            const name = document.getElementById('regName')?.value.trim();
+            
+            if (!name) {
+                showToast(' Please enter your name!', 'error');
+                return;
+            }
+            if (!paymentState.package || !paymentState.months) {
+                showToast(' Select package & duration!', 'error');
+                return;
+            }
+            
+            const referralCode = document.getElementById('regReferral')?.value.trim() || '';
+            const timestamp = Date.now().toString(36).toUpperCase();
+            const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+            const licenseKey = `AT-${timestamp}${random}`;
+            
+            const now = new Date();
+            const exp = new Date(now);
+            exp.setDate(exp.getDate() + (paymentState.months * 30));
+            
+            const userData = {
+                name: name,
+                license_key: licenseKey,
+                package: paymentState.package,
+                package_name: CONFIG.packages[paymentState.package].name,
+                max_pairs: paymentState.package === 'max' ? 10 : 5,
+                registered_at: now.toISOString(),
+                license_expires: exp.toISOString(),
+                duration_months: paymentState.months,
+                payment_amount: paymentState.price,
+                payment_status: 'completed',
+                payment_method: 'manual',
+                payment_date: now.toISOString(),
+                referred_by: referralCode,
+                total_trades: 0,
+                total_profit: 0,
+                active_positions: 0,
+                is_active: true
+            };
+            
+            const payBtn = document.querySelector('#paymentSummary button');
+            const originalText = payBtn.innerHTML;
+            payBtn.disabled = true;
+            payBtn.innerHTML = '<i class="fas fa-spinner animate-spin"></i> Processing...';
+            
+            try {
+                // Save user data
+                await db.ref('users/' + licenseKey).set(userData);
+                
+                // Save license
+                const licenseData = {
+                    key: licenseKey,
+                    name: name,
+                    package: paymentState.package,
+                    duration_months: paymentState.months,
+                    created: now.toISOString(),
+                    expires: exp.toISOString(),
+                    is_active: true,
+                    max_pairs: paymentState.package === 'max' ? 10 : 5,
+                    payment_amount: paymentState.price
+                };
+                
+                await db.ref('licenses/' + licenseKey).set(licenseData);
+                
+                // Handle affiliate
+                if (referralCode) {
+                    const commission = Math.round(paymentState.price * 0.2);
+                    db.ref('affiliates/' + referralCode).update({
+                        pending_commission: firebase.database.ServerValue.increment(commission),
+                        total_referrals: firebase.database.ServerValue.increment(1)
+                    }).catch(() => {});
+                }
+                
+                // Update local state
+                currentUser.licenseKey = licenseKey;
+                currentUser.package = paymentState.package;
+                currentUser.expires = exp.toISOString();
+                currentUser.username = licenseKey;
+                localStorage.setItem('at_license', licenseKey);
+                localStorage.setItem('at_username', licenseKey);
+                
+                // Show success
+                document.getElementById('paymentSummary').innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-6xl mb-4"></div>
+                        <h3 class="text-2xl font-bold text-profit mb-2">Payment Successful!</h3>
+                        <p class="text-neutral mb-4">Welcome, ${name}!</p>
+                        <div class="glass rounded-xl p-4 mb-4">
+                            <p class="text-sm text-neutral mb-2">Your License Key</p>
+                            <div class="bg-black border-2 border-accent-400 rounded-xl px-4 py-3 mb-2">
+                                <p class="text-xl font-bold text-accent-400 tracking-wider">${licenseKey}</p>
+                            </div>
+                            <button onclick="copyLicenseKey('${licenseKey}')" class="text-xs text-accent-400 hover:underline"><i class="fas fa-copy"></i> Copy Key</button>
+                        </div>
+                        <button onclick="switchTab('dashboard');loadDashboard();" class="w-full bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-6 py-3 rounded-xl"> Go to Dashboard</button>
+                    </div>`;
+                
+                showToast(' License activated successfully!', 'success');
+                
+                document.getElementById('userName').textContent = name;
+                document.getElementById('userLicense').textContent = licenseKey.substring(0,15)+'...';
+                document.getElementById('memberExpires').textContent = `Exp: ${exp.toLocaleDateString()}`;
+                
+            } catch (error) {
+                console.error('Payment error:', error);
+                showToast(' Error processing payment. Please try again.', 'error');
+                payBtn.disabled = false;
+                payBtn.innerHTML = originalText;
+            }
+        }
+
+        function copyLicenseKey(key) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(key).then(() => showToast(' License key copied!', 'success'));
+            } else {
+                showToast(' Please copy manually: ' + key, 'warning');
+            }
+        }
+
+        // ============================================================
+        // REGISTER LICENSE (Fixed with validation)
+        // ============================================================
+        function registerLicense() {
+            const key = document.getElementById('regKey').value.trim().toUpperCase();
+            const btn = document.querySelector('#tab-settings button');
+            
+            if (!key) return showToast(' Enter license key!', 'error');
+            if (!key.startsWith('AT-')) return showToast(' Invalid format! Must start with AT-', 'error');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i> Checking...';
+            
+            db.ref('licenses/' + key).once('value')
+                .then(snap => {
+                    const data = snap.val();
+                    
+                    if (!data) {
+                        showToast(' License not found!', 'error');
+                        return;
+                    }
+                    if (!data.is_active) {
+                        showToast(' License is inactive!', 'error');
+                        return;
+                    }
+                    
+                    const exp = new Date(data.expires);
+                    if (exp < new Date()) {
+                        showToast(' License expired! Renew to continue.', 'error');
+                        return;
+                    }
+                    
+                    currentUser.licenseKey = key;
+                    currentUser.package = data.package;
+                    currentUser.expires = data.expires;
+                    currentUser.username = data.name || key;
+                    localStorage.setItem('at_license', key);
+                    localStorage.setItem('at_username', data.name || key);
+                    
+                    document.getElementById('userLicense').textContent = key.substring(0, 15) + '...';
+                    document.getElementById('userName').textContent = data.name || 'User';
+                    document.getElementById('memberExpires').textContent = `Exp: ${exp.toLocaleDateString()}`;
+                    
+                    showToast(' License activated!', 'success');
+                    switchTab('dashboard');
+                    loadDashboard();
+                })
+                .catch(err => {
+                    showToast(' Connection error. Try again.', 'error');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Register';
+                });
         }
 
         // ============================================================
@@ -590,35 +1298,84 @@
         // ============================================================
         function loadAffiliate() {
             const affId = 'AFF-'+(currentUser.licenseKey||'DEMO').substring(3,9);
-            document.getElementById('affLink').value = 'https://dikakugysaki.github.io/aethertrade-panel/?ref='+affId;
+            document.getElementById('affLink').value = window.location.origin + window.location.pathname + '?ref=' + affId;
+            
             db.ref('affiliates/'+affId).on('value', snap => {
                 const d = snap.val()||{};
                 document.getElementById('affTotal').textContent = 'Rp '+(d.total_commission||0).toLocaleString();
                 document.getElementById('affPending').textContent = 'Rp '+(d.pending_commission||0).toLocaleString();
-                document.getElementById('affReferrals').textContent = d.referrals||0;
+                document.getElementById('affReferrals').textContent = d.total_referrals||0;
                 document.getElementById('affPaid').textContent = 'Rp '+(d.paid_commission||0).toLocaleString();
+            }, () => {});
+        }
+        
+        function showWithdrawModal() { 
+            document.getElementById('withdrawModal').classList.remove('hidden'); 
+            const affId = 'AFF-'+(currentUser.licenseKey||'DEMO').substring(3,9);
+            db.ref('affiliates/'+affId+'/pending_commission').once('value').then(snap => {
+                document.getElementById('wdBalance').textContent = 'Rp '+(snap.val()||0).toLocaleString();
             });
         }
-        function showWithdrawModal() { document.getElementById('withdrawModal').classList.remove('hidden'); }
+        
         function submitWithdraw() {
-            const amt=parseInt(document.getElementById('wdAmount').value), mtd=document.getElementById('wdMethod').value, acc=document.getElementById('wdAccount').value;
-            if(!amt||!acc) return showToast('Fill all fields!','error');
+            const amt=parseInt(document.getElementById('wdAmount').value), 
+                  mtd=document.getElementById('wdMethod').value, 
+                  acc=document.getElementById('wdAccount').value;
+            if(!amt||!acc) return showToast(' Fill all fields!','error');
+            
             const affId='AFF-'+(currentUser.licenseKey||'DEMO').substring(3,9);
-            db.ref('affiliates/'+affId+'/withdrawals/'+Date.now()).set({ amount:amt, method:mtd, account:acc, status:'pending' });
-            document.getElementById('withdrawModal').classList.add('hidden');
-            showToast('✅ Withdrawal submitted! 1x24h processing.','success');
+            db.ref('affiliates/'+affId+'/withdrawals/'+Date.now()).set({ 
+                amount:amt, method:mtd, account:acc, status:'pending', timestamp: Date.now()
+            }).then(() => {
+                document.getElementById('withdrawModal').classList.add('hidden');
+                showToast(' Withdrawal submitted! 1x24h processing.','success');
+            }).catch(() => showToast(' Error submitting withdrawal','error'));
         }
 
         // ============================================================
-        // LICENSE
+        // HISTORY EXPORT
         // ============================================================
-        function registerLicense() {
-            const key=document.getElementById('regKey').value.trim().toUpperCase();
-            if(!key) return showToast('Enter license key!','error');
-            db.ref('licenses/'+key).once('value').then(snap => {
-                if(snap.val()?.is_active) { currentUser.licenseKey=key; localStorage.setItem('at_license',key); showToast('✅ License registered!','success'); switchTab('dashboard'); loadDashboard(); }
-                else showToast('❌ Invalid license!','error');
+        function exportHistory() {
+            const rows = document.querySelectorAll('#historyBody tr');
+            let csv = 'Date,Pair,Type,Entry,P/L\n';
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 5) {
+                    csv += Array.from(cells).map(c => c.textContent.trim()).join(',') + '\n';
+                }
             });
+            
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `trade-history-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            showToast(' History exported!', 'success');
+        }
+
+        // ============================================================
+        // WELLNESS SYSTEM
+        // ============================================================
+        function showWellnessTip() {
+            const minutes = Math.floor((Date.now() - tradingSessionStart) / 60000);
+            const tips = [
+                { icon: '', msg: 'Look 20 feet away for 20 seconds to rest your eyes.' },
+                { icon: '', msg: 'Stretch your neck and shoulders.' },
+                { icon: '', msg: 'Stand up and walk for 2 minutes.' },
+                { icon: '', msg: 'Drink a glass of water. Stay hydrated!' },
+                { icon: '', msg: 'Take 5 deep breaths to clear your mind.' }
+            ];
+            
+            const tip = tips[Math.floor(Math.random() * tips.length)];
+            document.getElementById('wellnessIcon').textContent = tip.icon;
+            document.getElementById('wellnessMessage').textContent = 
+                `You've been trading for ${minutes} minutes.\n${tip.msg}`;
+            document.getElementById('wellnessPopup').classList.remove('hidden');
+            
+            if (minutes > 120) {
+                showToast(' Time for a break! You\'ve been trading for 2+ hours.', 'warning');
+            }
         }
 
         // ============================================================
@@ -632,13 +1389,59 @@
             document.getElementById('themeText').textContent = isDark ? 'Dark Mode' : 'Light Mode';
             document.getElementById('themeBtnText').textContent = isDark ? 'Switch to Light' : 'Switch to Dark';
         }
-        if(CONFIG.theme==='light') { document.documentElement.classList.remove('dark'); }
+        if(CONFIG.theme==='light') { 
+            document.documentElement.classList.remove('dark'); 
+            document.getElementById('themeIcon').className = 'fas fa-sun';
+            document.getElementById('themeText').textContent = 'Light Mode';
+        }
 
         // ============================================================
         // HELPERS
         // ============================================================
-        function copyText(id){ const el=document.getElementById(id); el.select(); document.execCommand('copy'); showToast('✅ Copied!','success'); }
-        function showToast(msg,type){ const t=document.createElement('div'); t.className='toast glass-light rounded-xl px-4 py-3 text-sm font-medium '+(type==='success'?'text-profit':'text-loss'); t.textContent=msg; document.getElementById('toastContainer').appendChild(t); setTimeout(()=>t.remove(),3000); }
+        function copyText(id){ 
+            const el=document.getElementById(id); 
+            if (!el) return;
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(el.value).then(() => {
+                    showToast(' Copied!','success');
+                }).catch(() => {
+                    el.select();
+                    document.execCommand('copy');
+                    showToast(' Copied!','success');
+                });
+            } else {
+                el.select();
+                document.execCommand('copy');
+                showToast(' Copied!','success');
+            }
+        }
+        
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            
+            const toasts = container.querySelectorAll('.toast');
+            if (toasts.length >= 3) {
+                toasts[0].remove();
+            }
+            
+            const icons = { success: '', error: '', warning: '', info: '' };
+            const borderColors = { success: 'border-l-profit', error: 'border-l-loss', warning: 'border-l-yellow-500', info: 'border-l-neutral' };
+            const textColors = { success: 'text-profit', error: 'text-loss', warning: 'text-yellow-500', info: 'text-neutral' };
+            
+            const t = document.createElement('div');
+            t.className = `toast glass-light rounded-xl px-4 py-3 text-sm font-medium animate-slideInRight border-l-2 ${borderColors[type] || borderColors.info} ${textColors[type] || textColors.info}`;
+            t.innerHTML = `<span class="mr-2">${icons[type] || icons.info}</span>${msg}`;
+            
+            container.appendChild(t);
+            
+            setTimeout(() => {
+                t.style.opacity = '0';
+                t.style.transform = 'translateX(100%)';
+                setTimeout(() => t.remove(), 300);
+            }, 3000);
+        }
 
         // ============================================================
         // PWA SERVICE WORKER
@@ -650,10 +1453,49 @@
         // ============================================================
         // INIT
         // ============================================================
-        switchTab('dashboard');
-        loadDashboard();
-        if(currentUser.affiliateId) db.ref('affiliates/'+currentUser.affiliateId+'/clicks').transaction(c=>(c||0)+1);
-        setInterval(() => { if(document.getElementById('tab-signals')&&!document.getElementById('tab-signals').classList.contains('hidden')) loadSignals(); }, 30000);
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log(' AetherTrade AI initialized');
+            
+            // Init components
+            setTimeout(initTradingView, 800);
+            setTimeout(initPerfChart, 500);
+            
+            // Load initial tab
+            switchTab('dashboard');
+            loadDashboard();
+            
+            // Track affiliate click
+            if(currentUser.affiliateId) {
+                db.ref('affiliates/'+currentUser.affiliateId+'/clicks').transaction(c=>(c||0)+1).catch(()=>{});
+            }
+            
+            // Auto-refresh signals
+            setInterval(() => {
+                const signalsTab = document.getElementById('tab-signals');
+                if (signalsTab && !signalsTab.classList.contains('hidden')) {
+                    loadSignals();
+                }
+            }, 30000);
+            
+            // Check trading session
+            setInterval(() => {
+                const minutes = Math.floor((Date.now() - tradingSessionStart) / 60000);
+                if (minutes === 60 || minutes === 120) {
+                    showToast(` You've been trading for ${minutes} minutes. Consider a break.`, 'warning');
+                }
+            }, 60000);
+            
+            // Preload auto-fill referral from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const refCode = urlParams.get('ref');
+            if (refCode && document.getElementById('regReferral')) {
+                document.getElementById('regReferral').value = refCode;
+                currentUser.affiliateId = refCode;
+            }
+        });
+
+        console.log(' AetherTrade AI - All features loaded successfully');
+        console.log(' Features: Tab Switching, TradingView, Signals, Positions, Payments, Affiliate, Wellness, Achievements, Emergency Stop, Export');
     </script>
 </body>
 </html>
