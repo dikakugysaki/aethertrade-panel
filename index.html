@@ -4,16 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AetherTrade AI — Professional Trading Panel</title>
+    <meta name="theme-color" content="#050505">
+    <link rel="manifest" href="data:application/json,{'name':'AetherTrade','short_name':'Aether','start_url':'/','display':'standalone','background_color':'#050505','theme_color':'#f59e0b','icons':[{'src':'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>','sizes':'100x100','type':'image/svg+xml'}]}">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
         tailwind.config = {
@@ -22,12 +21,10 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        primary: { 50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412', 900: '#7c2d12' },
+                        primary: { 400: '#fb923c', 500: '#f97316', 600: '#ea580c' },
                         accent: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
-                        surface: { 50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 700: '#1f1f1f', 800: '#171717', 900: '#0a0a0a', 950: '#050505' },
-                        profit: '#10b981',
-                        loss: '#ef4444',
-                        neutral: '#6b7280',
+                        surface: { 800: '#171717', 900: '#0a0a0a', 950: '#050505' },
+                        profit: '#10b981', loss: '#ef4444', neutral: '#6b7280',
                     }
                 }
             }
@@ -36,57 +33,50 @@
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.2s ease; }
-        body { font-family: 'Inter', sans-serif; background: #050505; }
-        
-        /* Glassmorphism */
+        body { font-family: 'Inter', sans-serif; background: #050505; overflow-x: hidden; }
         .glass { background: rgba(23, 23, 23, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
         .glass-light { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); }
         
-        /* Gradient borders */
-        .border-gradient { border: 1px solid transparent; background-clip: padding-box; }
-        
-        /* Animations */
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        @keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.1); } 50% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.3); } }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes glow { 0%,100% { box-shadow: 0 0 20px rgba(251,191,36,0.1); } 50% { box-shadow: 0 0 40px rgba(251,191,36,0.3); } }
         @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         
         .animate-float { animation: float 3s ease-in-out infinite; }
         .animate-glow { animation: glow 2s ease-in-out infinite; }
         .animate-slideIn { animation: slideIn 0.5s ease-out; }
+        .animate-scroll { animation: scroll 20s linear infinite; white-space: nowrap; }
         
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0a0a0a; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         
-        /* Toast */
         .toast { position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease-out; }
-        
-        /* Pulse dot */
         .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; position: relative; }
         .pulse-dot::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: #10b981; animation: pulse-ring 1.5s ease-out infinite; }
         
-        /* Tabs */
         .tab-btn { position: relative; }
         .tab-btn.active { color: #f59e0b; }
         .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, #f59e0b, #fbbf24); border-radius: 1px; }
         
-        /* Card hover */
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.4); border-color: rgba(251, 191, 36, 0.2); }
-        
-        /* Loading skeleton */
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.4); border-color: rgba(251,191,36,0.2); }
         .skeleton { background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .profit-positive { color: #10b981; }
+        .profit-negative { color: #ef4444; }
     </style>
 </head>
-<body class="bg-surface-950 text-white font-sans">
+<body class="bg-surface-950 text-white font-sans relative">
+
+    <!-- PARTICLE BACKGROUND -->
+    <canvas id="particleCanvas" class="fixed inset-0 z-0 opacity-20 pointer-events-none"></canvas>
 
     <!-- TOAST CONTAINER -->
     <div id="toastContainer"></div>
 
     <!-- MAIN LAYOUT -->
-    <div class="flex min-h-screen">
+    <div class="flex min-h-screen relative z-10">
         
         <!-- SIDEBAR -->
         <aside class="hidden lg:flex flex-col w-72 glass border-r border-white/5 p-5 gap-1">
@@ -94,7 +84,7 @@
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center text-black font-bold text-lg">A</div>
                 <div>
                     <h1 class="font-bold text-lg bg-gradient-to-r from-accent-400 to-primary-400 bg-clip-text text-transparent">AetherTrade</h1>
-                    <p class="text-xs text-neutral-400">Professional Trading</p>
+                    <p class="text-xs text-neutral flex items-center gap-1"><span class="pulse-dot"></span> LIVE</p>
                 </div>
             </div>
             
@@ -102,27 +92,25 @@
                 <button onclick="switchTab('dashboard')" class="tab-btn active flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium">
                     <i class="fas fa-th-large w-5"></i> Dashboard
                 </button>
-                <button onclick="switchTab('signals')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral-400">
+                <button onclick="switchTab('signals')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral">
                     <i class="fas fa-chart-line w-5"></i> Live Signals
-                    <span class="ml-auto pulse-dot"></span>
                 </button>
-                <button onclick="switchTab('affiliate')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral-400">
+                <button onclick="switchTab('affiliate')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral">
                     <i class="fas fa-users w-5"></i> Affiliate
                 </button>
-                <button onclick="switchTab('payments')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral-400">
+                <button onclick="switchTab('payments')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral">
                     <i class="fas fa-credit-card w-5"></i> Payments
                 </button>
-                <button onclick="switchTab('history')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral-400">
+                <button onclick="switchTab('history')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral">
                     <i class="fas fa-clock-rotate-left w-5"></i> History
                 </button>
-                <button onclick="switchTab('settings')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral-400">
+                <button onclick="switchTab('settings')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-sm font-medium text-neutral">
                     <i class="fas fa-gear w-5"></i> Settings
                 </button>
             </nav>
             
             <div class="mt-auto p-4 glass-light rounded-2xl">
-                <p class="text-xs text-neutral-400 mb-1">Need Help?</p>
-                <p class="text-sm font-medium mb-2">Contact Support</p>
+                <p class="text-xs text-neutral mb-1">Need Help?</p>
                 <a href="https://t.me/rimuru_genkai" target="_blank" class="flex items-center gap-2 text-accent-400 text-sm hover:underline">
                     <i class="fab fa-telegram"></i> @rimuru_genkai
                 </a>
@@ -136,23 +124,27 @@
             <div class="flex items-center justify-between mb-6 animate-slideIn">
                 <div>
                     <h2 class="text-2xl font-bold" id="pageTitle">Dashboard</h2>
-                    <p class="text-sm text-neutral-400" id="pageSubtitle">Welcome back! Here's your trading overview.</p>
+                    <p class="text-sm text-neutral" id="pageSubtitle">Welcome back! Here's your trading overview.</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button onclick="toggleTheme()" class="w-10 h-10 rounded-xl glass-light flex items-center justify-center hover:bg-white/10">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <button class="relative w-10 h-10 rounded-xl glass-light flex items-center justify-center hover:bg-white/10">
-                        <i class="fas fa-bell"></i>
-                        <span class="absolute -top-1 -right-1 w-4 h-4 bg-accent-500 rounded-full text-[10px] flex items-center justify-center text-black font-bold">3</span>
-                    </button>
+                    <button onclick="toggleTheme()" class="w-10 h-10 rounded-xl glass-light flex items-center justify-center hover:bg-white/10"><i class="fas fa-moon"></i></button>
+                    <button onclick="requestNotification()" class="w-10 h-10 rounded-xl glass-light flex items-center justify-center hover:bg-white/10"><i class="fas fa-bell"></i></button>
                     <div class="flex items-center gap-2 glass-light rounded-xl px-3 py-2">
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center text-black font-bold text-xs">U</div>
-                        <div class="hidden sm:block">
-                            <p class="text-sm font-medium" id="userName">Trader</p>
-                            <p class="text-[10px] text-neutral-400" id="userLicense">No License</p>
-                        </div>
+                        <div class="hidden sm:block"><p class="text-sm font-medium" id="userName">Trader</p><p class="text-[10px] text-neutral" id="userLicense">No License</p></div>
                     </div>
+                </div>
+            </div>
+
+            <!-- LIVE TICKER -->
+            <div class="glass-light rounded-2xl px-4 py-2 overflow-hidden mb-4">
+                <div class="flex gap-6 animate-scroll text-sm" id="liveTicker">
+                    <span>XAU/USD <span class="text-profit">2,650.30</span> <span class="text-profit text-xs">+0.3%</span></span>
+                    <span>BTC/USD <span class="text-profit">62,450</span> <span class="text-profit text-xs">+1.2%</span></span>
+                    <span>EUR/USD <span class="text-loss">1.0850</span> <span class="text-loss text-xs">-0.1%</span></span>
+                    <span>GBP/JPY <span class="text-profit">198.50</span> <span class="text-profit text-xs">+0.5%</span></span>
+                    <span>XAU/USD <span class="text-profit">2,650.30</span> <span class="text-profit text-xs">+0.3%</span></span>
+                    <span>BTC/USD <span class="text-profit">62,450</span> <span class="text-profit text-xs">+1.2%</span></span>
                 </div>
             </div>
 
@@ -160,57 +152,50 @@
             <div id="tab-dashboard" class="tab-content space-y-5">
                 <!-- Stats Cards -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="glass-light rounded-2xl p-5 card-hover animate-slideIn" style="animation-delay: 0.1s">
+                    <div class="glass-light rounded-2xl p-5 card-hover animate-slideIn">
                         <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs text-neutral-400 font-medium">Total Balance</span>
+                            <span class="text-xs text-neutral font-medium">Total Balance</span>
                             <span class="w-8 h-8 rounded-lg bg-profit/10 flex items-center justify-center"><i class="fas fa-wallet text-profit text-sm"></i></span>
                         </div>
                         <p class="text-2xl font-bold" id="dashBalance">$0.00</p>
                         <p class="text-xs text-profit mt-1" id="dashBalanceChange">+0.00%</p>
                     </div>
-                    <div class="glass-light rounded-2xl p-5 card-hover animate-slideIn" style="animation-delay: 0.2s">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs text-neutral-400 font-medium">Open Positions</span>
-                            <span class="w-8 h-8 rounded-lg bg-accent-400/10 flex items-center justify-center"><i class="fas fa-layer-group text-accent-400 text-sm"></i></span>
-                        </div>
-                        <p class="text-2xl font-bold" id="dashOpen">0</p>
-                        <p class="text-xs text-neutral-400 mt-1">Active trades</p>
+                    <div class="glass-light rounded-2xl p-5 card-hover animate-slideIn">
+                        <div class="flex items-center justify-between mb-3"><span class="text-xs text-neutral font-medium">Open Positions</span><span class="w-8 h-8 rounded-lg bg-accent-400/10 flex items-center justify-center"><i class="fas fa-layer-group text-accent-400 text-sm"></i></span></div>
+                        <p class="text-2xl font-bold" id="dashOpen">0</p><p class="text-xs text-neutral mt-1">Active trades</p>
                     </div>
-                    <div class="glass-light rounded-2xl p-5 card-hover animate-slideIn" style="animation-delay: 0.3s">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs text-neutral-400 font-medium">Today P/L</span>
-                            <span class="w-8 h-8 rounded-lg bg-profit/10 flex items-center justify-center"><i class="fas fa-chart-simple text-profit text-sm"></i></span>
-                        </div>
-                        <p class="text-2xl font-bold profit-positive" id="dashPL">$0.00</p>
-                        <p class="text-xs text-profit mt-1" id="dashPLPercent">+0.00%</p>
+                    <div class="glass-light rounded-2xl p-5 card-hover animate-slideIn">
+                        <div class="flex items-center justify-between mb-3"><span class="text-xs text-neutral font-medium">Today P/L</span><span class="w-8 h-8 rounded-lg bg-profit/10 flex items-center justify-center"><i class="fas fa-chart-simple text-profit text-sm"></i></span></div>
+                        <p class="text-2xl font-bold profit-positive" id="dashPL">$0.00</p><p class="text-xs text-profit mt-1" id="dashPLPercent">+0.00%</p>
                     </div>
-                    <div class="glass-light rounded-2xl p-5 card-hover animate-slideIn" style="animation-delay: 0.4s">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs text-neutral-400 font-medium">Win Rate</span>
-                            <span class="w-8 h-8 rounded-lg bg-primary-400/10 flex items-center justify-center"><i class="fas fa-trophy text-primary-400 text-sm"></i></span>
-                        </div>
+                    <div class="glass-light rounded-2xl p-5 card-hover animate-slideIn">
+                        <div class="flex items-center justify-between mb-3"><span class="text-xs text-neutral font-medium">Win Rate</span><span class="w-8 h-8 rounded-lg bg-primary-400/10 flex items-center justify-center"><i class="fas fa-trophy text-primary-400 text-sm"></i></span></div>
                         <p class="text-2xl font-bold" id="dashWR">0%</p>
-                        <div class="w-full h-1.5 bg-white/5 rounded-full mt-2">
-                            <div class="h-full bg-gradient-to-r from-accent-400 to-profit rounded-full" style="width: 0%" id="wrBar"></div>
-                        </div>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full mt-2"><div class="h-full bg-gradient-to-r from-accent-400 to-profit rounded-full" style="width: 0%" id="wrBar"></div></div>
                     </div>
                 </div>
 
-                <!-- Chart + Positions -->
+                <!-- Chart + Recent Trades -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <div class="lg:col-span-2 glass-light rounded-2xl p-5 card-hover">
                         <h3 class="font-bold mb-3">📊 Live Chart</h3>
-                        <div class="h-64 bg-surface-900 rounded-xl flex items-center justify-center text-neutral-500 text-sm">
-                            [TradingView Chart Widget]
-                        </div>
+                        <div class="tradingview-widget-container h-64 rounded-xl overflow-hidden"><div id="tv_chart"></div></div>
                     </div>
                     <div class="glass-light rounded-2xl p-5 card-hover">
-                        <h3 class="font-bold mb-3">📋 Recent Trades</h3>
-                        <div id="recentTrades" class="space-y-2 max-h-64 overflow-y-auto">
-                            <div class="skeleton h-10 rounded-lg"></div>
-                            <div class="skeleton h-10 rounded-lg"></div>
-                            <div class="skeleton h-10 rounded-lg"></div>
-                        </div>
+                        <h3 class="font-bold mb-3">📋 Recent Signal</h3>
+                        <div id="recentTrades" class="space-y-2 max-h-64 overflow-y-auto"><p class="text-neutral text-sm text-center py-4">Loading...</p></div>
+                    </div>
+                </div>
+
+                <!-- Weekly Chart + Summary -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="lg:col-span-2 glass-light rounded-2xl p-5 card-hover">
+                        <h3 class="font-bold mb-3">📈 Weekly Performance</h3>
+                        <canvas id="perfChart" height="200"></canvas>
+                    </div>
+                    <div class="glass-light rounded-2xl p-5 card-hover flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center text-2xl">🏆</div><div><p class="font-bold">Member</p><p class="text-xs text-neutral" id="memberExpires">Register to start</p></div></div>
+                        <div class="text-center"><p class="text-xs text-neutral">Total Profit</p><p class="text-3xl font-black text-profit" id="totalProfit">$0.00</p></div>
                     </div>
                 </div>
             </div>
@@ -220,17 +205,13 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div class="glass-light rounded-2xl p-5 card-hover relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-20 h-20 bg-accent-400/5 rounded-bl-full"></div>
-                        <h3 class="font-bold text-lg mb-3 flex items-center gap-2">🥇 XAU/USD <span class="text-xs text-neutral-400">Gold</span></h3>
-                        <div id="xauSignalLive" class="space-y-2">
-                            <p class="text-neutral-400 text-sm">⏳ Waiting for signal...</p>
-                        </div>
+                        <h3 class="font-bold text-lg mb-3 flex items-center gap-2">🥇 XAU/USD <span class="text-xs text-neutral">Gold</span></h3>
+                        <div id="xauSignalLive" class="space-y-2"><p class="text-neutral text-sm">⏳ Waiting for signal...</p></div>
                     </div>
                     <div class="glass-light rounded-2xl p-5 card-hover relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-20 h-20 bg-primary-400/5 rounded-bl-full"></div>
-                        <h3 class="font-bold text-lg mb-3 flex items-center gap-2">₿ BTC/USD <span class="text-xs text-neutral-400">Bitcoin</span></h3>
-                        <div id="btcSignalLive" class="space-y-2">
-                            <p class="text-neutral-400 text-sm">⏳ Waiting for signal...</p>
-                        </div>
+                        <h3 class="font-bold text-lg mb-3 flex items-center gap-2">₿ BTC/USD <span class="text-xs text-neutral">Bitcoin</span></h3>
+                        <div id="btcSignalLive" class="space-y-2"><p class="text-neutral text-sm">⏳ Waiting for signal...</p></div>
                     </div>
                 </div>
             </div>
@@ -241,17 +222,15 @@
                     <h3 class="font-bold text-lg mb-3">🤝 Your Referral Program</h3>
                     <div class="flex flex-col sm:flex-row gap-3 mb-4">
                         <input type="text" id="affLink" readonly class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono">
-                        <button onclick="copyText('affLink')" class="bg-accent-500 hover:bg-accent-600 text-black font-bold px-6 py-3 rounded-xl text-sm flex items-center gap-2">
-                            <i class="fas fa-copy"></i> Copy
-                        </button>
+                        <button onclick="copyText('affLink')" class="bg-accent-500 hover:bg-accent-600 text-black font-bold px-6 py-3 rounded-xl text-sm flex items-center gap-2"><i class="fas fa-copy"></i> Copy</button>
                     </div>
-                    <p class="text-sm text-neutral-400">💰 Earn <span class="text-accent-400 font-bold">20% commission</span> from every sale through your link!</p>
+                    <p class="text-sm text-neutral">💰 Earn <span class="text-accent-400 font-bold">20% commission</span> from every sale!</p>
                 </div>
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="glass-light rounded-2xl p-4 text-center card-hover"><p class="text-xs text-neutral-400">Total Earned</p><p class="text-xl font-bold text-accent-400 mt-1" id="affTotal">Rp 0</p></div>
-                    <div class="glass-light rounded-2xl p-4 text-center card-hover"><p class="text-xs text-neutral-400">Pending</p><p class="text-xl font-bold text-yellow-500 mt-1" id="affPending">Rp 0</p></div>
-                    <div class="glass-light rounded-2xl p-4 text-center card-hover"><p class="text-xs text-neutral-400">Referrals</p><p class="text-xl font-bold mt-1" id="affReferrals">0</p></div>
-                    <div class="glass-light rounded-2xl p-4 text-center card-hover"><p class="text-xs text-neutral-400">Paid Out</p><p class="text-xl font-bold text-profit mt-1" id="affPaid">Rp 0</p></div>
+                    <div class="glass-light rounded-2xl p-4 text-center card-hover"><p class="text-xs text-neutral">Total Earned</p><p class="text-xl font-bold text-accent-400 mt-1" id="affTotal">Rp 0</p></div>
+                    <div class="glass-light rounded-2xl p-4 text-center card-hover"><p class="text-xs text-neutral">Pending</p><p class="text-xl font-bold text-yellow-500 mt-1" id="affPending">Rp 0</p></div>
+                    <div class="glass-light rounded-2xl p-4 text-center card-hover"><p class="text-xs text-neutral">Referrals</p><p class="text-xl font-bold mt-1" id="affReferrals">0</p></div>
+                    <div class="glass-light rounded-2xl p-4 text-center card-hover"><p class="text-xs text-neutral">Paid Out</p><p class="text-xl font-bold text-profit mt-1" id="affPaid">Rp 0</p></div>
                 </div>
             </div>
 
@@ -260,32 +239,15 @@
                 <div class="glass-light rounded-2xl p-5 card-hover">
                     <h3 class="font-bold text-lg mb-4">💳 Purchase License</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div onclick="selectPackage('basic', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer hover:border-accent-400 border border-white/5">
-                            <p class="text-2xl mb-1">🥈</p>
-                            <p class="font-bold text-lg">Basic</p>
-                            <p class="text-3xl font-black text-accent-400 my-2">Rp 50K</p>
-                            <p class="text-xs text-neutral-400">30 Days • 5 Pairs</p>
-                        </div>
-                        <div onclick="selectPackage('pro', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer hover:border-accent-400 border border-white/5">
-                            <p class="text-2xl mb-1">🥇</p>
-                            <p class="font-bold text-lg">Pro</p>
-                            <p class="text-3xl font-black text-accent-400 my-2">Rp 120K</p>
-                            <p class="text-xs text-neutral-400">90 Days • 8 Pairs</p>
-                        </div>
-                        <div onclick="selectPackage('vip', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer hover:border-accent-400 border border-white/5">
-                            <p class="text-2xl mb-1">💎</p>
-                            <p class="font-bold text-lg">VIP</p>
-                            <p class="text-3xl font-black text-accent-400 my-2">Rp 198K</p>
-                            <p class="text-xs text-neutral-400">180 Days • 10 Pairs</p>
-                        </div>
+                        <div onclick="selectPackage('basic', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer hover:border-accent-400 border border-white/5"><p class="text-2xl mb-1">🥈</p><p class="font-bold text-lg">Basic</p><p class="text-3xl font-black text-accent-400 my-2">Rp 50K</p><p class="text-xs text-neutral">30 Days • 5 Pairs</p></div>
+                        <div onclick="selectPackage('pro', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer hover:border-accent-400 border border-white/5"><p class="text-2xl mb-1">🥇</p><p class="font-bold text-lg">Pro</p><p class="text-3xl font-black text-accent-400 my-2">Rp 120K</p><p class="text-xs text-neutral">90 Days • 8 Pairs</p></div>
+                        <div onclick="selectPackage('vip', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer hover:border-accent-400 border border-white/5"><p class="text-2xl mb-1">💎</p><p class="font-bold text-lg">VIP</p><p class="text-3xl font-black text-accent-400 my-2">Rp 198K</p><p class="text-xs text-neutral">180 Days • 10 Pairs</p></div>
                     </div>
                     <div id="paymentDetails" class="hidden glass-light rounded-2xl p-5 text-center">
-                        <p class="text-lg font-bold mb-3" id="payMethod"></p>
+                        <p class="text-lg font-bold mb-3">QRIS Payment</p>
                         <div class="bg-white rounded-xl p-4 inline-block mb-3"><p class="text-black text-sm font-bold">[QR Code]</p></div>
-                        <p class="text-sm text-neutral-400 mb-3">Total: <span class="text-accent-400 font-bold text-lg" id="payTotal">Rp 0</span></p>
-                        <button onclick="processPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-8 py-4 rounded-xl text-lg w-full sm:w-auto hover:scale-105 transform">
-                            💰 I Have Paid — Get License
-                        </button>
+                        <p class="text-sm text-neutral mb-3">Total: <span class="text-accent-400 font-bold text-lg" id="payTotal">Rp 0</span></p>
+                        <button onclick="processPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-8 py-4 rounded-xl text-lg w-full sm:w-auto hover:scale-105 transform">💰 I Have Paid — Get License</button>
                     </div>
                 </div>
             </div>
@@ -294,7 +256,7 @@
             <div id="tab-history" class="tab-content hidden">
                 <div class="glass-light rounded-2xl p-5 card-hover">
                     <h3 class="font-bold text-lg mb-4">📜 Trade History</h3>
-                    <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-neutral-400 border-b border-white/5"><th class="text-left py-3">Date</th><th class="text-left py-3">Pair</th><th class="text-left py-3">Type</th><th class="text-right py-3">Entry</th><th class="text-right py-3">Exit</th><th class="text-right py-3">P/L</th></tr></thead><tbody id="historyBody"><tr><td colspan="6" class="text-center py-8 text-neutral-500">No trades yet</td></tr></tbody></table></div>
+                    <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-neutral border-b border-white/5"><th class="text-left py-3">Date</th><th class="text-left py-3">Pair</th><th class="text-left py-3">Type</th><th class="text-right py-3">Entry</th><th class="text-right py-3">Exit</th><th class="text-right py-3">P/L</th></tr></thead><tbody id="historyBody"><tr><td colspan="6" class="text-center py-8 text-neutral">No trades yet</td></tr></tbody></table></div>
                 </div>
             </div>
 
@@ -312,63 +274,176 @@
     <!-- MOBILE BOTTOM NAV -->
     <nav class="lg:hidden fixed bottom-0 left-0 right-0 glass border-t border-white/5 flex justify-around py-3 z-50">
         <button onclick="switchTab('dashboard')" class="flex flex-col items-center gap-1 text-accent-400 text-xs"><i class="fas fa-th-large text-lg"></i> Home</button>
-        <button onclick="switchTab('signals')" class="flex flex-col items-center gap-1 text-neutral-400 text-xs"><i class="fas fa-chart-line text-lg"></i> Signals</button>
-        <button onclick="switchTab('affiliate')" class="flex flex-col items-center gap-1 text-neutral-400 text-xs"><i class="fas fa-users text-lg"></i> Affiliate</button>
-        <button onclick="switchTab('payments')" class="flex flex-col items-center gap-1 text-neutral-400 text-xs"><i class="fas fa-credit-card text-lg"></i> Pay</button>
-        <button onclick="switchTab('settings')" class="flex flex-col items-center gap-1 text-neutral-400 text-xs"><i class="fas fa-gear text-lg"></i> Settings</button>
+        <button onclick="switchTab('signals')" class="flex flex-col items-center gap-1 text-neutral text-xs"><i class="fas fa-chart-line text-lg"></i> Signals</button>
+        <button onclick="switchTab('affiliate')" class="flex flex-col items-center gap-1 text-neutral text-xs"><i class="fas fa-users text-lg"></i> Affiliate</button>
+        <button onclick="switchTab('payments')" class="flex flex-col items-center gap-1 text-neutral text-xs"><i class="fas fa-credit-card text-lg"></i> Pay</button>
+        <button onclick="switchTab('settings')" class="flex flex-col items-center gap-1 text-neutral text-xs"><i class="fas fa-gear text-lg"></i> Settings</button>
     </nav>
 
+    <!-- TRADINGVIEW WIDGET SCRIPT -->
+    <script src="https://s3.tradingview.com/tv.js"></script>
+
     <script>
+        // ============================================================
+        // PARTICLE BACKGROUND
+        // ============================================================
+        const pCanvas = document.getElementById('particleCanvas');
+        const pCtx = pCanvas.getContext('2d');
+        pCanvas.width = window.innerWidth;
+        pCanvas.height = window.innerHeight;
+        const particles = [];
+        for (let i = 0; i < 40; i++) {
+            particles.push({ x: Math.random()*pCanvas.width, y: Math.random()*pCanvas.height, vx: (Math.random()-0.5)*0.3, vy: (Math.random()-0.5)*0.3, size: Math.random()*1.5 });
+        }
+        function animateParticles() {
+            pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x<0||p.x>pCanvas.width) p.vx*=-1;
+                if (p.y<0||p.y>pCanvas.height) p.vy*=-1;
+                pCtx.beginPath(); pCtx.arc(p.x,p.y,p.size,0,Math.PI*2);
+                pCtx.fillStyle='rgba(251,191,36,0.2)'; pCtx.fill();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+        window.addEventListener('resize',()=>{pCanvas.width=window.innerWidth;pCanvas.height=window.innerHeight;});
+
         // ============================================================
         // FIREBASE
         // ============================================================
         const firebaseConfig = { databaseURL: "https://aethertrade-signals-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        
+
         // ============================================================
         // STATE
         // ============================================================
         let currentUser = {
             licenseKey: localStorage.getItem('at_license') || '',
-            package: '',
-            expires: '',
+            package: '', expires: '',
             affiliateId: new URLSearchParams(window.location.search).get('ref') || ''
         };
         let selectedPackage = '';
-        
+
+        // ============================================================
+        // TRADINGVIEW CHART
+        // ============================================================
+        new TradingView.widget({
+            "container_id": "tv_chart",
+            "symbol": "OANDA:XAUUSD",
+            "interval": "15",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "toolbar_bg": "#0a0a0a",
+            "hide_top_toolbar": true,
+            "save_image": false,
+            "height": "100%",
+            "width": "100%"
+        });
+
+        // ============================================================
+        // CHART.JS PERFORMANCE
+        // ============================================================
+        const perfCtx = document.getElementById('perfChart').getContext('2d');
+        new Chart(perfCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                datasets: [{
+                    label: 'Profit/Loss',
+                    data: [50,-20,80,120,-10,90,200],
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245,158,11,0.1)',
+                    fill: true, tension: 0.4,
+                    pointRadius: 4, pointBackgroundColor: '#f59e0b'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(255,255,255,0.03)' } },
+                    y: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(255,255,255,0.03)' } }
+                }
+            }
+        });
+
         // ============================================================
         // TAB SWITCHING
         // ============================================================
         function switchTab(name) {
             document.querySelectorAll('.tab-content').forEach(e => e.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
-            document.getElementById('tab-' + name).classList.remove('hidden');
-            
-            const titles = { dashboard: ['Dashboard', 'Welcome back! Here\'s your trading overview.'], signals: ['Live Signals', 'Real-time XAU & BTC signals'], affiliate: ['Affiliate Program', 'Earn 20% commission'], payments: ['Payments', 'Purchase or renew license'], history: ['Trade History', 'Your trading performance'], settings: ['Settings', 'Manage your account'] };
+            document.getElementById('tab-'+name).classList.remove('hidden');
+            const titles = { dashboard:['Dashboard','Welcome back! Here\'s your trading overview.'], signals:['Live Signals','Real-time XAU & BTC signals'], affiliate:['Affiliate Program','Earn 20% commission'], payments:['Payments','Purchase or renew license'], history:['Trade History','Your trading performance'], settings:['Settings','Manage your account'] };
             document.getElementById('pageTitle').textContent = titles[name][0];
             document.getElementById('pageSubtitle').textContent = titles[name][1];
-            
-            if (name === 'signals') loadSignals();
-            if (name === 'dashboard') loadDashboard();
-            if (name === 'affiliate') loadAffiliate();
+            if (name==='signals') loadSignals();
+            if (name==='dashboard') loadDashboard();
+            if (name==='affiliate') loadAffiliate();
         }
-        
+
         // ============================================================
         // DASHBOARD
         // ============================================================
         function loadDashboard() {
-            document.getElementById('dashBalance').textContent = '$10,714.00';
+            animateCounter(document.getElementById('dashBalance'), 10714.00);
             document.getElementById('dashBalanceChange').textContent = '+8.5%';
             document.getElementById('dashOpen').textContent = '22';
             document.getElementById('dashPL').textContent = '+$90.68';
             document.getElementById('dashPLPercent').textContent = '+0.85%';
             document.getElementById('dashWR').textContent = '83.2%';
             document.getElementById('wrBar').style.width = '83.2%';
-            document.getElementById('userLicense').textContent = currentUser.licenseKey ? currentUser.licenseKey.substring(0,15)+'...' : 'No License';
+            document.getElementById('totalProfit').textContent = '+$2,450.00';
             document.getElementById('userName').textContent = 'Admin';
+            document.getElementById('userLicense').textContent = currentUser.licenseKey ? currentUser.licenseKey.substring(0,15)+'...' : 'No License';
+            document.getElementById('memberExpires').textContent = currentUser.expires ? 'Exp: '+new Date(currentUser.expires).toLocaleDateString() : 'Register to start';
+            loadRecentTrades();
         }
-        
+
+        // ============================================================
+        // RECENT TRADES FROM FIREBASE
+        // ============================================================
+        function loadRecentTrades() {
+            const container = document.getElementById('recentTrades');
+            if (!currentUser.licenseKey) {
+                container.innerHTML = '<p class="text-neutral text-sm text-center py-4">Register license to see signals</p>';
+                return;
+            }
+            db.ref('signals/' + currentUser.licenseKey).on('value', snap => {
+                const data = snap.val();
+                if (data && data.dir) {
+                    const dirColor = data.dir==='BUY'?'text-profit':data.dir==='SELL'?'text-loss':'text-neutral';
+                    container.innerHTML = `
+                        <div class="glass rounded-xl p-3 text-sm">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="${dirColor} font-bold text-lg">${data.dir}</span>
+                                <span class="text-neutral text-xs">${data.pair}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-1 text-xs">
+                                <p>Entry: <span class="font-bold">$${data.entry||'-'}</span></p>
+                                <p>SL: <span class="text-loss">$${data.sl||'-'}</span></p>
+                                <p>Lot: <span>${data.lot||'-'}</span></p>
+                                <p>Strategy: <span>${data.strategy||'AI'}</span></p>
+                            </div>
+                        </div>`;
+                } else {
+                    container.innerHTML = '<p class="text-neutral text-sm text-center py-4">Waiting for signal...</p>';
+                }
+            });
+        }
+
+        // ============================================================
+        // ANIMATED COUNTER
+        // ============================================================
+        function animateCounter(element, target, duration=1000) {
+            const start=0, startTime=performance.now();
+            function update(ct){const e=ct-startTime,p=Math.min(e/duration,1);element.textContent='$'+(start+(target-start)*p).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');if(p<1)requestAnimationFrame(update);}
+            requestAnimationFrame(update);
+        }
+
         // ============================================================
         // SIGNALS
         // ============================================================
@@ -376,91 +451,94 @@
             db.ref('signals/AT-AB100702CB5771F2').on('value', snap => {
                 const d = snap.val();
                 if (d) {
-                    const emoji = d.dir === 'BUY' ? '🟢' : d.dir === 'SELL' ? '🔴' : '⚪';
-                    const html = `<div class="flex items-center gap-2"><span class="text-2xl">${emoji}</span><span class="font-bold text-lg">${d.dir || 'HOLD'}</span><span class="text-xs text-neutral-400">${d.strategy || 'AI'}</span></div>
-                    <div class="grid grid-cols-2 gap-2 text-sm"><div><span class="text-neutral-400">Entry</span><p class="font-bold">$${d.entry || '-'}</p></div><div><span class="text-neutral-400">SL</span><p class="font-bold text-loss">$${d.sl || '-'}</p></div><div><span class="text-neutral-400">Trail</span><p class="font-bold">$${d.trailStart || '-'}</p></div><div><span class="text-neutral-400">Lot</span><p class="font-bold">${d.lot || '-'}</p></div></div>`;
-                    if (d.pair === 'XAU/USD') document.getElementById('xauSignalLive').innerHTML = html;
-                    if (d.pair === 'BTC/USD') document.getElementById('btcSignalLive').innerHTML = html;
+                    const emoji = d.dir==='BUY'?'🟢':d.dir==='SELL'?'🔴':'⚪';
+                    const html = `<div class="flex items-center gap-2"><span class="text-2xl">${emoji}</span><span class="font-bold text-lg">${d.dir||'HOLD'}</span><span class="text-xs text-neutral">${d.strategy||'AI'}</span></div>
+                    <div class="grid grid-cols-2 gap-2 text-sm"><div><span class="text-neutral">Entry</span><p class="font-bold">$${d.entry||'-'}</p></div><div><span class="text-neutral">SL</span><p class="font-bold text-loss">$${d.sl||'-'}</p></div><div><span class="text-neutral">Trail</span><p class="font-bold">$${d.trailStart||'-'}</p></div><div><span class="text-neutral">Lot</span><p class="font-bold">${d.lot||'-'}</p></div></div>`;
+                    if (d.pair==='XAU/USD') document.getElementById('xauSignalLive').innerHTML = html;
+                    if (d.pair==='BTC/USD') document.getElementById('btcSignalLive').innerHTML = html;
                 }
             });
         }
-        
+
         // ============================================================
         // AFFILIATE
         // ============================================================
         function loadAffiliate() {
-            const affId = 'AFF-' + (currentUser.licenseKey || 'DEMO').substring(3, 9);
-            document.getElementById('affLink').value = 'https://app.aethertrade.com/?ref=' + affId;
+            const affId = 'AFF-'+(currentUser.licenseKey||'DEMO').substring(3,9);
+            document.getElementById('affLink').value = 'https://dikakugysaki.github.io/aethertrade-panel/?ref='+affId;
         }
-        
+
         // ============================================================
         // PAYMENTS
         // ============================================================
         function selectPackage(pkg, el) {
             selectedPackage = pkg;
-            document.querySelectorAll('.pkg-card').forEach(e => e.style.borderColor = 'rgba(255,255,255,0.05)');
-            el.style.borderColor = '#f59e0b';
+            document.querySelectorAll('.pkg-card').forEach(e=>e.style.borderColor='rgba(255,255,255,0.05)');
+            el.style.borderColor='#f59e0b';
             document.getElementById('paymentDetails').classList.remove('hidden');
-            const prices = { basic: 50000, pro: 120000, vip: 198000 };
-            document.getElementById('payMethod').textContent = 'QRIS Payment';
-            document.getElementById('payTotal').textContent = 'Rp ' + prices[pkg].toLocaleString();
+            const prices={basic:50000,pro:120000,vip:198000};
+            document.getElementById('payTotal').textContent='Rp '+prices[pkg].toLocaleString();
         }
         
         function processPayment() {
-            if (!selectedPackage) return alert('Select a package first!');
-            const prices = { basic: 50000, pro: 120000, vip: 198000 };
-            const key = 'AT-' + Math.random().toString(36).substring(2, 10).toUpperCase();
-            const now = new Date();
-            const exp = new Date(now);
-            exp.setDate(exp.getDate() + { basic: 30, pro: 90, vip: 180 }[selectedPackage]);
-            
-            db.ref('licenses/' + key).set({
-                owner_name: 'User-' + key.substring(3,9),
-                package: selectedPackage,
-                created: now.toISOString(),
-                expires: exp.toISOString(),
-                is_active: true,
-                max_pairs: { basic: 5, pro: 8, vip: 10 }[selectedPackage],
-                payment_amount: prices[selectedPackage]
-            }).then(() => {
-                currentUser.licenseKey = key;
-                localStorage.setItem('at_license', key);
-                showToast('✅ License generated! ' + key, 'success');
-                switchTab('dashboard');
-                loadDashboard();
+            if (!selectedPackage) return showToast('Select a package first!','error');
+            const prices={basic:50000,pro:120000,vip:198000};
+            const key='AT-'+Math.random().toString(36).substring(2,10).toUpperCase();
+            const now=new Date(), exp=new Date(now);
+            exp.setDate(exp.getDate()+{basic:30,pro:90,vip:180}[selectedPackage]);
+            db.ref('licenses/'+key).set({
+                owner_name:'User-'+key.substring(3,9), package:selectedPackage,
+                created:now.toISOString(), expires:exp.toISOString(), is_active:true,
+                max_pairs:{basic:5,pro:8,vip:10}[selectedPackage], payment_amount:prices[selectedPackage]
+            }).then(()=>{
+                currentUser.licenseKey=key; localStorage.setItem('at_license',key);
+                showToast('✅ License generated! '+key,'success');
+                switchTab('dashboard'); loadDashboard();
             });
         }
-        
+
         // ============================================================
         // LICENSE
         // ============================================================
         function registerLicense() {
-            const key = document.getElementById('regKey').value.trim().toUpperCase();
-            if (!key) return showToast('Enter license key!', 'error');
-            db.ref('licenses/' + key).once('value').then(snap => {
+            const key=document.getElementById('regKey').value.trim().toUpperCase();
+            if (!key) return showToast('Enter license key!','error');
+            db.ref('licenses/'+key).once('value').then(snap=>{
                 if (snap.val()?.is_active) {
-                    currentUser.licenseKey = key;
-                    localStorage.setItem('at_license', key);
-                    showToast('✅ License registered!', 'success');
-                    switchTab('dashboard');
-                    loadDashboard();
-                } else showToast('❌ Invalid license!', 'error');
+                    currentUser.licenseKey=key; localStorage.setItem('at_license',key);
+                    showToast('✅ License registered!','success');
+                    switchTab('dashboard'); loadDashboard();
+                } else showToast('❌ Invalid license!','error');
             });
         }
-        
+
+        // ============================================================
+        // NOTIFICATIONS
+        // ============================================================
+        function requestNotification() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(perm=>{
+                    if (perm==='granted') {
+                        new Notification('AetherTrade',{body:'✅ Notifications enabled! You will receive signal alerts.',icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📊</text></svg>'});
+                        showToast('✅ Notifications enabled!','success');
+                    }
+                });
+            }
+        }
+
         // ============================================================
         // HELPERS
         // ============================================================
-        function copyText(id) { const el = document.getElementById(id); el.select(); document.execCommand('copy'); showToast('✅ Copied!', 'success'); }
-        function showToast(msg, type) { const t = document.createElement('div'); t.className = 'toast glass-light rounded-xl px-4 py-3 text-sm font-medium ' + (type === 'success' ? 'text-profit' : 'text-loss'); t.textContent = msg; document.getElementById('toastContainer').appendChild(t); setTimeout(() => t.remove(), 3000); }
-        function toggleTheme() { document.documentElement.classList.toggle('dark'); }
-        
+        function copyText(id){const el=document.getElementById(id);el.select();document.execCommand('copy');showToast('✅ Copied!','success');}
+        function showToast(msg,type){const t=document.createElement('div');t.className='toast glass-light rounded-xl px-4 py-3 text-sm font-medium '+(type==='success'?'text-profit':'text-loss');t.textContent=msg;document.getElementById('toastContainer').appendChild(t);setTimeout(()=>t.remove(),3000);}
+        function toggleTheme(){document.documentElement.classList.toggle('dark');}
+
         // ============================================================
         // INIT
         // ============================================================
         switchTab('dashboard');
         loadDashboard();
-        if (currentUser.affiliateId) db.ref('affiliates/' + currentUser.affiliateId + '/clicks').transaction(c => (c || 0) + 1);
+        if (currentUser.affiliateId) db.ref('affiliates/'+currentUser.affiliateId+'/clicks').transaction(c=>(c||0)+1);
     </script>
 </body>
 </html>
