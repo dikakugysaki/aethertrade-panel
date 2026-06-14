@@ -352,17 +352,41 @@ async function sendAiChat() {
     input.value = '';
     addAiMessage('user', message);
     showAiTyping();
+    
+    const userId = State.user.licenseKey || 'anonymous_' + Date.now();
     const pair = detectPair(message) || 'XAUUSD';
-    try {
-        const response = await fetch(`${CONFIG.apiURL}/ai_chat`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message, pair, license: State.user.licenseKey })
-        });
-        const data = await response.json();
-        hideAiTyping();
-        if (data.success) addAiMessage('ai', data.answer);
-        else addAiMessage('ai', ' ' + (data.error || 'AI gagal merespon'));
-    } catch (e) { hideAiTyping(); addAiMessage('ai', ' Gagal terhubung ke AI'); }
+    
+    // Tulis ke Firebase
+    db.ref(`ai_chat/${userId.replace(/[^a-zA-Z0-9]/g, '_')}/messages`).push({
+        role: 'user',
+        message: message,
+        pair: pair,
+        timestamp: Date.now()
+    });
+    
+    // Tunggu balasan dari bot
+    const replyRef = db.ref(`ai_chat/${userId.replace(/[^a-zA-Z0-9]/g, '_')}/reply`);
+    let handled = false;
+    
+    replyRef.on('value', snap => {
+        const reply = snap.val();
+        if (reply && reply.answer && !handled) {
+            handled = true;
+            hideAiTyping();
+            addAiMessage('ai', reply.answer);
+            replyRef.off();
+        }
+    });
+    
+    // Timeout kalau tidak ada balasan dalam 30 detik
+    setTimeout(() => {
+        if (!handled) {
+            handled = true;
+            hideAiTyping();
+            addAiMessage('ai', ' AI tidak merespon. Coba lagi.');
+            replyRef.off();
+        }
+    }, 30000);
 }
 function quickAiAsk(question) { document.getElementById('aiChatInput').value = question; sendAiChat(); }
 function addAiMessage(type, text) {
@@ -510,12 +534,17 @@ function checkAdminAccess() {
         document.getElementById('adminNavBtn').style.display = 'flex';
     }
 }
-async function loadAdminLicenses() {
-    try {
-        const r = await fetch(`${CONFIG.apiURL}/admin/licenses`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'list', admin_key: ADMIN_KEY }) });
-        const d = await r.json();
-        if (d.success) renderLicenseTable(d.licenses);
-    } catch(e) { console.error(e); }
+function loadAdminLicenses() {
+    db.ref('licenses').once('value').then(snap => {
+        const licenses = snap.val();
+        if (licenses) {
+            renderLicenseTable(licenses);
+        } else {
+            document.getElementById('adminLicenseList').innerHTML = '<tr><td colspan="6" class="text-center py-8 text-neutral">No licenses found</td></tr>';
+        }
+    }).catch(e => {
+        document.getElementById('adminLicenseList').innerHTML = '<tr><td colspan="6" class="text-center py-8 text-loss">Failed to load</td></tr>';
+    });
 }
 function renderLicenseTable(licenses) {
     const t = document.getElementById('adminLicenseList');
@@ -547,29 +576,39 @@ function editLicense(k) {
 }
 async function saveLicense() {
     const ek = document.getElementById('editLicenseKey').value;
-    const d = { action: ek ? 'update' : 'add', admin_key: ADMIN_KEY, license_key: document.getElementById('licKey').value || '', owner: document.getElementById('licOwner').value || 'User', package: document.getElementById('licPackage').value, account_login: document.getElementById('licAccount').value, expires: document.getElementById('licExpires').value ? new Date(document.getElementById('licExpires').value).toISOString() : '' };
-    if (ek) d.license_key = ek;
-    try {
-        const r = await fetch(`${CONFIG.apiURL}/admin/licenses`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
-        const j = await r.json();
-        if (j.success) { showToast(ek ? 'License updated!' : 'License created!', 'success'); document.getElementById('licenseModal').classList.add('hidden'); loadAdminLicenses(); }
-        else showToast(' ' + (j.error || 'Failed'), 'error');
-    } catch(e) { showToast(' Connection error', 'error'); }
-}
-async function toggleLicense(k, a) {
-    try {
-        await fetch(`${CONFIG.apiURL}/admin/licenses`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update', admin_key: ADMIN_KEY, license_key: k, is_active: a }) });
+    const key = document.getElementById('licKey').value || 'AT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const data = {
+        key: key,
+        owner: document.getElementById('licOwner').value || 'User',
+        package: document.getElementById('licPackage').value,
+        plan: document.getElementById('licPackage').value,
+        is_active: true,
+        autotrade_enabled: document.getElementById('licPackage').value === 'max',
+        max_pairs: document.getElementById('licPackage').value === 'max' ? 10 : 5,
+        expires: document.getElementById('licExpires').value ? new Date(document.getElementById('licExpires').value).toISOString() : new Date(Date.now() + 30*86400000).toISOString(),
+        created: new Date().toISOString(),
+        account_login: document.getElementById('licAccount').value
+    };
+    
+    db.ref('licenses/' + key).set(data).then(() => {
+        showToast(ek ? 'License updated!' : 'License created!', 'success');
+        document.getElementById('licenseModal').classList.add('hidden');
         loadAdminLicenses();
-        showToast(`License ${a ? 'activated' : 'deactivated'}!`, 'success');
-    } catch(e) { showToast(' Failed', 'error'); }
+    }).catch(() => showToast('Failed', 'error'));
 }
-async function deleteLicense(k) {
-    if (!confirm(`Delete license ${k}?`)) return;
-    try {
-        await fetch(`${CONFIG.apiURL}/admin/licenses`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', admin_key: ADMIN_KEY, license_key: k }) });
+function toggleLicense(key, isActive) {
+    db.ref('licenses/' + key).update({ is_active: isActive }).then(() => {
+        loadAdminLicenses();
+        showToast(`License ${isActive ? 'activated' : 'deactivated'}!`, 'success');
+    });
+}
+function deleteLicense(key) {
+    if (!confirm(`Delete license ${key}?`)) return;
+    db.ref('licenses/' + key).remove().then(() => {
+        db.ref('signals/' + key).remove();
         loadAdminLicenses();
         showToast('License deleted!', 'success');
-    } catch(e) { showToast(' Failed', 'error'); }
+    });
 }
 
 // ============================================================
