@@ -3,66 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AetherTrade AI — Professional Trading Terminal</title>
+    <title>AetherTrade AI — Professional Trading Terminal v2.7</title>
     <meta name="theme-color" content="#050505">
-    <link rel="manifest" href="data:application/json,{'name':'AetherTrade AI','short_name':'AetherTrade','start_url':'/','display':'standalone','background_color':'#050505','theme_color':'#f59e0b'}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://s3.tradingview.com/tv.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        primary: { 400: '#fb923c', 500: '#f97316', 600: '#ea580c' },
-                        accent: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
-                        surface: { 50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 700: '#1f1f1f', 800: '#171717', 900: '#0a0a0a', 950: '#050505' },
-                        profit: '#10b981', loss: '#ef4444', neutral: '#6b7280',
-                    }
-                }
-            }
-        }
-    </script>
+    <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','sans-serif']},colors:{primary:{400:'#fb923c',500:'#f97316',600:'#ea580c'},accent:{400:'#fbbf24',500:'#f59e0b',600:'#d97706'},surface:{50:'#fafafa',100:'#f5f5f5',200:'#e5e5e5',700:'#1f1f1f',800:'#171717',900:'#0a0a0a',950:'#050505'},profit:'#10b981',loss:'#ef4444',neutral:'#6b7280'}}}}</script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #050505; overflow-x: hidden; }
-        .glass { background: rgba(23, 23, 23, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
-        .glass-light { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); }
-        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        @keyframes newSignal { 0% { background: rgba(251,191,36,0.3); } 100% { background: transparent; } }
-        .animate-float { animation: float 3s ease-in-out infinite; }
-        .animate-slideIn { animation: slideIn 0.5s ease-out; }
-        .animate-slideInRight { animation: slideInRight 0.3s ease-out; }
-        .animate-new-signal { animation: newSignal 2s ease-out; }
-        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: #0a0a0a; } ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-        .toast { position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideInRight 0.3s ease-out; max-width: 350px; }
-        .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; position: relative; display: inline-block; }
-        .pulse-dot::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: #10b981; animation: pulse-ring 1.5s ease-out infinite; }
-        .pulse-dot-gold { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; position: relative; display: inline-block; }
-        .pulse-dot-gold::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: #f59e0b; animation: pulse-ring 1s ease-out infinite; }
-        .nav-item { transition: all 0.2s ease; position: relative; }
-        .nav-item.active { color: #f59e0b; background: rgba(245,158,11,0.1); }
-        .nav-item.active::before { content: ''; position: absolute; left: 0; top: 10%; height: 80%; width: 3px; background: #f59e0b; border-radius: 0 2px 2px 0; }
-        .card-hover { transition: all 0.2s ease; }
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.4); border-color: rgba(251,191,36,0.15); }
-        .ticker-wrap { overflow: hidden; }
-        .ticker-content { animation: ticker 30s linear infinite; white-space: nowrap; display: inline-block; }
-        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        @media (max-width: 1024px) {
-            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; position: fixed; z-index: 50; height: 100vh; }
-            .sidebar.open { transform: translateX(0); }
-            .sidebar-overlay { display: none; }
-            .sidebar-overlay.open { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-        }
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:#050505;overflow-x:hidden}
+        .glass{background:rgba(23,23,23,0.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.05)}
+        .glass-light{background:rgba(255,255,255,0.03);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08)}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+        @keyframes slideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideInRight{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
+        @keyframes pulse-ring{0%{transform:scale(0.8);opacity:1}100%{transform:scale(2);opacity:0}}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        @keyframes newSignal{0%{background:rgba(251,191,36,0.3)}100%{background:transparent}}
+        @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+        @keyframes progressGlow{0%,100%{box-shadow:0 0 10px rgba(245,158,11,0.3)}50%{box-shadow:0 0 25px rgba(245,158,11,0.7)}}
+        .animate-float{animation:float 3s ease-in-out infinite}
+        .animate-slideIn{animation:slideIn 0.5s ease-out}
+        .animate-slideInRight{animation:slideInRight 0.3s ease-out}
+        .animate-new-signal{animation:newSignal 2s ease-out}
+        .animate-progress{animation:progressGlow 2s ease-in-out infinite}
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0a0a0a}::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+        .toast{position:fixed;top:20px;right:20px;z-index:9999;animation:slideInRight 0.3s ease-out;max-width:350px}
+        .pulse-dot{width:8px;height:8px;border-radius:50%;background:#10b981;position:relative;display:inline-block}
+        .pulse-dot::after{content:'';position:absolute;inset:0;border-radius:50%;background:#10b981;animation:pulse-ring 1.5s ease-out infinite}
+        .pulse-dot-gold{width:8px;height:8px;border-radius:50%;background:#f59e0b;position:relative;display:inline-block}
+        .pulse-dot-gold::after{content:'';position:absolute;inset:0;border-radius:50%;background:#f59e0b;animation:pulse-ring 1s ease-out infinite}
+        .nav-item{transition:all 0.2s ease;position:relative}
+        .nav-item.active{color:#f59e0b;background:rgba(245,158,11,0.1)}
+        .nav-item.active::before{content:'';position:absolute;left:0;top:10%;height:80%;width:3px;background:#f59e0b;border-radius:0 2px 2px 0}
+        .card-hover{transition:all 0.2s ease}
+        .card-hover:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,0.4);border-color:rgba(251,191,36,0.15)}
+        .ticker-wrap{overflow:hidden}.ticker-content{animation:ticker 30s linear infinite;white-space:nowrap;display:inline-block}
+        .trail-active{background:rgba(16,185,129,0.15);border-left:3px solid #10b981}
+        .trail-inactive{background:rgba(107,114,128,0.1);border-left:3px solid #6b7280}
+        @media(max-width:1024px){.sidebar{transform:translateX(-100%);transition:transform 0.3s ease;position:fixed;z-index:50;height:100vh}.sidebar.open{transform:translateX(0)}.sidebar-overlay{display:none}.sidebar-overlay.open{display:block;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:40}}
     </style>
 </head>
 <body class="bg-surface-950 text-white font-sans">
@@ -76,27 +57,23 @@
 <aside id="sidebar" class="sidebar w-64 glass border-r border-white/5 flex flex-col p-4 gap-1 z-50 lg:translate-x-0">
     <div class="flex items-center gap-3 px-3 py-4 mb-4 border-b border-white/5">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center text-black font-bold text-lg">A</div>
-        <div>
-            <h1 class="font-bold text-base bg-gradient-to-r from-accent-400 to-primary-400 bg-clip-text text-transparent">AetherTrade</h1>
-            <p class="text-xs text-neutral flex items-center gap-1"><span class="pulse-dot"></span> LIVE</p>
-        </div>
+        <div><h1 class="font-bold text-base bg-gradient-to-r from-accent-400 to-primary-400 bg-clip-text text-transparent">AetherTrade</h1><p class="text-xs text-neutral flex items-center gap-1"><span class="pulse-dot"></span> LIVE</p></div>
     </div>
     <nav class="flex flex-col gap-1 flex-1">
-        <button onclick="navigate('dashboard')" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral hover:text-white transition-all" data-route="dashboard"><i class="fas fa-th-large w-5"></i> Dashboard</button>
-        <button onclick="navigate('ai-chat')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral hover:text-white transition-all relative" data-route="ai-chat"><i class="fas fa-robot w-5"></i> AI Chat<span class="ml-auto w-2 h-2 rounded-full bg-accent-400"></span></button>
+        <button onclick="navigate('market')" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium" data-route="market"><i class="fas fa-chart-bar w-5"></i> Market</button>
         <button onclick="navigate('signals')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral hover:text-white transition-all" data-route="signals"><i class="fas fa-chart-line w-5"></i> Live Signals</button>
         <button onclick="navigate('positions')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral hover:text-white transition-all" data-route="positions"><i class="fas fa-layer-group w-5"></i> Positions</button>
         <button onclick="navigate('history')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral hover:text-white transition-all" data-route="history"><i class="fas fa-clock-rotate-left w-5"></i> History</button>
-        <button onclick="navigate('license')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral hover:text-white transition-all" data-route="license"><i class="fas fa-id-card w-5"></i> License</button>
-        <button onclick="navigate('payments')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral hover:text-white transition-all" data-route="payments"><i class="fas fa-credit-card w-5"></i> Payments</button>
         <button onclick="navigate('affiliate')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral hover:text-white transition-all" data-route="affiliate"><i class="fas fa-users w-5"></i> Affiliate</button>
+        <button onclick="navigate('payments')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral hover:text-white transition-all" data-route="payments"><i class="fas fa-credit-card w-5"></i> Payments</button>
+        <button onclick="navigate('license')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral hover:text-white transition-all" data-route="license"><i class="fas fa-id-card w-5"></i> License</button>
         <button onclick="navigate('settings')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral hover:text-white transition-all" data-route="settings"><i class="fas fa-gear w-5"></i> Settings</button>
         <button onclick="navigate('admin')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral hover:text-white transition-all" data-route="admin" id="adminNavBtn" style="display:none"><i class="fas fa-crown w-5"></i> Admin</button>
     </nav>
     <div class="mt-auto flex flex-col gap-2 pt-4 border-t border-white/5">
-        <a href="https://t.me/AetherTradeBot" target="_blank" class="glass-light rounded-xl p-3 flex items-center gap-2 text-sm hover:bg-white/5 transition-all"><i class="fab fa-telegram text-accent-400"></i> Open Bot</a>
-        <div class="glass-light rounded-xl p-3"><p class="text-xs text-neutral">Need Help?</p><a href="https://t.me/rimuru_genkai" target="_blank" class="text-accent-400 text-xs hover:underline">@rimuru_genkai</a></div>
-        <p class="text-[10px] text-neutral text-center">v2.6 FINAL</p>
+        <a href="https://t.me/AetherTradeBot" target="_blank" class="glass-light rounded-xl p-3 flex items-center gap-2 text-sm"><i class="fab fa-telegram text-accent-400"></i> Open Bot</a>
+        <div class="glass-light rounded-xl p-3"><p class="text-xs text-neutral">Support</p><a href="https://t.me/rimuru_genkai" target="_blank" class="text-accent-400 text-xs">@rimuru_genkai</a></div>
+        <p class="text-[10px] text-neutral text-center">v2.7 TERMINAL</p>
     </div>
 </aside>
 
@@ -104,138 +81,135 @@
 <main class="flex-1 p-4 lg:p-6 overflow-y-auto max-h-screen">
     <header class="flex items-center justify-between mb-6 animate-slideIn">
         <div class="flex items-center gap-3">
-            <button onclick="toggleSidebar()" class="lg:hidden glass rounded-xl p-2 hover:bg-white/10"><i class="fas fa-bars"></i></button>
-            <div>
-                <h2 class="text-xl lg:text-2xl font-bold" id="pageTitle">Dashboard</h2>
-                <p class="text-sm text-neutral" id="pageSubtitle">Trading overview & performance</p>
-            </div>
+            <button onclick="toggleSidebar()" class="lg:hidden glass rounded-xl p-2"><i class="fas fa-bars"></i></button>
+            <div><h2 class="text-xl lg:text-2xl font-bold" id="pageTitle">Market</h2><p class="text-sm text-neutral" id="pageSubtitle">Live chart & performance</p></div>
         </div>
         <div class="flex items-center gap-3">
-            <div class="hidden sm:flex items-center gap-2 glass-light rounded-xl px-3 py-2 text-sm"><span id="headerBalance">$0.00</span><span class="text-neutral">|</span><span class="text-profit" id="headerPL">+$0.00</span></div>
-            <button onclick="navigate('ai-chat')" class="relative glass-light rounded-xl w-10 h-10 flex items-center justify-center hover:bg-white/10"><i class="fas fa-robot text-accent-400"></i><span class="absolute -top-1 -right-1 w-3 h-3 bg-accent-400 rounded-full pulse-dot-gold"></span></button>
-            <div class="flex items-center gap-2 glass-light rounded-xl px-3 py-2"><div class="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center text-black font-bold text-xs">U</div><span class="hidden sm:block text-sm font-medium" id="headerUser">Trader</span></div>
+            <div class="hidden sm:flex items-center gap-2 glass-light rounded-xl px-3 py-2 text-sm"><span id="headerBalance">$0</span><span class="text-neutral">|</span><span class="text-profit" id="headerPL">+$0</span></div>
+            <div class="flex items-center gap-2 glass-light rounded-xl px-3 py-2"><div class="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center text-black font-bold text-xs">U</div><span class="hidden sm:block text-sm" id="headerUser">Trader</span></div>
         </div>
     </header>
 
-    <div class="glass-light rounded-2xl px-4 py-2 overflow-hidden mb-4 ticker-wrap">
-        <div class="ticker-content flex gap-8 text-sm" id="liveTicker">
-            <span>XAU/USD <span class="text-profit" id="tickerXAU">---</span></span>
-            <span>BTC/USD <span class="text-profit" id="tickerBTC">---</span></span>
-            <span>EUR/USD <span id="tickerEUR">---</span></span>
-            <span>AAPL <span id="tickerAAPL">---</span></span>
-            <span>TSLA <span id="tickerTSLA">---</span></span>
-        </div>
-    </div>
+    <div class="glass-light rounded-2xl px-4 py-2 overflow-hidden mb-4 ticker-wrap"><div class="ticker-content flex gap-8 text-sm" id="liveTicker"><span>XAU/USD <span class="text-profit" id="tickerXAU">---</span></span><span>BTC/USD <span class="text-profit" id="tickerBTC">---</span></span><span>EUR/USD <span id="tickerEUR">---</span></span><span>AAPL <span id="tickerAAPL">---</span></span><span>TSLA <span id="tickerTSLA">---</span></span></div></div>
 
-<!-- PAGE: DASHBOARD -->
-<div id="page-dashboard" class="page-content space-y-5">
+<!-- PAGE: MARKET -->
+<div id="page-market" class="page-content space-y-4">
+    <div class="glass-light rounded-2xl p-4">
+        <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="changeChart('XAUUSD','15')" class="chart-pair-btn glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10 active bg-accent-400/20 text-accent-400">XAUUSD</button>
+            <button onclick="changeChart('BTCUSD','15')" class="chart-pair-btn glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">BTCUSD</button>
+            <button onclick="changeChart('EURUSD','15')" class="chart-pair-btn glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">EURUSD</button>
+            <button onclick="changeChart('AAPL','1D')" class="chart-pair-btn glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">AAPL</button>
+            <button onclick="changeChart('TSLA','1D')" class="chart-pair-btn glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">TSLA</button>
+            <span class="text-neutral mx-2">|</span>
+            <button onclick="changeChart(currentPair,'5')" class="chart-tf-btn glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">5M</button>
+            <button onclick="changeChart(currentPair,'15')" class="chart-tf-btn glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10 active bg-accent-400/20 text-accent-400">15M</button>
+            <button onclick="changeChart(currentPair,'60')" class="chart-tf-btn glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">1H</button>
+            <button onclick="changeChart(currentPair,'240')" class="chart-tf-btn glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">4H</button>
+            <button onclick="changeChart(currentPair,'1D')" class="chart-tf-btn glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">1D</button>
+        </div>
+        <div class="tradingview-widget-container h-[400px] rounded-xl overflow-hidden"><div id="tv_chart"></div></div>
+    </div>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Balance</span><p class="text-2xl font-bold" id="dashBalance">$0.00</p></div>
+        <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Balance</span><p class="text-2xl font-bold" id="dashBalance">$0</p></div>
+        <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Equity</span><p class="text-2xl font-bold" id="dashEquity">$0</p></div>
         <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Open Pos</span><p class="text-2xl font-bold" id="dashOpen">0</p></div>
-        <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Today P/L</span><p class="text-2xl font-bold profit-positive" id="dashPL">$0.00</p></div>
-        <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Win Rate</span><p class="text-2xl font-bold" id="dashWR">0%</p><div class="w-full h-1.5 bg-white/5 rounded-full mt-2"><div class="h-full bg-gradient-to-r from-accent-400 to-profit rounded-full" style="width:0%" id="wrBar"></div></div></div>
+        <div class="glass-light rounded-2xl p-5 card-hover"><span class="text-xs text-neutral">Today P/L</span><p class="text-2xl font-bold profit-positive" id="dashPL">$0</p></div>
     </div>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 glass-light rounded-2xl p-5"><h3 class="font-bold mb-3">Live Chart</h3><div class="tradingview-widget-container h-64 rounded-xl overflow-hidden"><div id="tv_chart"></div></div></div>
-        <div class="glass-light rounded-2xl p-5"><h3 class="font-bold mb-3">Recent Signals</h3><div id="recentSignals" class="max-h-64 overflow-y-auto"><p class="text-neutral text-sm text-center py-4">Loading...</p></div></div>
-    </div>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 glass-light rounded-2xl p-5"><h3 class="font-bold mb-3">Weekly Performance</h3><div class="h-48 flex items-center justify-center text-neutral">Chart displayed here</div></div>
-        <div class="glass-light rounded-2xl p-5 flex flex-col justify-center text-center"><p class="text-3xl mb-2"></p><p class="font-bold text-lg">Member</p><p class="text-xs text-neutral" id="memberExpires">Register to start</p></div>
-    </div>
-</div>
-
-<!-- PAGE: AI CHAT -->
-<div id="page-ai-chat" class="page-content hidden">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-200px)]">
-        <div class="lg:col-span-2 glass-light rounded-2xl p-4 flex flex-col">
-            <div class="flex items-center gap-3 mb-4 pb-3 border-b border-white/5">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center text-black font-bold text-lg">AI</div>
-                <div><h3 class="font-bold">AI Trading Assistant</h3><p class="text-xs text-neutral">Powered by DeepSeek • Multi-TF Analysis</p></div>
-                <span class="ml-auto pulse-dot-gold"></span>
-            </div>
-            <div class="flex-1 overflow-y-auto space-y-3 mb-4 pr-2" id="aiChatMessages">
-                <div class="flex gap-2"><div class="w-8 h-8 rounded-lg bg-accent-400/20 flex items-center justify-center text-sm flex-shrink-0">AI</div><div class="glass rounded-xl p-3 max-w-[85%] text-sm"> <b>Hai!</b> Saya AI Trading Assistant. Tanya apa saja:<br>• Analisa pair (XAUUSD, BTC, dll)<br>• Rekomendasi Entry/SL/TP<br>• Multi-Timeframe Analysis<br>• Tips & Strategi Trading</div></div>
-            </div>
-            <div class="flex gap-2 mb-3 flex-wrap">
-                <button onclick="quickAiAsk('analisa XAUUSD')" class="glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">XAUUSD</button>
-                <button onclick="quickAiAsk('analisa BTCUSD')" class="glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">BTCUSD</button>
-                <button onclick="quickAiAsk('analisa EURUSD')" class="glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">EURUSD</button>
-                <button onclick="quickAiAsk('scalping XAUUSD')" class="glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">Scalping</button>
-                <button onclick="quickAiAsk('tips trading')" class="glass rounded-full px-3 py-1.5 text-xs hover:bg-white/10">Tips</button>
-            </div>
-            <div class="flex gap-2">
-                <input type="text" id="aiChatInput" placeholder="Ketik pertanyaan trading..." class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-accent-400/50 focus:outline-none" onkeypress="if(event.key==='Enter')sendAiChat()">
-                <button onclick="sendAiChat()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-5 py-3 rounded-xl text-sm hover:scale-105 transition-transform"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-        <div class="glass-light rounded-2xl p-4 flex flex-col gap-4">
-            <h3 class="font-bold text-sm">Quick Info</h3>
-            <div class="glass rounded-xl p-3"><p class="text-xs text-neutral mb-2">Live Prices</p><div class="space-y-2 text-sm" id="aiSidebarPrices"><div class="flex justify-between"><span>XAUUSD</span><span class="text-profit" id="aiPriceXAU">---</span></div><div class="flex justify-between"><span>BTCUSD</span><span class="text-profit" id="aiPriceBTC">---</span></div><div class="flex justify-between"><span>EURUSD</span><span id="aiPriceEUR">---</span></div></div></div>
-            <div class="glass rounded-xl p-3"><p class="text-xs text-neutral mb-2">Market Session</p><div class="space-y-1 text-xs"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-600" id="asiaDot"></span> Asia</div><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-600" id="londonDot"></span> London</div><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-600" id="nyDot"></span> New York</div></div></div>
-        </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="glass-light rounded-2xl p-5"><h3 class="font-bold mb-3">Live Signals</h3><div id="marketSignals" class="max-h-80 overflow-y-auto"><p class="text-neutral text-sm text-center py-4">Loading...</p></div></div>
+        <div class="glass-light rounded-2xl p-5"><h3 class="font-bold mb-3">Open Positions</h3><div id="marketPositions" class="max-h-80 overflow-y-auto"><p class="text-neutral text-sm text-center py-4">Loading...</p></div></div>
     </div>
 </div>
 
 <!-- PAGE: SIGNALS -->
 <div id="page-signals" class="page-content hidden space-y-4">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="glass-light rounded-2xl p-5 card-hover"><h3 class="font-bold text-lg mb-3">XAU/USD <span class="text-xs text-neutral">Gold</span></h3><div id="xauSignalLive"><p class="text-neutral text-sm">Waiting...</p></div></div>
-        <div class="glass-light rounded-2xl p-5 card-hover"><h3 class="font-bold text-lg mb-3">BTC/USD <span class="text-xs text-neutral">Bitcoin</span></h3><div id="btcSignalLive"><p class="text-neutral text-sm">Waiting...</p></div></div>
+        <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3">XAU/USD</h3><div id="xauSignalLive"><p class="text-neutral text-sm">Waiting...</p></div></div>
+        <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3">BTC/USD</h3><div id="btcSignalLive"><p class="text-neutral text-sm">Waiting...</p></div></div>
     </div>
 </div>
 
 <!-- PAGE: POSITIONS -->
 <div id="page-positions" class="page-content hidden space-y-4">
-    <div class="flex items-center justify-between mb-4"><h2 class="text-2xl font-bold"><i class="fas fa-layer-group text-accent-400"></i> Open Positions</h2><button onclick="emergencyStop()" class="glass border-2 border-loss text-loss font-bold px-4 py-2 rounded-xl hover:bg-loss/20 text-sm">EMERGENCY STOP</button></div>
-    <div id="positionsList" class="space-y-3"><p class="text-neutral text-center py-8">No open positions or register license first.</p></div>
+    <div class="flex items-center justify-between mb-4"><h2 class="text-2xl font-bold">Open Positions</h2><button onclick="emergencyStop()" class="glass border-2 border-loss text-loss font-bold px-4 py-2 rounded-xl text-sm">EMERGENCY STOP</button></div>
+    <div id="positionsList" class="space-y-3"><p class="text-neutral text-center py-8">Register license first.</p></div>
 </div>
 
 <!-- PAGE: HISTORY -->
 <div id="page-history" class="page-content hidden"><div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-4">Trade History</h3><table class="w-full text-sm"><thead><tr class="text-neutral border-b border-white/5"><th class="text-left py-3">Date</th><th class="text-left py-3">Pair</th><th class="text-left py-3">Type</th><th class="text-right py-3">Entry</th><th class="text-right py-3">P/L</th></tr></thead><tbody id="historyBody"><tr><td colspan="5" class="text-center py-8 text-neutral">No trades yet</td></tr></tbody></table></div></div>
 
-<!-- PAGE: LICENSE -->
-<div id="page-license" class="page-content hidden space-y-4">
-    <div class="glass-light rounded-2xl p-5 card-hover"><h3 class="font-bold text-lg mb-4">License Details</h3><div id="licenseDetails" class="space-y-2"><p class="text-neutral">Register license to see details.</p></div></div>
-    <div class="glass-light rounded-2xl p-5 card-hover"><h3 class="font-bold text-lg mb-4">Payment History</h3><div id="paymentHistory"><p class="text-neutral text-sm">No payments yet.</p></div></div>
+<!-- PAGE: AFFILIATE -->
+<div id="page-affiliate" class="page-content hidden space-y-4">
+    <div class="glass-light rounded-2xl p-5">
+        <div class="flex items-center gap-3 mb-4"><div class="text-3xl"></div><div><h3 class="font-bold text-lg">SILVER Rank</h3><p class="text-xs text-neutral">60% to GOLD (10 referrals needed, you have 6)</p></div></div>
+        <div class="w-full h-3 bg-white/5 rounded-full mb-6"><div class="h-full bg-gradient-to-r from-accent-400 to-primary-500 rounded-full animate-progress" style="width:60%" id="affProgress"></div></div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <div class="glass rounded-xl p-3 text-center"><p class="text-xs text-neutral">Total</p><p class="text-xl font-bold text-accent-400" id="affTotal">Rp 0</p></div>
+            <div class="glass rounded-xl p-3 text-center"><p class="text-xs text-neutral">Pending</p><p class="text-xl font-bold text-yellow-500" id="affPending">Rp 0</p></div>
+            <div class="glass rounded-xl p-3 text-center"><p class="text-xs text-neutral">Referrals</p><p class="text-xl font-bold" id="affReferrals">0</p></div>
+            <div class="glass rounded-xl p-3 text-center"><p class="text-xs text-neutral">Paid</p><p class="text-xl font-bold text-profit" id="affPaid">Rp 0</p></div>
+        </div>
+        <h3 class="font-bold text-sm mb-3">Top Affiliates</h3>
+        <div class="space-y-2 mb-4" id="affLeaderboard"><p class="text-neutral text-sm">Loading...</p></div>
+        <h3 class="font-bold text-sm mb-3">Reward Tiers</h3>
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-2 text-xs mb-4">
+            <div class="glass rounded-xl p-3 text-center"><p class="text-lg"></p><p class="font-bold">STAR</p><p class="text-neutral">1 ref</p><p class="text-accent-400">Rp 50K</p></div>
+            <div class="glass rounded-xl p-3 text-center"><p class="text-lg"></p><p class="font-bold">BRONZE</p><p class="text-neutral">3 refs</p><p class="text-accent-400">Rp 150K</p></div>
+            <div class="glass rounded-xl p-3 text-center border border-accent-400/30"><p class="text-lg"></p><p class="font-bold text-accent-400">SILVER</p><p class="text-neutral">5 refs</p><p class="text-accent-400">Rp 300K</p></div>
+            <div class="glass rounded-xl p-3 text-center"><p class="text-lg"></p><p class="font-bold">DIAMOND</p><p class="text-neutral">10 refs</p><p class="text-accent-400">Rp 1M</p></div>
+            <div class="glass rounded-xl p-3 text-center"><p class="text-lg"></p><p class="font-bold">CHAMPION</p><p class="text-neutral">25 refs</p><p class="text-accent-400">Rp 3M</p></div>
+        </div>
+        <div class="flex gap-2 mb-3"><input type="text" id="affLink" readonly class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono"><button onclick="copyText('affLink')" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-xl text-sm"><i class="fas fa-copy"></i></button></div>
+        <p class="text-sm text-neutral">Earn <span class="text-accent-400 font-bold">20%</span> commission!</p>
+    </div>
 </div>
 
 <!-- PAGE: PAYMENTS -->
 <div id="page-payments" class="page-content hidden space-y-4">
-    <div class="glass-light rounded-2xl p-5 card-hover">
+    <div class="glass-light rounded-2xl p-5">
         <h3 class="font-bold text-lg mb-4">Purchase License</h3>
-        <p class="text-sm text-neutral mb-4">Pilih package dan durasi untuk memulai trading.</p>
+        <p class="text-sm text-neutral mb-4">Pilih package untuk memulai trading dengan AetherTrade AI.</p>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div onclick="selectPackage('pro', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer border-2 border-white/5 hover:border-accent-400/50 transition-all"><p class="text-2xl mb-2">Pro</p><p class="font-bold text-lg">Pro</p><p class="text-sm text-neutral">Analisa Manual AI</p><p class="text-2xl font-black text-accent-400 my-2">Rp 150K</p><p class="text-xs text-neutral">/bulan</p></div>
-            <div onclick="selectPackage('max', this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer border-2 border-white/5 hover:border-accent-400/50 transition-all relative"><div class="absolute top-3 right-3 bg-accent-500 text-black text-xs px-2 py-1 rounded-full font-bold">POPULER</div><p class="text-2xl mb-2">Max</p><p class="font-bold text-lg">Max</p><p class="text-sm text-neutral">Manual + Auto Trading</p><p class="text-2xl font-black text-accent-400 my-2">Rp 350K</p><p class="text-xs text-neutral">/bulan</p></div>
+            <div onclick="selectPackage('pro',this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer border-2 border-white/5 hover:border-accent-400/50 transition-all"><p class="text-2xl mb-2"></p><p class="font-bold text-lg">Pro</p><p class="text-sm text-neutral">Analisa Manual AI</p><p class="text-2xl font-black text-accent-400 my-2">Rp 150K</p><p class="text-xs text-neutral">/bulan</p></div>
+            <div onclick="selectPackage('max',this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer border-2 border-white/5 hover:border-accent-400/50 transition-all relative"><div class="absolute top-3 right-3 bg-accent-500 text-black text-xs px-2 py-1 rounded-full font-bold">POPULER</div><p class="text-2xl mb-2"></p><p class="font-bold text-lg">Max</p><p class="text-sm text-neutral">Manual + Auto Trading</p><p class="text-2xl font-black text-accent-400 my-2">Rp 350K</p><p class="text-xs text-neutral">/bulan</p></div>
         </div>
-        <div id="paymentDetails" class="hidden glass-light rounded-2xl p-5 text-center"><p class="text-lg font-bold mb-3">Ringkasan Pembayaran</p><p class="text-2xl font-black text-accent-400" id="payTotal">Rp 0</p><button onclick="processPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-8 py-4 rounded-xl text-lg w-full sm:w-auto mt-4 hover:scale-[1.02] transition-transform">Pay Now — Get License</button></div>
+        <div id="paymentDetails" class="hidden glass-light rounded-2xl p-5 text-center">
+            <p class="text-lg font-bold mb-3">Ringkasan</p>
+            <p class="text-2xl font-black text-accent-400" id="payTotal">Rp 0</p>
+            <button onclick="showManualPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-8 py-4 rounded-xl text-lg w-full sm:w-auto mt-4">Pay Now — Manual Transfer</button>
+            <p class="text-xs text-neutral mt-2">Midtrans coming soon</p>
+        </div>
     </div>
 </div>
 
-<!-- PAGE: AFFILIATE -->
-<div id="page-affiliate" class="page-content hidden space-y-4">
-    <div class="glass-light rounded-2xl p-5 card-hover"><h3 class="font-bold text-lg mb-3">Referral Program</h3><div class="flex gap-2 mb-3"><input type="text" id="affLink" readonly class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono"><button onclick="copyText('affLink')" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-xl text-sm"><i class="fas fa-copy"></i></button></div><p class="text-sm text-neutral">Earn <span class="text-accent-400 font-bold">20%</span> commission!</p></div>
+<!-- PAGE: LICENSE -->
+<div id="page-license" class="page-content hidden space-y-4">
+    <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-4">License Details</h3><div id="licenseDetails"><p class="text-neutral">Register license to see details.</p></div></div>
+    <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-4">Payment History</h3><div id="paymentHistory"><p class="text-neutral text-sm">No payments yet.</p></div></div>
 </div>
 
 <!-- PAGE: SETTINGS -->
 <div id="page-settings" class="page-content hidden space-y-4">
-    <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3">Register License</h3><div class="flex gap-2"><input type="text" id="regKey" placeholder="AT-XXXX-XXXX" class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm"><button onclick="registerLicense()" class="bg-accent-500 text-black font-bold px-6 py-3 rounded-xl text-sm">Register</button></div></div>
-    <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3">Download EA</h3><p class="text-sm text-neutral mb-2">Download EA untuk Auto Trading di MT5.</p><button onclick="window.open('https://t.me/AetherTradeBot','_blank')" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-lg text-sm"><i class="fab fa-telegram"></i> Open Bot  /download_ea</button></div>
+    <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3">Register License</h3><div class="flex gap-2"><input type="text" id="regKey" placeholder="AT-XXXX" class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm"><button onclick="registerLicense()" class="bg-accent-500 text-black font-bold px-6 py-3 rounded-xl text-sm">Register</button></div></div>
+    <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3">Download EA</h3><button onclick="window.open('https://t.me/AetherTradeBot','_blank')" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-lg text-sm"><i class="fab fa-telegram"></i> Open Bot  /download_ea</button></div>
 </div>
 
 <!-- PAGE: ADMIN -->
 <div id="page-admin" class="page-content hidden space-y-4">
     <div class="glass-light rounded-2xl p-5">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="font-bold text-lg">Admin — License Manager</h3>
-            <button onclick="showAddLicenseModal()" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-xl text-sm hover:scale-105 transition-transform"><i class="fas fa-plus"></i> Add License</button>
+        <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-lg">Admin Panel</h3></div>
+        <div class="flex gap-2 mb-4">
+            <button onclick="adminTab('licenses')" class="admin-tab-btn glass rounded-full px-4 py-2 text-xs active bg-accent-400/20 text-accent-400">Licenses</button>
+            <button onclick="adminTab('payments')" class="admin-tab-btn glass rounded-full px-4 py-2 text-xs">Payments</button>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead><tr class="text-neutral border-b border-white/5"><th class="text-left py-3">License Key</th><th class="text-left py-3">Owner</th><th class="text-left py-3">Package</th><th class="text-left py-3">Status</th><th class="text-left py-3">Expires</th><th class="text-left py-3">Actions</th></tr></thead>
-                <tbody id="adminLicenseList"><tr><td colspan="6" class="text-center py-8 text-neutral">Loading...</td></tr></tbody>
-            </table>
+        <div id="adminLicenses">
+            <div class="flex items-center justify-between mb-3"><h3 class="font-bold">License Manager</h3><button onclick="showAddLicenseModal()" class="bg-accent-500 text-black font-bold px-3 py-1.5 rounded-lg text-xs"><i class="fas fa-plus"></i> Add</button></div>
+            <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-neutral border-b border-white/5"><th class="text-left py-3">Key</th><th class="text-left py-3">Owner</th><th class="text-left py-3">Package</th><th class="text-left py-3">Status</th><th class="text-left py-3">Expires</th><th class="text-left py-3">Actions</th></tr></thead><tbody id="adminLicenseList"><tr><td colspan="6" class="text-center py-8 text-neutral">Loading...</td></tr></tbody></table></div>
+        </div>
+        <div id="adminPayments" class="hidden">
+            <h3 class="font-bold mb-3">Payment Queue</h3>
+            <div id="adminPaymentList"><p class="text-neutral text-sm">Loading...</p></div>
         </div>
     </div>
 </div>
@@ -243,9 +217,22 @@
 </main>
 </div>
 
-<!-- EMERGENCY MODAL -->
-<div id="emergencyModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
-    <div class="glass-light rounded-2xl p-6 w-full max-w-md text-center"><p class="text-4xl mb-3"></p><p class="text-xl font-bold text-loss mb-3">EMERGENCY STOP</p><p class="text-sm text-neutral mb-4">Close ALL positions immediately?</p><div class="flex gap-2 justify-center"><button onclick="confirmEmergencyStop()" class="bg-loss text-white font-bold px-6 py-3 rounded-xl">YES, CLOSE ALL</button><button onclick="document.getElementById('emergencyModal').classList.add('hidden')" class="glass rounded-xl px-6 py-3 text-sm">Cancel</button></div></div>
+<!-- MANUAL PAYMENT MODAL -->
+<div id="manualPayModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+    <div class="glass-light rounded-2xl p-6 w-full max-w-md animate-slideIn">
+        <h3 class="text-xl font-bold mb-3">Manual Transfer</h3>
+        <p class="text-sm text-neutral mb-4">Transfer tepat jumlah ke salah satu rekening:</p>
+        <div class="space-y-2 mb-4 text-sm">
+            <div class="glass rounded-xl p-3 flex justify-between"><span>DANA</span><span class="font-bold">0859-3001-6248</span></div>
+            <div class="glass rounded-xl p-3 flex justify-between"><span>GoPay</span><span class="font-bold">0859-3001-6248</span></div>
+            <div class="glass rounded-xl p-3 flex justify-between"><span>SEABANK</span><span class="font-bold">9017-9377-7670</span></div>
+            <p class="text-xs text-neutral text-center mt-1">A/N: ANDIKA</p>
+        </div>
+        <p class="text-lg font-bold mb-3">Jumlah: <span class="text-accent-400" id="manualPayAmount">Rp 0</span></p>
+        <button onclick="confirmManualPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-6 py-3 rounded-xl text-sm w-full mb-2">Konfirmasi Pembayaran</button>
+        <button onclick="document.getElementById('manualPayModal').classList.add('hidden')" class="glass rounded-xl px-6 py-3 text-sm w-full">Batal</button>
+        <p class="text-xs text-neutral text-center mt-3">Admin akan verifikasi dalam 1x24 jam</p>
+    </div>
 </div>
 
 <!-- LICENSE MODAL -->
@@ -254,10 +241,10 @@
         <h3 class="text-xl font-bold mb-4" id="licenseModalTitle">Add License</h3>
         <input type="hidden" id="editLicenseKey">
         <div class="space-y-3">
-            <div><label class="text-xs text-neutral">License Key (kosongkan untuk auto-generate)</label><input type="text" id="licKey" placeholder="AT-XXXX" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mt-1"></div>
-            <div><label class="text-xs text-neutral">Owner Name</label><input type="text" id="licOwner" placeholder="User" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mt-1"></div>
-            <div><label class="text-xs text-neutral">Package</label><select id="licPackage" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mt-1"><option value="pro">Pro - Rp 150K/bulan</option><option value="max">Max - Rp 350K/bulan</option></select></div>
-            <div><label class="text-xs text-neutral">Account Login (opsional)</label><input type="text" id="licAccount" placeholder="Nomor akun MT5" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mt-1"></div>
+            <div><label class="text-xs text-neutral">License Key</label><input type="text" id="licKey" placeholder="AT-XXXX" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mt-1"></div>
+            <div><label class="text-xs text-neutral">Owner</label><input type="text" id="licOwner" placeholder="User" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mt-1"></div>
+            <div><label class="text-xs text-neutral">Package</label><select id="licPackage" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mt-1"><option value="pro">Pro</option><option value="max">Max</option></select></div>
+            <div><label class="text-xs text-neutral">Account Login</label><input type="text" id="licAccount" placeholder="Nomor MT5" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mt-1"></div>
             <div><label class="text-xs text-neutral">Expires</label><input type="date" id="licExpires" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mt-1"></div>
             <div class="flex gap-2 pt-3"><button onclick="saveLicense()" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-lg text-sm flex-1">Save</button><button onclick="document.getElementById('licenseModal').classList.add('hidden')" class="glass rounded-xl px-4 py-2 text-sm">Cancel</button></div>
         </div>
@@ -265,363 +252,76 @@
 </div>
 
 <script>
-// ============================================================
 // CONFIG
-// ============================================================
-const CONFIG = {
-    firebaseURL: "https://aethertrade-signals-default-rtdb.asia-southeast1.firebasedatabase.app/",
-    apiURL: "http://89.21.85.27:8888",
-    adminLicense: "AT-AB100702CB5771F2",
-    packages: { pro: { name: 'Pro', pricePerMonth: 150000 }, max: { name: 'Max', pricePerMonth: 350000 } }
-};
-firebase.initializeApp({ databaseURL: CONFIG.firebaseURL });
-const db = firebase.database();
+const CONFIG={firebaseURL:"https://aethertrade-signals-default-rtdb.asia-southeast1.firebasedatabase.app/",apiURL:"http://89.21.85.27:8888",adminLicense:"AT-AB100702CB5771F2",packages:{pro:{name:'Pro',pricePerMonth:150000},max:{name:'Max',pricePerMonth:350000}},paymentMethods:{dana:'0859-3001-6248',gopay:'0859-3001-6248',seabank:'9017-9377-7670',name:'ANDIKA'}};
+firebase.initializeApp({databaseURL:CONFIG.firebaseURL});const db=firebase.database();
+const State={user:{licenseKey:localStorage.getItem('at_license')||'',username:localStorage.getItem('at_username')||'Trader',package:'',expires:''},currentPage:'market',payment:{package:'',months:1}};
+let currentPair='XAUUSD',currentInterval='15',tvWidget=null;
 
-// ============================================================
-// STATE
-// ============================================================
-const State = {
-    user: { licenseKey: localStorage.getItem('at_license') || '', username: localStorage.getItem('at_username') || 'Trader', package: '', expires: '' },
-    currentPage: 'dashboard',
-    payment: { package: '', months: 1 }
-};
-
-// ============================================================
 // NAVIGATION
-// ============================================================
-function navigate(page) {
-    State.currentPage = page;
-    document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-    const target = document.getElementById('page-' + page);
-    if (target) target.classList.remove('hidden');
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const navItem = document.querySelector(`[data-route="${page}"]`);
-    if (navItem) navItem.classList.add('active');
-    const titles = {
-        'dashboard': ['Dashboard', 'Trading overview'],
-        'ai-chat': ['AI Chat', 'Multi-TF Analysis'],
-        'signals': ['Live Signals', 'Real-time signals'],
-        'positions': ['Open Positions', 'Active trades'],
-        'history': ['Trade History', 'Past performance'],
-        'license': ['License', 'Details & status'],
-        'payments': ['Payments', 'Purchase license'],
-        'affiliate': ['Affiliate', 'Earn commission'],
-        'settings': ['Settings', 'Manage account'],
-        'admin': ['Admin', 'License Manager']
-    };
-    const [title, subtitle] = titles[page] || [page, ''];
-    document.getElementById('pageTitle').textContent = title;
-    document.getElementById('pageSubtitle').textContent = subtitle;
-    if (page === 'dashboard') loadDashboard();
-    if (page === 'signals') loadSignals();
-    if (page === 'positions') loadPositions();
-    if (page === 'admin') loadAdminLicenses();
-    if (page === 'ai-chat') document.getElementById('aiChatInput')?.focus();
-    if (window.innerWidth < 1024) toggleSidebar(false);
+function navigate(page){
+State.currentPage=page;document.querySelectorAll('.page-content').forEach(p=>p.classList.add('hidden'));
+const target=document.getElementById('page-'+page);if(target)target.classList.remove('hidden');
+document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+const navItem=document.querySelector(`[data-route="${page}"]`);if(navItem)navItem.classList.add('active');
+const titles={market:['Market','Live chart & performance'],signals:['Live Signals','Real-time signals'],positions:['Open Positions','Active trades'],history:['Trade History','Past performance'],affiliate:['Affiliate','Earn 20% commission'],payments:['Payments','Purchase license'],license:['License','Details & status'],settings:['Settings','Manage account'],admin:['Admin','License & Payment Manager']};
+const[t,s]=titles[page]||[page,''];document.getElementById('pageTitle').textContent=t;document.getElementById('pageSubtitle').textContent=s;
+if(page==='market'){loadMarketData();setTimeout(initChart,500);}
+if(page==='signals')loadSignals();if(page==='positions')loadPositions();if(page==='affiliate')loadAffiliate();
+if(page==='admin'){loadAdminLicenses();loadAdminPayments();}
+if(window.innerWidth<1024)toggleSidebar(false);
 }
-function toggleSidebar(force) {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    const isOpen = force !== undefined ? force : !sidebar.classList.contains('open');
-    if (isOpen) { sidebar.classList.add('open'); overlay.classList.add('open'); }
-    else { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
-}
+function toggleSidebar(force){const s=document.getElementById('sidebar'),o=document.getElementById('sidebarOverlay');const open=force!==undefined?force:!s.classList.contains('open');if(open){s.classList.add('open');o.classList.add('open')}else{s.classList.remove('open');o.classList.remove('open')}}
 
-// ============================================================
 // TOAST
-// ============================================================
-function showToast(msg, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    const icons = { success: '', error: '', warning: '', info: '' };
-    const borders = { success: 'border-l-profit', error: 'border-l-loss', warning: 'border-l-yellow-500', info: 'border-l-neutral' };
-    const colors = { success: 'text-profit', error: 'text-loss', warning: 'text-yellow-500', info: 'text-white' };
-    const toast = document.createElement('div');
-    toast.className = `toast glass-light rounded-xl px-4 py-3 text-sm font-medium animate-slideInRight border-l-2 ${borders[type]} ${colors[type]}`;
-    toast.innerHTML = `<span class="mr-2">${icons[type]}</span>${msg}`;
-    container.appendChild(toast);
-    setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; setTimeout(() => toast.remove(), 300); }, 3000);
-}
+function showToast(msg,type='info'){const c=document.getElementById('toastContainer');const icons={success:'',error:'',warning:'',info:''};const borders={success:'border-l-profit',error:'border-l-loss',warning:'border-l-yellow-500',info:'border-l-neutral'};const colors={success:'text-profit',error:'text-loss',warning:'text-yellow-500',info:'text-white'};const t=document.createElement('div');t.className=`toast glass-light rounded-xl px-4 py-3 text-sm font-medium animate-slideInRight border-l-2 ${borders[type]} ${colors[type]}`;t.innerHTML=`<span class="mr-2">${icons[type]}</span>${msg}`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(100%)';setTimeout(()=>t.remove(),300)},3000)}
 
-// ============================================================
-// AI CHAT
-// ============================================================
-async function sendAiChat() {
-    const input = document.getElementById('aiChatInput');
-    const message = input.value.trim();
-    if (!message) return;
-    input.value = '';
-    addAiMessage('user', message);
-    showAiTyping();
-    
-    const userId = State.user.licenseKey || 'anonymous_' + Date.now();
-    const pair = detectPair(message) || 'XAUUSD';
-    
-    // Tulis ke Firebase
-    db.ref(`ai_chat/${userId.replace(/[^a-zA-Z0-9]/g, '_')}/messages`).push({
-        role: 'user',
-        message: message,
-        pair: pair,
-        timestamp: Date.now()
-    });
-    
-    // Tunggu balasan dari bot
-    const replyRef = db.ref(`ai_chat/${userId.replace(/[^a-zA-Z0-9]/g, '_')}/reply`);
-    let handled = false;
-    
-    replyRef.on('value', snap => {
-        const reply = snap.val();
-        if (reply && reply.answer && !handled) {
-            handled = true;
-            hideAiTyping();
-            addAiMessage('ai', reply.answer);
-            replyRef.off();
-        }
-    });
-    
-    // Timeout kalau tidak ada balasan dalam 30 detik
-    setTimeout(() => {
-        if (!handled) {
-            handled = true;
-            hideAiTyping();
-            addAiMessage('ai', ' AI tidak merespon. Coba lagi.');
-            replyRef.off();
-        }
-    }, 30000);
-}
-function quickAiAsk(question) { document.getElementById('aiChatInput').value = question; sendAiChat(); }
-function addAiMessage(type, text) {
-    const container = document.getElementById('aiChatMessages');
-    const div = document.createElement('div');
-    div.className = 'flex gap-2';
-    if (type === 'user') div.innerHTML = `<div class="w-8 h-8 rounded-lg bg-primary-400/20 flex items-center justify-center text-sm flex-shrink-0">U</div><div class="glass rounded-xl p-3 max-w-[85%] text-sm">${escapeHtml(text)}</div>`;
-    else div.innerHTML = `<div class="w-8 h-8 rounded-lg bg-accent-400/20 flex items-center justify-center text-sm flex-shrink-0">AI</div><div class="glass rounded-xl p-3 max-w-[85%] text-sm">${formatAiText(text)}</div>`;
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-}
-function showAiTyping() {
-    const container = document.getElementById('aiChatMessages');
-    const div = document.createElement('div');
-    div.id = 'aiTyping';
-    div.className = 'flex gap-2';
-    div.innerHTML = `<div class="w-8 h-8 rounded-lg bg-accent-400/20 flex items-center justify-center text-sm flex-shrink-0">AI</div><div class="glass rounded-xl p-3 text-sm">AI sedang mengetik...</div>`;
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-}
-function hideAiTyping() { const typing = document.getElementById('aiTyping'); if (typing) typing.remove(); }
-function formatAiText(text) { return text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(//g, '<span class="text-profit"></span>').replace(//g, '<span class="text-loss"></span>').replace(/\n/g, '<br>'); }
-function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
-function detectPair(message) { const pairs = ['XAUUSD', 'BTCUSD', 'EURUSD', 'AAPL', 'TSLA', 'GBPJPY', 'USDJPY']; const upper = message.toUpperCase(); return pairs.find(p => upper.includes(p)) || null; }
+// CHART
+function changeChart(pair,interval){currentPair=pair;currentInterval=interval;document.querySelectorAll('.chart-pair-btn').forEach(b=>{b.classList.remove('active','bg-accent-400/20','text-accent-400');if(b.textContent.trim()===pair)b.classList.add('active','bg-accent-400/20','text-accent-400')});document.querySelectorAll('.chart-tf-btn').forEach(b=>{b.classList.remove('active','bg-accent-400/20','text-accent-400');if(b.textContent.trim()===interval+(interval==='1D'?'':'M').replace('60','H').replace('240','H'))b.classList.add('active','bg-accent-400/20','text-accent-400')});initChart()}
+function initChart(){const c=document.getElementById('tv_chart');if(!c||c.offsetParent===null){setTimeout(initChart,500);return}try{if(tvWidget)tvWidget.remove()}catch(e){}const sym='OANDA:'+(currentPair==='XAUUSD'?'XAUUSD':currentPair==='BTCUSD'?'BTCUSD':currentPair==='EURUSD'?'EURUSD':'NASDAQ:'+currentPair);tvWidget=new TradingView.widget({container_id:"tv_chart",symbol:sym,interval:currentInterval,theme:"dark",style:"1",locale:"en",toolbar_bg:"#0a0a0a",hide_top_toolbar:true,save_image:false,height:"100%",width:"100%",autosize:true,studies:["MASimple@tv-basicstudies","RSI@tv-basicstudies","MACD@tv-basicstudies"]})}
 
-// ============================================================
-// DASHBOARD
-// ============================================================
-function loadDashboard() {
-    document.getElementById('dashBalance').textContent = '$10,884';
-    document.getElementById('dashOpen').textContent = '19';
-    document.getElementById('dashPL').textContent = '+$60.80';
-    document.getElementById('dashWR').textContent = '83.2%';
-    document.getElementById('wrBar').style.width = '83.2%';
-    document.getElementById('headerBalance').textContent = '$10,884';
-    document.getElementById('headerPL').textContent = '+$60.80';
-    document.getElementById('headerUser').textContent = State.user.username;
-    document.getElementById('memberExpires').textContent = State.user.expires ? `Exp: ${new Date(State.user.expires).toLocaleDateString()}` : 'Register to start';
-    loadRecentSignals();
-    initTradingView();
-    updateSessionIndicator();
-}
-function loadRecentSignals() {
-    const container = document.getElementById('recentSignals');
-    db.ref(`signals/${CONFIG.adminLicense}/XAU_USD`).on('value', snap => {
-        const d = snap.val();
-        if (d && d[1]) { const s = d[1]; const c = s.dir === 'BUY' ? 'text-profit' : 'text-loss'; container.innerHTML = `<div class="glass rounded-xl p-3 text-sm animate-slideIn"><div class="flex justify-between"><span class="${c} font-bold text-lg">${s.dir}</span><span class="text-neutral text-xs">XAU/USD</span></div><p class="text-xs mt-1">Entry: <b>$${s.entry||'-'}</b> | SL: <span class="text-loss">$${s.sl||'-'}</span></p></div>`; }
-        else container.innerHTML = '<p class="text-neutral text-sm text-center py-4">Waiting for signals...</p>';
-    });
-}
-function initTradingView() {
-    const container = document.getElementById('tv_chart');
-    if (!container || container.offsetParent === null) { setTimeout(initTradingView, 1000); return; }
-    try { new TradingView.widget({ container_id: "tv_chart", symbol: "OANDA:XAUUSD", interval: "15", theme: "dark", style: "1", locale: "en", toolbar_bg: "#0a0a0a", hide_top_toolbar: true, save_image: false, height: "100%", width: "100%", autosize: true }); }
-    catch(e) { setTimeout(initTradingView, 2000); }
-}
-function updateSessionIndicator() {
-    const hours = new Date().getUTCHours();
-    document.getElementById('asiaDot').className = `w-2 h-2 rounded-full ${hours >= 0 && hours < 9 ? 'bg-profit' : 'bg-gray-600'}`;
-    document.getElementById('londonDot').className = `w-2 h-2 rounded-full ${hours >= 8 && hours < 17 ? 'bg-profit' : 'bg-gray-600'}`;
-    document.getElementById('nyDot').className = `w-2 h-2 rounded-full ${hours >= 13 && hours < 22 ? 'bg-profit' : 'bg-gray-600'}`;
-}
+// MARKET DATA
+function loadMarketData(){const key=State.user.licenseKey||CONFIG.adminLicense;db.ref(`performance/${key}/stats`).on('value',snap=>{const s=snap.val();if(s){document.getElementById('dashBalance').textContent='$'+(s.balance||0).toLocaleString();document.getElementById('dashEquity').textContent='$'+((s.balance||0)+(s.floating_pnl||0)).toLocaleString();document.getElementById('dashOpen').textContent=s.open_positions||0;document.getElementById('dashPL').textContent=(s.daily_pnl>=0?'+':'')+'$'+(s.daily_pnl||0).toFixed(2);document.getElementById('headerBalance').textContent='$'+(s.balance||0).toLocaleString();document.getElementById('headerPL').textContent=(s.daily_pnl>=0?'+':'')+'$'+(s.daily_pnl||0).toFixed(2)}});
+loadMarketSignals();loadMarketPositions();}
+function loadMarketSignals(){const c=document.getElementById('marketSignals');db.ref(`signals/${CONFIG.adminLicense}/XAU_USD`).on('value',snap=>{const d=snap.val();if(d){let h='<p class="text-xs text-accent-400 font-bold mb-2">XAU/USD</p>';for(let s=1;s<=5;s++){const sig=d[s];if(sig&&sig.dir){const em=sig.dir==='BUY'?'':'';const trailInfo=sig.trailStart>0?`<span class="text-xs text-neutral">Trail: $${sig.trailStart}</span>`:'';h+=`<div class="glass rounded-xl p-2 text-xs mb-1"><span>${em}</span> <b>${sig.dir}</b> $${sig.entry} SL:$${sig.sl} ${trailInfo}</div>`}}c.innerHTML=h||'<p class="text-neutral text-sm text-center">Waiting...</p>'}else c.innerHTML='<p class="text-neutral text-sm text-center">Waiting...</p>'})}
+function loadMarketPositions(){const c=document.getElementById('marketPositions');const key=State.user.licenseKey||CONFIG.adminLicense;db.ref(`performance/${key}/pairs`).once('value').then(snap=>{const d=snap.val();if(d){let h='';for(const[pair,stats]of Object.entries(d)){h+=`<div class="glass rounded-xl p-3 text-sm mb-2"><div class="flex justify-between"><span class="font-bold">${pair}</span><span class="text-profit">${stats.active} Open</span></div><p class="text-xs text-neutral">WR: ${stats.win_rate}% | P/L: ${stats.total_profit}</p></div>`}c.innerHTML=h||'<p class="text-neutral text-sm text-center">No positions</p>'}else c.innerHTML='<p class="text-neutral text-sm text-center">No positions</p>'})}
 
-// ============================================================
 // SIGNALS
-// ============================================================
-function loadSignals() {
-    ['XAU_USD', 'BTC_USD'].forEach(pp => {
-        const targetId = pp === 'XAU_USD' ? 'xauSignalLive' : 'btcSignalLive';
-        const container = document.getElementById(targetId);
-        if (!container) return;
-        container.innerHTML = '<p class="text-neutral text-sm">Loading...</p>';
-        db.ref(`signals/${CONFIG.adminLicense}/${pp}`).on('value', snap => {
-            const data = snap.val();
-            if (data) {
-                let html = '';
-                for (let slot = 1; slot <= 5; slot++) {
-                    const d = data[slot];
-                    if (d && d.dir) { const emoji = d.dir === 'BUY' ? '' : ''; html += `<div class="glass rounded-xl p-3 text-sm mb-2 animate-slideIn"><span class="text-2xl">${emoji}</span> <span class="font-bold">${d.dir}</span> <span class="text-xs text-neutral">${d.strategy||'AI'}</span><div class="grid grid-cols-2 gap-1 text-xs mt-1"><p>Entry: <b>$${d.entry||'-'}</b></p><p>SL: <span class="text-loss">$${d.sl||'-'}</span></p></div></div>`; }
-                }
-                container.innerHTML = html || '<p class="text-neutral text-sm">Waiting for signal...</p>';
-            } else container.innerHTML = '<p class="text-neutral text-sm">Waiting for signal...</p>';
-        });
-    });
-}
+function loadSignals(){['XAU_USD','BTC_USD'].forEach(pp=>{const tid=pp==='XAU_USD'?'xauSignalLive':'btcSignalLive';const c=document.getElementById(tid);if(!c)return;c.innerHTML='<p class="text-neutral text-sm">Loading...</p>';db.ref(`signals/${CONFIG.adminLicense}/${pp}`).on('value',snap=>{const data=snap.val();if(data){let h='';for(let s=1;s<=5;s++){const d=data[s];if(d&&d.dir){const em=d.dir==='BUY'?'':'';const trailActive=d.trailStart>0;const trailClass=trailActive?'trail-active':'trail-inactive';const trailText=trailActive?`Trail: $${d.trailStart} (Step: ${d.trailStep})`:'Trail: Inactive';h+=`<div class="glass rounded-xl p-3 text-sm mb-2 animate-slideIn ${trailClass}"><span class="text-2xl">${em}</span> <span class="font-bold">${d.dir}</span> <span class="text-xs text-neutral">${d.strategy||'AI'}</span><div class="grid grid-cols-2 gap-1 text-xs mt-1"><p>Entry: <b>$${d.entry||'-'}</b></p><p>SL: <span class="text-loss">$${d.sl||'-'}</span></p></div><p class="text-xs text-neutral mt-1"> ${trailText}</p></div>`}}c.innerHTML=h||'<p class="text-neutral text-sm">Waiting...</p>'}else c.innerHTML='<p class="text-neutral text-sm">Waiting...</p>'})})}
 
-// ============================================================
 // POSITIONS
-// ============================================================
-function loadPositions() {
-    const container = document.getElementById('positionsList');
-    const mock = [{ pair:'XAU/USD', dir:'BUY', entry:4178.05, sl:4061.71, lot:0.01, profit:12.50 },{ pair:'XAU/USD', dir:'BUY', entry:4179.66, sl:4060.50, lot:0.01, profit:10.80 },{ pair:'BTC/USD', dir:'SELL', entry:63370, sl:63470, lot:0.01, profit:-8.20 }];
-    container.innerHTML = mock.map(p => { const dirC = p.dir==='BUY'?'text-profit':'text-loss'; const plC = p.profit>=0?'profit-positive':'profit-negative'; return `<div class="glass rounded-xl p-4 flex items-center justify-between"><div><span class="${dirC} font-bold">${p.dir}</span> <span class="text-sm">${p.pair}</span><p class="text-xs text-neutral">Entry: $${p.entry} | SL: $${p.sl} | Lot: ${p.lot}</p></div><div class="text-right"><p class="font-bold ${plC}">${p.profit>=0?'+':''}$${p.profit.toFixed(2)}</p></div></div>`; }).join('');
-}
-function emergencyStop() { document.getElementById('emergencyModal').classList.remove('hidden'); }
-function confirmEmergencyStop() { document.getElementById('emergencyModal').classList.add('hidden'); showToast('Emergency stop activated!', 'warning'); }
+function loadPositions(){const c=document.getElementById('positionsList');const mock=[{pair:'XAU/USD',dir:'BUY',entry:4178,sl:4061,lot:0.01,profit:12.5,trailActive:true,trailStart:4190},{pair:'BTC/USD',dir:'SELL',entry:63370,sl:63470,lot:0.01,profit:-8.2,trailActive:false}];c.innerHTML=mock.map(p=>{const dc=p.dir==='BUY'?'text-profit':'text-loss';const pc=p.profit>=0?'profit-positive':'profit-negative';const tc=p.trailActive?'trail-active':'trail-inactive';const tt=p.trailActive?`Trail: $${p.trailStart} (active since ${new Date().toLocaleTimeString()})`:'Trail: Not activated';return`<div class="glass rounded-xl p-4 ${tc}"><div class="flex justify-between"><div><span class="${dc} font-bold">${p.dir}</span> <span class="text-sm">${p.pair}</span><p class="text-xs text-neutral">Entry: $${p.entry} | SL: $${p.sl} | Lot: ${p.lot}</p><p class="text-xs text-neutral mt-1"> ${tt}</p></div><div class="text-right"><p class="font-bold ${pc}">${p.profit>=0?'+':''}$${p.profit.toFixed(2)}</p></div></div></div>`}).join('')}
+function emergencyStop(){if(confirm('Close ALL positions?')){db.ref(`signals/${CONFIG.adminLicense}/close_all`).set({action:'close_all',reason:'Panel Emergency',timestamp:Date.now()});showToast('Emergency stop activated!','warning')}}
 
-// ============================================================
+// AFFILIATE
+function loadAffiliate(){const affId='AFF-'+(State.user.licenseKey||'DEMO').substring(3,9);document.getElementById('affLink').value=window.location.origin+'?ref='+affId;db.ref('affiliates/'+affId).on('value',snap=>{const d=snap.val()||{};document.getElementById('affTotal').textContent='Rp '+(d.total_commission||0).toLocaleString();document.getElementById('affPending').textContent='Rp '+(d.pending_commission||0).toLocaleString();document.getElementById('affReferrals').textContent=d.total_referrals||0;document.getElementById('affPaid').textContent='Rp '+(d.paid_commission||0).toLocaleString();const refs=d.total_referrals||0;let rank=' STAR',progress=Math.min(refs*10,100),next='BRONZE (3 refs)';if(refs>=25){rank=' CHAMPION';progress=100;next='MAX'}else if(refs>=10){rank=' DIAMOND';progress=Math.min((refs-10)*6.6+60,100);next='CHAMPION (25 refs)'}else if(refs>=5){rank=' SILVER';progress=Math.min((refs-5)*10+40,100);next='DIAMOND (10 refs)'}else if(refs>=3){rank=' BRONZE';progress=Math.min((refs-3)*20+20,100);next='SILVER (5 refs)'}else{progress=Math.min(refs*33,100);next='BRONZE (3 refs)'}document.getElementById('affProgress').style.width=progress+'%'})}
+
 // PAYMENTS
-// ============================================================
-function selectPackage(pkg, el) {
-    State.payment.package = pkg;
-    document.querySelectorAll('.pkg-card').forEach(e => e.style.borderColor = 'rgba(255,255,255,0.05)');
-    if (el) el.style.borderColor = '#f59e0b';
-    State.payment.months = 1;
-    document.getElementById('paymentDetails').classList.remove('hidden');
-    document.getElementById('payTotal').textContent = 'Rp ' + CONFIG.packages[pkg].pricePerMonth.toLocaleString();
-}
-function processPayment() { showToast('License generated! Check Settings.', 'success'); }
+function selectPackage(pkg,el){State.payment.package=pkg;document.querySelectorAll('.pkg-card').forEach(e=>e.style.borderColor='rgba(255,255,255,0.05)');if(el)el.style.borderColor='#f59e0b';State.payment.months=1;document.getElementById('paymentDetails').classList.remove('hidden');document.getElementById('payTotal').textContent='Rp '+CONFIG.packages[pkg].pricePerMonth.toLocaleString()}
+function showManualPayment(){const amount=CONFIG.packages[State.payment.package].pricePerMonth*State.payment.months;document.getElementById('manualPayAmount').textContent='Rp '+amount.toLocaleString();document.getElementById('manualPayModal').classList.remove('hidden')}
+function confirmManualPayment(){const key='AT-'+Math.random().toString(36).substring(2,8).toUpperCase();const data={key:key,owner:State.user.username||'User',package:State.payment.package,plan:State.payment.package,is_active:true,autotrade_enabled:State.payment.package==='max',max_pairs:State.payment.package==='max'?10:5,expires:new Date(Date.now()+30*86400000).toISOString(),created:new Date().toISOString(),payment_method:'manual',payment_amount:CONFIG.packages[State.payment.package].pricePerMonth,payment_status:'pending'};db.ref('licenses/'+key).set(data).then(()=>{db.ref('payments/'+key).set({...data,timestamp:Date.now()});document.getElementById('manualPayModal').classList.add('hidden');showToast('Pembayaran dikirim! Admin akan verifikasi.','success');State.user.licenseKey=key;localStorage.setItem('at_license',key)})}
 
-// ============================================================
 // LICENSE
-// ============================================================
-function registerLicense() {
-    const key = document.getElementById('regKey').value.trim().toUpperCase();
-    if (!key) return showToast('Enter license key!', 'error');
-    if (!key.startsWith('AT-')) return showToast('Invalid format!', 'error');
-    db.ref('licenses/' + key).once('value').then(snap => {
-        const d = snap.val();
-        if (d?.is_active) {
-            State.user.licenseKey = key; State.user.package = d.package; State.user.expires = d.expires;
-            localStorage.setItem('at_license', key);
-            showToast('License registered!', 'success');
-            navigate('dashboard'); loadDashboard();
-        } else showToast('Invalid license!', 'error');
-    }).catch(() => showToast('Connection error', 'error'));
-}
+function registerLicense(){const key=document.getElementById('regKey').value.trim().toUpperCase();if(!key)return showToast('Enter license key!','error');db.ref('licenses/'+key).once('value').then(snap=>{const d=snap.val();if(d?.is_active){State.user.licenseKey=key;State.user.package=d.package;State.user.expires=d.expires;localStorage.setItem('at_license',key);showToast('License registered!','success');navigate('market');loadMarketData()}else showToast('Invalid license!','error')}).catch(()=>showToast('Connection error','error'))}
 
-// ============================================================
+// ADMIN
+function adminTab(tab){document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active','bg-accent-400/20','text-accent-400'));event.target.classList.add('active','bg-accent-400/20','text-accent-400');document.getElementById('adminLicenses').classList.add('hidden');document.getElementById('adminPayments').classList.add('hidden');if(tab==='licenses')document.getElementById('adminLicenses').classList.remove('hidden');else{document.getElementById('adminPayments').classList.remove('hidden');loadAdminPayments()}}
+function checkAdminAccess(){if(State.user.licenseKey===CONFIG.adminLicense)document.getElementById('adminNavBtn').style.display='flex'}
+function loadAdminLicenses(){db.ref('licenses').once('value').then(snap=>{const l=snap.val();if(l)renderLicenseTable(l);else document.getElementById('adminLicenseList').innerHTML='<tr><td colspan="6" class="text-center py-8 text-neutral">No licenses</td></tr>'})}
+function renderLicenseTable(licenses){const t=document.getElementById('adminLicenseList');t.innerHTML=Object.entries(licenses).map(([k,l])=>{const a=l.is_active,e=l.expires?new Date(l.expires):null,d=e?Math.ceil((e-new Date())/86400000):0;return`<tr class="border-b border-white/5"><td class="py-3 font-mono text-xs">${k.substring(0,12)}...</td><td class="py-3">${l.owner||'-'}</td><td class="py-3">${(l.package||'pro').toUpperCase()}</td><td class="py-3"><button onclick="toggleLicense('${k}',${!a})" class="px-2 py-1 rounded-full text-xs ${a?'bg-profit/20 text-profit':'bg-loss/20 text-loss'}">${a?'ACTIVE':'INACTIVE'}</button></td><td class="py-3 text-xs">${e?e.toLocaleDateString()+' ('+d+'d)':'N/A'}</td><td class="py-3"><button onclick="editLicense('${k}')" class="text-accent-400 text-xs mr-2"><i class="fas fa-edit"></i></button><button onclick="deleteLicense('${k}')" class="text-loss text-xs"><i class="fas fa-trash"></i></button></td></tr>`}).join('')}
+function loadAdminPayments(){db.ref('payments').once('value').then(snap=>{const p=snap.val()||{};const c=document.getElementById('adminPaymentList');const rows=Object.entries(p).map(([k,v])=>`<div class="glass rounded-xl p-3 text-sm mb-2 flex justify-between"><div><span class="font-bold">${v.owner||'User'}</span> - ${(v.package||'pro').toUpperCase()}</div><div><span class="text-accent-400">Rp ${(v.payment_amount||0).toLocaleString()}</span><button onclick="approvePayment('${k}')" class="bg-profit text-white px-2 py-1 rounded text-xs ml-2">Approve</button></div></div>`).join('');c.innerHTML=rows||'<p class="text-neutral text-sm">No pending payments</p>'})}
+function approvePayment(key){db.ref('licenses/'+key).update({is_active:true,payment_status:'approved'});db.ref('payments/'+key).update({status:'approved'});showToast('Payment approved!','success');loadAdminPayments();loadAdminLicenses()}
+function showAddLicenseModal(){document.getElementById('licenseModalTitle').textContent='Add License';document.getElementById('editLicenseKey').value='';document.getElementById('licKey').value='';document.getElementById('licOwner').value='';document.getElementById('licAccount').value='';document.getElementById('licExpires').value='';document.getElementById('licenseModal').classList.remove('hidden')}
+function editLicense(k){db.ref('licenses/'+k).once('value').then(s=>{const l=s.val();if(l){document.getElementById('licenseModalTitle').textContent='Edit License';document.getElementById('editLicenseKey').value=k;document.getElementById('licKey').value=k;document.getElementById('licOwner').value=l.owner||'';document.getElementById('licPackage').value=l.package||'pro';document.getElementById('licAccount').value=l.account_login||'';document.getElementById('licExpires').value=l.expires?l.expires.substring(0,10):'';document.getElementById('licenseModal').classList.remove('hidden')}})}
+function saveLicense(){const ek=document.getElementById('editLicenseKey').value;const key=document.getElementById('licKey').value||'AT-'+Math.random().toString(36).substring(2,8).toUpperCase();const data={key:key,owner:document.getElementById('licOwner').value||'User',package:document.getElementById('licPackage').value,plan:document.getElementById('licPackage').value,is_active:true,autotrade_enabled:document.getElementById('licPackage').value==='max',max_pairs:document.getElementById('licPackage').value==='max'?10:5,expires:document.getElementById('licExpires').value?new Date(document.getElementById('licExpires').value).toISOString():new Date(Date.now()+30*86400000).toISOString(),created:new Date().toISOString(),account_login:document.getElementById('licAccount').value};db.ref('licenses/'+key).set(data).then(()=>{showToast(ek?'Updated!':'Created!','success');document.getElementById('licenseModal').classList.add('hidden');loadAdminLicenses()})}
+function toggleLicense(key,isActive){db.ref('licenses/'+key).update({is_active:isActive}).then(()=>{loadAdminLicenses();showToast(`License ${isActive?'activated':'deactivated'}!`,'success')})}
+function deleteLicense(key){if(!confirm('Delete '+key+'?'))return;db.ref('licenses/'+key).remove().then(()=>{db.ref('signals/'+key).remove();loadAdminLicenses();showToast('Deleted!','success')})}
+
 // HELPERS
-// ============================================================
-function copyText(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (navigator.clipboard) navigator.clipboard.writeText(el.value).then(() => showToast('Copied!', 'success'));
-    else { el.select(); document.execCommand('copy'); showToast('Copied!', 'success'); }
-}
+function copyText(id){const el=document.getElementById(id);if(!el)return;if(navigator.clipboard)navigator.clipboard.writeText(el.value).then(()=>showToast('Copied!','success'));else{el.select();document.execCommand('copy');showToast('Copied!','success')}}
 
-// ============================================================
-// ADMIN LICENSE MANAGER
-// ============================================================
-const ADMIN_KEY = 'AT-AB100702CB5771F2';
-function checkAdminAccess() {
-    if (State.user.licenseKey === ADMIN_KEY || State.user.licenseKey.startsWith('AT-ADMIN-')) {
-        document.getElementById('adminNavBtn').style.display = 'flex';
-    }
-}
-function loadAdminLicenses() {
-    db.ref('licenses').once('value').then(snap => {
-        const licenses = snap.val();
-        if (licenses) {
-            renderLicenseTable(licenses);
-        } else {
-            document.getElementById('adminLicenseList').innerHTML = '<tr><td colspan="6" class="text-center py-8 text-neutral">No licenses found</td></tr>';
-        }
-    }).catch(e => {
-        document.getElementById('adminLicenseList').innerHTML = '<tr><td colspan="6" class="text-center py-8 text-loss">Failed to load</td></tr>';
-    });
-}
-function renderLicenseTable(licenses) {
-    const t = document.getElementById('adminLicenseList');
-    if (!licenses || Object.keys(licenses).length === 0) { t.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-neutral">No licenses found</td></tr>'; return; }
-    t.innerHTML = Object.entries(licenses).map(([k, l]) => {
-        const a = l.is_active, e = l.expires ? new Date(l.expires) : null, d = e ? Math.ceil((e - new Date()) / 86400000) : 0, x = d <= 0;
-        return `<tr class="border-b border-white/5 hover:bg-white/5"><td class="py-3 font-mono text-xs">${k.substring(0,15)}...</td><td class="py-3">${l.owner||'-'}</td><td class="py-3"><span class="px-2 py-1 rounded-full text-xs ${l.package==='max'?'bg-accent-400/20 text-accent-400':'bg-blue-400/20 text-blue-400'}">${(l.package||'pro').toUpperCase()}</span></td><td class="py-3"><button onclick="toggleLicense('${k}',${!a})" class="px-2 py-1 rounded-full text-xs ${a?'bg-profit/20 text-profit':'bg-loss/20 text-loss'}">${a?'ACTIVE':'INACTIVE'}</button></td><td class="py-3 text-xs ${x?'text-loss':d<=7?'text-yellow-500':''}">${e?e.toLocaleDateString()+' ('+d+'d)':'N/A'}</td><td class="py-3"><button onclick="editLicense('${k}')" class="text-accent-400 hover:underline text-xs mr-2"><i class="fas fa-edit"></i></button><button onclick="deleteLicense('${k}')" class="text-loss hover:underline text-xs"><i class="fas fa-trash"></i></button></td></tr>`;
-    }).join('');
-}
-function showAddLicenseModal() {
-    document.getElementById('licenseModalTitle').textContent = 'Add License';
-    document.getElementById('editLicenseKey').value = '';
-    document.getElementById('licKey').value = ''; document.getElementById('licOwner').value = '';
-    document.getElementById('licAccount').value = ''; document.getElementById('licExpires').value = '';
-    document.getElementById('licenseModal').classList.remove('hidden');
-}
-function editLicense(k) {
-    db.ref('licenses/' + k).once('value').then(s => {
-        const l = s.val();
-        if (l) {
-            document.getElementById('licenseModalTitle').textContent = 'Edit License';
-            document.getElementById('editLicenseKey').value = k;
-            document.getElementById('licKey').value = k; document.getElementById('licOwner').value = l.owner || '';
-            document.getElementById('licPackage').value = l.package || 'pro'; document.getElementById('licAccount').value = l.account_login || '';
-            document.getElementById('licExpires').value = l.expires ? l.expires.substring(0, 10) : '';
-            document.getElementById('licenseModal').classList.remove('hidden');
-        }
-    });
-}
-async function saveLicense() {
-    const ek = document.getElementById('editLicenseKey').value;
-    const key = document.getElementById('licKey').value || 'AT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    const data = {
-        key: key,
-        owner: document.getElementById('licOwner').value || 'User',
-        package: document.getElementById('licPackage').value,
-        plan: document.getElementById('licPackage').value,
-        is_active: true,
-        autotrade_enabled: document.getElementById('licPackage').value === 'max',
-        max_pairs: document.getElementById('licPackage').value === 'max' ? 10 : 5,
-        expires: document.getElementById('licExpires').value ? new Date(document.getElementById('licExpires').value).toISOString() : new Date(Date.now() + 30*86400000).toISOString(),
-        created: new Date().toISOString(),
-        account_login: document.getElementById('licAccount').value
-    };
-    
-    db.ref('licenses/' + key).set(data).then(() => {
-        showToast(ek ? 'License updated!' : 'License created!', 'success');
-        document.getElementById('licenseModal').classList.add('hidden');
-        loadAdminLicenses();
-    }).catch(() => showToast('Failed', 'error'));
-}
-function toggleLicense(key, isActive) {
-    db.ref('licenses/' + key).update({ is_active: isActive }).then(() => {
-        loadAdminLicenses();
-        showToast(`License ${isActive ? 'activated' : 'deactivated'}!`, 'success');
-    });
-}
-function deleteLicense(key) {
-    if (!confirm(`Delete license ${key}?`)) return;
-    db.ref('licenses/' + key).remove().then(() => {
-        db.ref('signals/' + key).remove();
-        loadAdminLicenses();
-        showToast('License deleted!', 'success');
-    });
-}
-
-// ============================================================
 // INIT
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('AetherTrade AI Terminal Initialized');
-    navigate('dashboard');
-    loadDashboard();
-    setTimeout(initTradingView, 1000);
-    setInterval(updateSessionIndicator, 60000);
-    setTimeout(checkAdminAccess, 2000);
-});
+document.addEventListener('DOMContentLoaded',()=>{navigate('market');loadMarketData();setTimeout(initChart,800);setTimeout(checkAdminAccess,2000)});
 </script>
 </body>
 </html>
