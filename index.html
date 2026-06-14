@@ -167,21 +167,320 @@
 
 <!-- PAGE: PAYMENTS -->
 <div id="page-payments" class="page-content hidden space-y-4">
-    <div class="glass-light rounded-2xl p-5">
-        <h3 class="font-bold text-lg mb-4">Purchase License</h3>
-        <p class="text-sm text-neutral mb-4">Pilih package untuk memulai trading dengan AetherTrade AI.</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div onclick="selectPackage('pro',this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer border-2 border-white/5 hover:border-accent-400/50 transition-all"><p class="text-2xl mb-2"></p><p class="font-bold text-lg">Pro</p><p class="text-sm text-neutral">Analisa Manual AI</p><p class="text-2xl font-black text-accent-400 my-2">Rp 150K</p><p class="text-xs text-neutral">/bulan</p></div>
-            <div onclick="selectPackage('max',this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer border-2 border-white/5 hover:border-accent-400/50 transition-all relative"><div class="absolute top-3 right-3 bg-accent-500 text-black text-xs px-2 py-1 rounded-full font-bold">POPULER</div><p class="text-2xl mb-2"></p><p class="font-bold text-lg">Max</p><p class="text-sm text-neutral">Manual + Auto Trading</p><p class="text-2xl font-black text-accent-400 my-2">Rp 350K</p><p class="text-xs text-neutral">/bulan</p></div>
+    
+    <!-- MAINTENANCE BANNER -->
+    <div class="glass-light rounded-2xl p-5 border-l-4 border-yellow-500 animate-slideIn">
+        <div class="flex items-start gap-3">
+            <div class="text-2xl"></div>
+            <div>
+                <h3 class="font-bold text-yellow-400">Midtrans Auto Payment — Maintenance</h3>
+                <p class="text-sm text-neutral mt-1">Pembayaran otomatis (GoPay, DANA, QRIS, VA) sedang dalam proses verifikasi Midtrans.</p>
+                <p class="text-sm text-neutral">Estimasi aktif: <b>1-2 minggu</b>. Sementara gunakan <b>Manual Transfer</b> di bawah.</p>
+                <button onclick="notifyMidtransActive()" class="mt-2 glass rounded-full px-4 py-1.5 text-xs hover:bg-white/10 transition-all">
+                    <i class="fas fa-bell"></i> Notifikasi saya jika sudah aktif
+                </button>
+            </div>
         </div>
-        <div id="paymentDetails" class="hidden glass-light rounded-2xl p-5 text-center">
-            <p class="text-lg font-bold mb-3">Ringkasan</p>
-            <p class="text-2xl font-black text-accent-400" id="payTotal">Rp 0</p>
-            <button onclick="showManualPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-8 py-4 rounded-xl text-lg w-full sm:w-auto mt-4">Pay Now — Manual Transfer</button>
-            <p class="text-xs text-neutral mt-2">Midtrans coming soon</p>
+    </div>
+
+    <!-- PACKAGE SELECTION -->
+    <div class="glass-light rounded-2xl p-5">
+        <h3 class="font-bold text-lg mb-2"> Pilih Package</h3>
+        <p class="text-sm text-neutral mb-4">Pilih package dan durasi. Harga sudah termasuk semua fitur.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div onclick="selectPaymentPackage('pro', this)" class="payment-pkg-card glass rounded-2xl p-5 text-center cursor-pointer border-2 border-white/5 hover:border-accent-400/50 transition-all">
+                <div class="text-3xl mb-2"></div>
+                <p class="font-bold text-lg">PRO</p>
+                <p class="text-xs text-neutral">Analisa Manual AI</p>
+                <div class="my-2 space-y-1 text-xs text-neutral">
+                    <p> AI Chat Telegram</p><p> Analisa Multi-TF</p>
+                    <p> Live Chart</p><p> Notifikasi</p><p> 5 Pair</p>
+                </div>
+                <p class="text-xl font-black text-accent-400">Rp 150K</p><p class="text-xs text-neutral">/bulan</p>
+            </div>
+            <div onclick="selectPaymentPackage('max', this)" class="payment-pkg-card glass rounded-2xl p-5 text-center cursor-pointer border-2 border-accent-400/50 hover:border-accent-400 transition-all relative">
+                <div class="absolute top-3 right-3 bg-accent-500 text-black text-xs px-2 py-1 rounded-full font-bold">BEST</div>
+                <div class="text-3xl mb-2"></div>
+                <p class="font-bold text-lg">MAX</p>
+                <p class="text-xs text-neutral">Manual + Auto Trading EA</p>
+                <div class="my-2 space-y-1 text-xs text-neutral">
+                    <p> Semua PRO</p><p> Auto Trading EA</p>
+                    <p> Multi-Pair</p><p> Firebase</p><p> Priority Support</p>
+                </div>
+                <p class="text-xl font-black text-accent-400">Rp 350K</p><p class="text-xs text-neutral">/bulan</p>
+            </div>
+        </div>
+        
+        <!-- DURASI -->
+        <p class="text-sm text-neutral mb-2"> Pilih Durasi:</p>
+        <div class="flex flex-wrap gap-2 mb-4">
+            <button onclick="selectPaymentDuration(1, this)" class="duration-btn glass rounded-xl px-4 py-3 text-sm border border-white/5 hover:border-accent-400/50">1 Bulan</button>
+            <button onclick="selectPaymentDuration(3, this)" class="duration-btn glass rounded-xl px-4 py-3 text-sm border border-white/5 hover:border-accent-400/50">3 Bulan <span class="text-xs text-profit">-10%</span></button>
+            <button onclick="selectPaymentDuration(6, this)" class="duration-btn glass rounded-xl px-4 py-3 text-sm border border-white/5 hover:border-accent-400/50">6 Bulan <span class="text-xs text-profit">-17%</span></button>
+            <button onclick="selectPaymentDuration(12, this)" class="duration-btn glass rounded-xl px-4 py-3 text-sm border border-white/5 hover:border-accent-400/50">12 Bulan <span class="text-xs text-profit">-25%</span></button>
+        </div>
+        
+        <!-- PROMO CODE -->
+        <div class="flex gap-2 mb-4">
+            <input type="text" id="promoCode" placeholder="Kode Promo (opsional)" class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-accent-400/50 focus:outline-none">
+            <button onclick="applyPromoCode()" class="glass rounded-xl px-4 py-3 text-sm hover:bg-white/10">Pakai</button>
+        </div>
+        <p id="promoMessage" class="text-xs hidden mb-2"></p>
+        
+        <!-- TOTAL -->
+        <div id="paymentTotalSection" class="hidden glass rounded-2xl p-5 text-center mb-4 animate-slideIn">
+            <p class="text-sm text-neutral">Total Pembayaran</p>
+            <p class="text-3xl font-black text-accent-400" id="paymentTotalAmount">Rp 0</p>
+            <p class="text-xs text-neutral" id="paymentPerMonth"></p>
+            <p class="text-xs text-profit hidden" id="paymentDiscount"></p>
+        </div>
+    </div>
+
+    <!-- MANUAL TRANSFER GUIDE -->
+    <div id="manualTransferSection" class="hidden space-y-4 animate-slideIn">
+        <div class="glass-light rounded-2xl p-5">
+            <h3 class="font-bold text-lg mb-3"> Manual Transfer</h3>
+            
+            <!-- STEPS -->
+            <div class="space-y-3 mb-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-accent-400 text-black flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+                    <div><p class="font-bold text-sm">Transfer Tepat</p><p class="text-xs text-neutral">Transfer sesuai jumlah ke salah satu rekening. <b>Jumlah harus TEPAT</b>.</p></div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-accent-400 text-black flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+                    <div><p class="font-bold text-sm">Upload & Kirim</p><p class="text-xs text-neutral">Upload bukti transfer yang jelas. Admin akan verifikasi.</p></div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-accent-400 text-black flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+                    <div><p class="font-bold text-sm">License Aktif</p><p class="text-xs text-neutral">Verifikasi <b>1x24 jam kerja</b>. License otomatis aktif + invoice dikirim.</p></div>
+                </div>
+            </div>
+            
+            <!-- REKENING -->
+            <p class="text-sm font-bold mb-2"> Rekening Tujuan:</p>
+            <div class="space-y-2 mb-4">
+                <div class="glass rounded-xl p-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center text-lg"></div><div><p class="font-bold text-sm">DANA</p><p class="text-xs text-neutral">0859-3001-6248</p></div></div>
+                    <div class="flex items-center gap-2"><p class="text-xs text-neutral">a/n ANDIKA</p><button onclick="copyText('085930016248')" class="glass rounded-lg px-3 py-1 text-xs hover:bg-white/10"><i class="fas fa-copy"></i></button></div>
+                </div>
+                <div class="glass rounded-xl p-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center text-lg"></div><div><p class="font-bold text-sm">GoPay</p><p class="text-xs text-neutral">0859-3001-6248</p></div></div>
+                    <div class="flex items-center gap-2"><p class="text-xs text-neutral">a/n ANDIKA</p><button onclick="copyText('085930016248')" class="glass rounded-lg px-3 py-1 text-xs hover:bg-white/10"><i class="fas fa-copy"></i></button></div>
+                </div>
+                <div class="glass rounded-xl p-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center text-lg"></div><div><p class="font-bold text-sm">SEABANK</p><p class="text-xs text-neutral">9017-9377-7670</p></div></div>
+                    <div class="flex items-center gap-2"><p class="text-xs text-neutral">a/n ANDIKA</p><button onclick="copyText('901793777670')" class="glass rounded-lg px-3 py-1 text-xs hover:bg-white/10"><i class="fas fa-copy"></i></button></div>
+                </div>
+            </div>
+            
+            <div class="glass rounded-xl p-3 text-xs text-neutral mb-4">
+                <p> <b>PENTING:</b> Transfer <b>TEPAT</b> sesuai jumlah • Screenshot jelas • Cantumkan username Telegram • Verifikasi 1x24 jam kerja</p>
+            </div>
+            
+            <!-- UPLOAD -->
+            <p class="text-sm font-bold mb-2"> Upload Bukti Transfer:</p>
+            <div class="glass rounded-xl p-4 text-center mb-3 cursor-pointer hover:bg-white/5 transition-all" id="dropZone" onclick="document.getElementById('proofFile').click()">
+                <input type="file" id="proofFile" accept="image/*,.pdf" class="hidden" onchange="handleFileSelect(event)">
+                <div id="dropZoneContent"><p class="text-3xl mb-2"></p><p class="text-sm font-bold">Klik atau Drag & Drop</p><p class="text-xs text-neutral">JPG, PNG, PDF (Max 5MB)</p></div>
+                <div id="filePreview" class="hidden"><p class="text-sm font-bold text-profit"> File dipilih</p><p class="text-xs text-neutral" id="fileName"></p></div>
+            </div>
+            
+            <div class="mb-4"><label class="text-xs text-neutral"> Catatan:</label><input type="text" id="paymentNote" placeholder="Username Telegram: @trader_pro" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mt-1 focus:border-accent-400/50 focus:outline-none"></div>
+            
+            <div class="glass rounded-xl p-4 mb-4 text-center bg-accent-400/5"><p class="text-xs text-neutral">Total yang harus ditransfer:</p><p class="text-2xl font-black text-accent-400" id="finalTransferAmount">Rp 0</p><p class="text-xs text-loss mt-1"> Transfer tidak sesuai jumlah = ditolak</p></div>
+            
+            <button onclick="submitManualPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-6 py-4 rounded-xl text-sm w-full hover:scale-[1.02] transition-transform"> KIRIM BUKTI PEMBAYARAN</button>
+            <p class="text-xs text-neutral text-center mt-2"> Admin akan verifikasi dalam 1x24 jam kerja</p>
+        </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="glass-light rounded-2xl p-5">
+        <h3 class="font-bold text-lg mb-3"> Butuh Bantuan?</h3>
+        <div class="grid grid-cols-2 gap-3">
+            <a href="https://t.me/rimuru_genkai" target="_blank" class="glass rounded-xl p-4 text-center hover:bg-white/5"><p class="text-2xl mb-1"><i class="fab fa-telegram text-blue-400"></i></p><p class="text-sm font-bold">Telegram</p><p class="text-xs text-neutral">@rimuru_genkai</p></a>
+            <a href="https://wa.me/6285930016248" target="_blank" class="glass rounded-xl p-4 text-center hover:bg-white/5"><p class="text-2xl mb-1"><i class="fab fa-whatsapp text-green-400"></i></p><p class="text-sm font-bold">WhatsApp</p><p class="text-xs text-neutral">0859-3001-6248</p></a>
+        </div>
+    </div>
+
+    <!-- PAYMENT HISTORY + STATUS TRACKER -->
+    <div class="glass-light rounded-2xl p-5">
+        <h3 class="font-bold text-lg mb-3"> Riwayat & Status Pembayaran</h3>
+        <div id="paymentHistoryList"><p class="text-neutral text-sm text-center py-4">Belum ada pembayaran</p></div>
+    </div>
+
+    <!-- INVOICE MODAL -->
+    <div id="invoiceModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+        <div class="glass-light rounded-2xl p-6 w-full max-w-md animate-slideIn text-center">
+            <p class="text-3xl mb-2"></p>
+            <h3 class="text-xl font-bold mb-2">Invoice</h3>
+            <p class="text-sm text-neutral mb-1" id="invoiceNumber">#AT-XXXXXXXX</p>
+            <div class="glass rounded-xl p-4 my-3 text-left text-sm space-y-2">
+                <div class="flex justify-between"><span>Package</span><span class="font-bold" id="invoicePackage">-</span></div>
+                <div class="flex justify-between"><span>Durasi</span><span class="font-bold" id="invoiceDuration">-</span></div>
+                <div class="flex justify-between"><span>Jumlah</span><span class="font-bold text-accent-400" id="invoiceAmount">-</span></div>
+                <div class="flex justify-between"><span>Status</span><span class="text-profit font-bold">LUNAS </span></div>
+                <hr class="border-white/5">
+                <div class="flex justify-between"><span>License</span><span class="font-bold font-mono" id="invoiceLicense">-</span></div>
+                <div class="flex justify-between"><span>Expires</span><span class="font-bold" id="invoiceExpires">-</span></div>
+            </div>
+            <button onclick="document.getElementById('invoiceModal').classList.add('hidden')" class="glass rounded-xl px-6 py-3 text-sm mt-3">Tutup</button>
         </div>
     </div>
 </div>
+
+<script>
+// PAYMENT STATE
+let paymentState = { package: '', months: 1, amount: 0, originalAmount: 0, proofFile: null, promoApplied: false };
+const PROMO_CODES = { 'AETHER10': 0.10, 'TRADER20': 0.20, 'WELCOME': 50000 };
+
+function selectPaymentPackage(pkg, el) {
+    paymentState.package = pkg;
+    document.querySelectorAll('.payment-pkg-card').forEach(e => e.style.borderColor = 'rgba(255,255,255,0.05)');
+    if (el) el.style.borderColor = '#f59e0b';
+    calculatePaymentTotal();
+}
+
+function selectPaymentDuration(months, el) {
+    paymentState.months = months;
+    document.querySelectorAll('.duration-btn').forEach(e => { e.style.borderColor = 'rgba(255,255,255,0.05)'; e.classList.remove('bg-accent-400/20'); });
+    if (el) { el.style.borderColor = '#f59e0b'; el.classList.add('bg-accent-400/20'); }
+    calculatePaymentTotal();
+}
+
+function calculatePaymentTotal() {
+    if (!paymentState.package) return;
+    const prices = { pro: 150000, max: 350000 };
+    const discounts = { 1: 0, 3: 0.10, 6: 0.17, 12: 0.25 };
+    const base = prices[paymentState.package];
+    const discount = discounts[paymentState.months] || 0;
+    paymentState.originalAmount = Math.round(base * paymentState.months * (1 - discount));
+    paymentState.amount = paymentState.originalAmount;
+    if (paymentState.promoApplied && paymentState.promoAmount) {
+        paymentState.amount = Math.max(0, paymentState.originalAmount - paymentState.promoAmount);
+    }
+    document.getElementById('paymentTotalSection').classList.remove('hidden');
+    document.getElementById('manualTransferSection').classList.remove('hidden');
+    document.getElementById('paymentTotalAmount').textContent = 'Rp ' + paymentState.amount.toLocaleString();
+    document.getElementById('finalTransferAmount').textContent = 'Rp ' + paymentState.amount.toLocaleString();
+    document.getElementById('paymentPerMonth').textContent = 'Rp ' + Math.round(paymentState.amount / paymentState.months).toLocaleString() + '/bulan';
+    if (discount > 0) { document.getElementById('paymentDiscount').classList.remove('hidden'); document.getElementById('paymentDiscount').textContent = ' Hemat ' + (discount * 100) + '%!'; }
+}
+
+function applyPromoCode() {
+    const code = document.getElementById('promoCode').value.trim().toUpperCase();
+    const msg = document.getElementById('promoMessage');
+    if (!code) return;
+    if (PROMO_CODES[code]) {
+        const val = PROMO_CODES[code];
+        if (typeof val === 'number' && val < 1) {
+            paymentState.promoAmount = Math.round(paymentState.originalAmount * val);
+        } else {
+            paymentState.promoAmount = val;
+        }
+        paymentState.promoApplied = true;
+        paymentState.amount = Math.max(0, paymentState.originalAmount - paymentState.promoAmount);
+        document.getElementById('paymentTotalAmount').textContent = 'Rp ' + paymentState.amount.toLocaleString();
+        document.getElementById('finalTransferAmount').textContent = 'Rp ' + paymentState.amount.toLocaleString();
+        msg.classList.remove('hidden'); msg.className = 'text-xs mb-2 text-profit'; msg.textContent = ' Kode promo berhasil! Diskon Rp ' + paymentState.promoAmount.toLocaleString();
+    } else {
+        msg.classList.remove('hidden'); msg.className = 'text-xs mb-2 text-loss'; msg.textContent = ' Kode promo tidak valid';
+    }
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast('File terlalu besar! Max 5MB', 'error'); return; }
+    paymentState.proofFile = file;
+    document.getElementById('dropZoneContent').classList.add('hidden');
+    document.getElementById('filePreview').classList.remove('hidden');
+    document.getElementById('fileName').textContent = file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+    document.getElementById('dropZone').style.borderColor = '#10b981';
+}
+
+function submitManualPayment() {
+    if (!paymentState.package) return showToast('Pilih package!', 'error');
+    if (!paymentState.proofFile) return showToast('Upload bukti transfer!', 'error');
+    
+    const key = 'AT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const note = document.getElementById('paymentNote').value || '-';
+    
+    const data = {
+        key: key, owner: State.user.username || 'User', package: paymentState.package,
+        plan: paymentState.package, months: paymentState.months, amount: paymentState.amount,
+        original_amount: paymentState.originalAmount, promo_code: document.getElementById('promoCode').value || '',
+        note: note, is_active: false, autotrade_enabled: paymentState.package === 'max',
+        max_pairs: paymentState.package === 'max' ? 10 : 5,
+        expires: new Date(Date.now() + paymentState.months * 30 * 86400000).toISOString(),
+        created: new Date().toISOString(), payment_method: 'manual_transfer',
+        payment_status: 'pending_verification', proof_filename: paymentState.proofFile.name
+    };
+    
+    db.ref('licenses/' + key).set(data).then(() => {
+        db.ref('payments/' + key).set({...data, timestamp: Date.now()});
+        db.ref('admin_notifications/payments').push({key: key, owner: data.owner, package: data.package, amount: data.amount, status: 'pending', timestamp: Date.now()});
+        showToast(' Pembayaran dikirim! Admin akan verifikasi 1x24 jam.', 'success');
+        document.getElementById('paymentTotalSection').classList.add('hidden');
+        document.getElementById('manualTransferSection').classList.add('hidden');
+        document.getElementById('proofFile').value = ''; document.getElementById('paymentNote').value = '';
+        document.getElementById('dropZoneContent').classList.remove('hidden');
+        document.getElementById('filePreview').classList.add('hidden');
+        document.getElementById('dropZone').style.borderColor = '';
+        paymentState = { package: '', months: 1, amount: 0, originalAmount: 0, proofFile: null, promoApplied: false };
+        loadPaymentHistory();
+    }).catch(() => showToast(' Gagal! Coba lagi.', 'error'));
+}
+
+function loadPaymentHistory() {
+    const key = State.user.licenseKey;
+    if (!key) return;
+    db.ref('payments').orderByChild('owner').equalTo(State.user.username || 'User').once('value').then(snap => {
+        const data = snap.val();
+        const container = document.getElementById('paymentHistoryList');
+        if (data) {
+            let html = '';
+            for (const [k, v] of Object.entries(data)) {
+                const statusIcon = v.payment_status === 'approved' ? '' : v.payment_status === 'rejected' ? '' : '';
+                const statusColor = v.payment_status === 'approved' ? 'text-profit' : v.payment_status === 'rejected' ? 'text-loss' : 'text-yellow-500';
+                const date = new Date(v.timestamp || v.created).toLocaleDateString('id-ID', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+                html += `<div class="glass rounded-xl p-3 text-sm mb-2 flex items-center justify-between"><div><span class="font-bold">${v.package.toUpperCase()}</span> - ${v.months} Bulan</div><div class="text-right"><span class="${statusColor}">${statusIcon} ${v.payment_status === 'approved' ? 'ACTIVE' : v.payment_status === 'rejected' ? 'REJECTED' : 'PENDING'}</span><p class="text-xs text-neutral">${date}</p>${v.payment_status === 'approved' ? `<button onclick="showInvoice('${k}')" class="text-accent-400 text-xs mt-1"> Invoice</button>` : ''}</div></div>`;
+            }
+            container.innerHTML = html;
+        }
+    });
+}
+
+function showInvoice(key) {
+    db.ref('licenses/' + key).once('value').then(snap => {
+        const d = snap.val();
+        if (d) {
+            document.getElementById('invoiceNumber').textContent = '#' + key;
+            document.getElementById('invoicePackage').textContent = d.package.toUpperCase();
+            document.getElementById('invoiceDuration').textContent = (d.months || 1) + ' Bulan';
+            document.getElementById('invoiceAmount').textContent = 'Rp ' + (d.amount || 0).toLocaleString();
+            document.getElementById('invoiceLicense').textContent = d.key;
+            document.getElementById('invoiceExpires').textContent = new Date(d.expires).toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'});
+            document.getElementById('invoiceModal').classList.remove('hidden');
+        }
+    });
+}
+
+function notifyMidtransActive() {
+    const key = State.user.licenseKey || 'anonymous';
+    db.ref('midtrans_notifications/' + key.replace(/[^a-zA-Z0-9]/g, '_')).set({notify: true, timestamp: Date.now()});
+    showToast(' Kamu akan dinotifikasi jika Midtrans sudah aktif!', 'success');
+}
+
+function copyText(text) {
+    if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showToast(' Disalin!', 'success')); }
+}
+
+// Load history on page open
+document.addEventListener('DOMContentLoaded', () => { setTimeout(loadPaymentHistory, 2000); });
+</script>
 
 <!-- PAGE: LICENSE -->
 <div id="page-license" class="page-content hidden space-y-4">
@@ -295,11 +594,6 @@ function emergencyStop(){if(confirm('Close ALL positions?')){db.ref(`signals/${C
 
 // AFFILIATE
 function loadAffiliate(){const affId='AFF-'+(State.user.licenseKey||'DEMO').substring(3,9);document.getElementById('affLink').value=window.location.origin+'?ref='+affId;db.ref('affiliates/'+affId).on('value',snap=>{const d=snap.val()||{};document.getElementById('affTotal').textContent='Rp '+(d.total_commission||0).toLocaleString();document.getElementById('affPending').textContent='Rp '+(d.pending_commission||0).toLocaleString();document.getElementById('affReferrals').textContent=d.total_referrals||0;document.getElementById('affPaid').textContent='Rp '+(d.paid_commission||0).toLocaleString();const refs=d.total_referrals||0;let rank=' STAR',progress=Math.min(refs*10,100),next='BRONZE (3 refs)';if(refs>=25){rank=' CHAMPION';progress=100;next='MAX'}else if(refs>=10){rank=' DIAMOND';progress=Math.min((refs-10)*6.6+60,100);next='CHAMPION (25 refs)'}else if(refs>=5){rank=' SILVER';progress=Math.min((refs-5)*10+40,100);next='DIAMOND (10 refs)'}else if(refs>=3){rank=' BRONZE';progress=Math.min((refs-3)*20+20,100);next='SILVER (5 refs)'}else{progress=Math.min(refs*33,100);next='BRONZE (3 refs)'}document.getElementById('affProgress').style.width=progress+'%'})}
-
-// PAYMENTS
-function selectPackage(pkg,el){State.payment.package=pkg;document.querySelectorAll('.pkg-card').forEach(e=>e.style.borderColor='rgba(255,255,255,0.05)');if(el)el.style.borderColor='#f59e0b';State.payment.months=1;document.getElementById('paymentDetails').classList.remove('hidden');document.getElementById('payTotal').textContent='Rp '+CONFIG.packages[pkg].pricePerMonth.toLocaleString()}
-function showManualPayment(){const amount=CONFIG.packages[State.payment.package].pricePerMonth*State.payment.months;document.getElementById('manualPayAmount').textContent='Rp '+amount.toLocaleString();document.getElementById('manualPayModal').classList.remove('hidden')}
-function confirmManualPayment(){const key='AT-'+Math.random().toString(36).substring(2,8).toUpperCase();const data={key:key,owner:State.user.username||'User',package:State.payment.package,plan:State.payment.package,is_active:true,autotrade_enabled:State.payment.package==='max',max_pairs:State.payment.package==='max'?10:5,expires:new Date(Date.now()+30*86400000).toISOString(),created:new Date().toISOString(),payment_method:'manual',payment_amount:CONFIG.packages[State.payment.package].pricePerMonth,payment_status:'pending'};db.ref('licenses/'+key).set(data).then(()=>{db.ref('payments/'+key).set({...data,timestamp:Date.now()});document.getElementById('manualPayModal').classList.add('hidden');showToast('Pembayaran dikirim! Admin akan verifikasi.','success');State.user.licenseKey=key;localStorage.setItem('at_license',key)})}
 
 // LICENSE
 function registerLicense(){const key=document.getElementById('regKey').value.trim().toUpperCase();if(!key)return showToast('Enter license key!','error');db.ref('licenses/'+key).once('value').then(snap=>{const d=snap.val();if(d?.is_active){State.user.licenseKey=key;State.user.package=d.package;State.user.expires=d.expires;localStorage.setItem('at_license',key);showToast('License registered!','success');navigate('market');loadMarketData()}else showToast('Invalid license!','error')}).catch(()=>showToast('Connection error','error'))}
