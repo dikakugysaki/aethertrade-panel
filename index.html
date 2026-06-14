@@ -457,8 +457,8 @@
     <div class="glass-light rounded-2xl p-5">
         <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-lg">Admin Panel</h3></div>
         <div class="flex gap-2 mb-4">
-            <button onclick="adminTab('licenses')" class="admin-tab-btn glass rounded-full px-4 py-2 text-xs active bg-accent-400/20 text-accent-400">Licenses</button>
-            <button onclick="adminTab('payments')" class="admin-tab-btn glass rounded-full px-4 py-2 text-xs">Payments</button>
+            <button onclick="adminTab('licenses',this)" class="admin-tab-btn glass rounded-full px-4 py-2 text-xs active bg-accent-400/20 text-accent-400">Licenses</button>
+            <button onclick="adminTab('payments',this)" class="admin-tab-btn glass rounded-full px-4 py-2 text-xs">Payments</button>
         </div>
         <div id="adminLicenses">
             <div class="flex items-center justify-between mb-3"><h3 class="font-bold">License Manager</h3><button onclick="showAddLicenseModal()" class="bg-accent-500 text-black font-bold px-3 py-1.5 rounded-lg text-xs"><i class="fas fa-plus"></i> Add</button></div>
@@ -467,10 +467,10 @@
         <div id="adminPayments" class="hidden">
             <h3 class="font-bold mb-3">Payment Queue</h3>
             <div class="flex gap-2 mb-4">
-                <button onclick="filterPayments('all')" class="pay-filter-btn glass rounded-full px-4 py-1.5 text-xs active bg-accent-400/20 text-accent-400">All</button>
-                <button onclick="filterPayments('pending_verification')" class="pay-filter-btn glass rounded-full px-4 py-1.5 text-xs text-yellow-500">Pending</button>
-                <button onclick="filterPayments('approved')" class="pay-filter-btn glass rounded-full px-4 py-1.5 text-xs text-profit">Approved</button>
-                <button onclick="filterPayments('rejected')" class="pay-filter-btn glass rounded-full px-4 py-1.5 text-xs text-loss">Rejected</button>
+                <button onclick="filterPayments('all',this)" class="pay-filter-btn glass rounded-full px-4 py-1.5 text-xs active bg-accent-400/20 text-accent-400">All</button>
+                <button onclick="filterPayments('pending_verification',this)" class="pay-filter-btn glass rounded-full px-4 py-1.5 text-xs text-yellow-500">Pending</button>
+                <button onclick="filterPayments('approved',this)" class="pay-filter-btn glass rounded-full px-4 py-1.5 text-xs text-profit">Approved</button>
+                <button onclick="filterPayments('rejected',this)" class="pay-filter-btn glass rounded-full px-4 py-1.5 text-xs text-loss">Rejected</button>
             </div>
             <div id="adminPaymentList"><p class="text-neutral text-sm">Loading...</p></div>
         </div>
@@ -928,7 +928,15 @@ _ Verifikasi di panel admin: Settings  Payments  Pending_`;
 function registerLicense(){const key=document.getElementById('regKey').value.trim().toUpperCase();if(!key)return showToast('Enter license key!','error');db.ref('licenses/'+key).once('value').then(snap=>{const d=snap.val();if(d?.is_active){State.user.licenseKey=key;State.user.package=d.package;State.user.expires=d.expires;localStorage.setItem('at_license',key);showToast('License registered!','success');navigate('market');loadMarketData()}else showToast('Invalid license!','error')}).catch(()=>showToast('Connection error','error'))}
 
 // ADMIN
-function adminTab(tab){document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active','bg-accent-400/20','text-accent-400'));event.target.classList.add('active','bg-accent-400/20','text-accent-400');document.getElementById('adminLicenses').classList.add('hidden');document.getElementById('adminPayments').classList.add('hidden');if(tab==='licenses')document.getElementById('adminLicenses').classList.remove('hidden');else{document.getElementById('adminPayments').classList.remove('hidden');loadAdminPayments()}}
+// ADMIN
+function adminTab(tab,el){
+    document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active','bg-accent-400/20','text-accent-400'));
+    if(el)el.classList.add('active','bg-accent-400/20','text-accent-400');
+    document.getElementById('adminLicenses').classList.add('hidden');
+    document.getElementById('adminPayments').classList.add('hidden');
+    if(tab==='licenses')document.getElementById('adminLicenses').classList.remove('hidden');
+    else{document.getElementById('adminPayments').classList.remove('hidden');loadAdminPayments();}
+}
 function checkAdminAccess(){if(State.user.licenseKey===CONFIG.adminLicense)document.getElementById('adminNavBtn').style.display='flex'}
 function loadAdminLicenses(){db.ref('licenses').once('value').then(snap=>{const l=snap.val();if(l)renderLicenseTable(l);else document.getElementById('adminLicenseList').innerHTML='<tr><td colspan="6" class="text-center py-8 text-neutral">No licenses</td></tr>'})}
 function renderLicenseTable(licenses){const t=document.getElementById('adminLicenseList');t.innerHTML=Object.entries(licenses).map(([k,l])=>{const a=l.is_active,e=l.expires?new Date(l.expires):null,d=e?Math.ceil((e-new Date())/86400000):0;return`<tr class="border-b border-white/5"><td class="py-3 font-mono text-xs">${k.substring(0,12)}...</td><td class="py-3">${l.owner||'-'}</td><td class="py-3">${(l.package||'pro').toUpperCase()}</td><td class="py-3"><button onclick="toggleLicense('${k}',${!a})" class="px-2 py-1 rounded-full text-xs ${a?'bg-profit/20 text-profit':'bg-loss/20 text-loss'}">${a?'ACTIVE':'INACTIVE'}</button></td><td class="py-3 text-xs">${e?e.toLocaleDateString()+' ('+d+'d)':'N/A'}</td><td class="py-3"><button onclick="editLicense('${k}')" class="text-accent-400 text-xs mr-2"><i class="fas fa-edit"></i></button><button onclick="deleteLicense('${k}')" class="text-loss text-xs"><i class="fas fa-trash"></i></button></td></tr>`}).join('')}
@@ -939,12 +947,12 @@ let currentPaymentFilter='all';
 let currentPaymentKey='';
 let allPaymentsData={};
 
-function filterPayments(filter){
+function filterPayments(filter,el){
     currentPaymentFilter=filter;
     document.querySelectorAll('.pay-filter-btn').forEach(b=>{
         b.classList.remove('active','bg-accent-400/20','text-accent-400');
     });
-    event.target.classList.add('active','bg-accent-400/20','text-accent-400');
+    if(el)el.classList.add('active','bg-accent-400/20','text-accent-400');
     renderPaymentList(allPaymentsData,filter);
 }
 
@@ -1146,7 +1154,17 @@ function markNotifRead(key){const username=State.user.username||'User';const not
 function markAllNotifRead(){const username=State.user.username||'User';const notifPath='user_notifications/'+username.replace(/[^a-zA-Z0-9]/g,'_');db.ref(notifPath).once('value').then(snap=>{const data=snap.val();if(data){for(const key of Object.keys(data)){db.ref(notifPath+'/'+key+'/read').set(true);}}showToast(' Semua notifikasi ditandai sudah dibaca','success');});}
 function getTimeAgo(ts){if(!ts)return'';const diff=Date.now()-ts;const mins=Math.floor(diff/60000);if(mins<1)return'Baru saja';if(mins<60)return mins+'m ago';const hours=Math.floor(mins/60);if(hours<24)return hours+'h ago';const days=Math.floor(hours/24);return days+'d ago';}
 
-document.addEventListener('click',(e)=>{const dropdown=document.getElementById('notifDropdown');const bell=e.target.closest('button');if(dropdown&&!dropdown.contains(e.target)&&!bell){dropdown.classList.add('hidden');}});
+document.addEventListener('click',function(e){
+    const dropdown=document.getElementById('notifDropdown');
+    if(!dropdown)return;
+    if(!dropdown.classList.contains('hidden')){
+        const isClickInside=dropdown.contains(e.target);
+        const isBellButton=e.target.closest('button')&&e.target.closest('button').onclick&&e.target.closest('button').onclick.toString().includes('toggleNotifications');
+        if(!isClickInside&&!isBellButton){
+            dropdown.classList.add('hidden');
+        }
+    }
+});
 
 // ==========================================
 // LICENSE PAGE
