@@ -614,6 +614,61 @@ function deleteLicense(key){if(!confirm('Delete '+key+'?'))return;db.ref('licens
 // HELPERS
 function copyText(id){const el=document.getElementById(id);if(!el)return;if(navigator.clipboard)navigator.clipboard.writeText(el.value).then(()=>showToast('Copied!','success'));else{el.select();document.execCommand('copy');showToast('Copied!','success')}}
 
+// ============================================================
+// MARKET DATA
+// ============================================================
+function loadMarketData(){
+    const key = State.user.licenseKey || CONFIG.adminLicense;
+    db.ref(`performance/${key}/stats`).on('value', snap => {
+        const s = snap.val();
+        if(s){
+            document.getElementById('dashBalance').textContent = '$' + (s.balance || 0).toLocaleString();
+            document.getElementById('dashEquity').textContent = '$' + ((s.balance || 0) + (s.floating_pnl || 0)).toLocaleString();
+            document.getElementById('dashOpen').textContent = s.open_positions || 0;
+            document.getElementById('dashPL').textContent = (s.daily_pnl >= 0 ? '+' : '') + '$' + (s.daily_pnl || 0).toFixed(2);
+            document.getElementById('headerBalance').textContent = '$' + (s.balance || 0).toLocaleString();
+            document.getElementById('headerPL').textContent = (s.daily_pnl >= 0 ? '+' : '') + '$' + (s.daily_pnl || 0).toFixed(2);
+            document.getElementById('headerUser').textContent = State.user.username;
+        }
+    });
+    loadMarketSignals();
+    loadMarketPositions();
+}
+function loadMarketSignals(){
+    const c = document.getElementById('marketSignals');
+    if(!c) return;
+    db.ref(`signals/${CONFIG.adminLicense}/XAU_USD`).on('value', snap => {
+        const d = snap.val();
+        if(d){
+            let h = '<p class="text-xs text-accent-400 font-bold mb-2"> XAU/USD</p>';
+            for(let s = 1; s <= 5; s++){
+                const sig = d[s];
+                if(sig && sig.dir){
+                    const em = sig.dir === 'BUY' ? '' : '';
+                    const trailInfo = sig.trailStart > 0 ? `<span class="text-xs text-neutral"> Trail: $${sig.trailStart}</span>` : '<span class="text-xs text-neutral"> Trail: Inactive</span>';
+                    h += `<div class="glass rounded-xl p-2 text-xs mb-1"><span>${em}</span> <b>${sig.dir}</b> $${sig.entry} SL:$${sig.sl} ${trailInfo}</div>`;
+                }
+            }
+            c.innerHTML = h || '<p class="text-neutral text-sm text-center">Waiting...</p>';
+        } else c.innerHTML = '<p class="text-neutral text-sm text-center">Waiting...</p>';
+    });
+}
+function loadMarketPositions(){
+    const c = document.getElementById('marketPositions');
+    if(!c) return;
+    const key = State.user.licenseKey || CONFIG.adminLicense;
+    db.ref(`performance/${key}/pairs`).once('value').then(snap => {
+        const d = snap.val();
+        if(d){
+            let h = '';
+            for(const [pair, stats] of Object.entries(d)){
+                h += `<div class="glass rounded-xl p-3 text-sm mb-2"><div class="flex justify-between"><span class="font-bold">${pair}</span><span class="text-profit">${stats.active} Open</span></div><p class="text-xs text-neutral">WR: ${stats.win_rate}% | P/L: ${stats.total_profit}</p></div>`;
+            }
+            c.innerHTML = h || '<p class="text-neutral text-sm text-center">No positions</p>';
+        } else c.innerHTML = '<p class="text-neutral text-sm text-center">No positions</p>';
+    });
+}
+
 // INIT
 document.addEventListener('DOMContentLoaded',()=>{navigate('market');loadMarketData();setTimeout(initChart,800);setTimeout(checkAdminAccess,2000)});
 </script>
