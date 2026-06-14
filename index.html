@@ -331,157 +331,6 @@
     </div>
 </div>
 
-<script>
-// PAYMENT STATE
-let paymentState = { package: '', months: 1, amount: 0, originalAmount: 0, proofFile: null, promoApplied: false };
-const PROMO_CODES = { 'AETHER10': 0.10, 'TRADER20': 0.20, 'WELCOME': 50000 };
-
-function selectPaymentPackage(pkg, el) {
-    paymentState.package = pkg;
-    document.querySelectorAll('.payment-pkg-card').forEach(e => e.style.borderColor = 'rgba(255,255,255,0.05)');
-    if (el) el.style.borderColor = '#f59e0b';
-    calculatePaymentTotal();
-}
-
-function selectPaymentDuration(months, el) {
-    paymentState.months = months;
-    document.querySelectorAll('.duration-btn').forEach(e => { e.style.borderColor = 'rgba(255,255,255,0.05)'; e.classList.remove('bg-accent-400/20'); });
-    if (el) { el.style.borderColor = '#f59e0b'; el.classList.add('bg-accent-400/20'); }
-    calculatePaymentTotal();
-}
-
-function calculatePaymentTotal() {
-    if (!paymentState.package) return;
-    const prices = { pro: 150000, max: 350000 };
-    const discounts = { 1: 0, 3: 0.10, 6: 0.17, 12: 0.25 };
-    const base = prices[paymentState.package];
-    const discount = discounts[paymentState.months] || 0;
-    paymentState.originalAmount = Math.round(base * paymentState.months * (1 - discount));
-    paymentState.amount = paymentState.originalAmount;
-    if (paymentState.promoApplied && paymentState.promoAmount) {
-        paymentState.amount = Math.max(0, paymentState.originalAmount - paymentState.promoAmount);
-    }
-    document.getElementById('paymentTotalSection').classList.remove('hidden');
-    document.getElementById('manualTransferSection').classList.remove('hidden');
-    document.getElementById('paymentTotalAmount').textContent = 'Rp ' + paymentState.amount.toLocaleString();
-    document.getElementById('finalTransferAmount').textContent = 'Rp ' + paymentState.amount.toLocaleString();
-    document.getElementById('paymentPerMonth').textContent = 'Rp ' + Math.round(paymentState.amount / paymentState.months).toLocaleString() + '/bulan';
-    if (discount > 0) { document.getElementById('paymentDiscount').classList.remove('hidden'); document.getElementById('paymentDiscount').textContent = ' Hemat ' + (discount * 100) + '%!'; }
-}
-
-function applyPromoCode() {
-    const code = document.getElementById('promoCode').value.trim().toUpperCase();
-    const msg = document.getElementById('promoMessage');
-    if (!code) return;
-    if (PROMO_CODES[code]) {
-        const val = PROMO_CODES[code];
-        if (typeof val === 'number' && val < 1) {
-            paymentState.promoAmount = Math.round(paymentState.originalAmount * val);
-        } else {
-            paymentState.promoAmount = val;
-        }
-        paymentState.promoApplied = true;
-        paymentState.amount = Math.max(0, paymentState.originalAmount - paymentState.promoAmount);
-        document.getElementById('paymentTotalAmount').textContent = 'Rp ' + paymentState.amount.toLocaleString();
-        document.getElementById('finalTransferAmount').textContent = 'Rp ' + paymentState.amount.toLocaleString();
-        msg.classList.remove('hidden'); msg.className = 'text-xs mb-2 text-profit'; msg.textContent = ' Kode promo berhasil! Diskon Rp ' + paymentState.promoAmount.toLocaleString();
-    } else {
-        msg.classList.remove('hidden'); msg.className = 'text-xs mb-2 text-loss'; msg.textContent = ' Kode promo tidak valid';
-    }
-}
-
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { showToast('File terlalu besar! Max 5MB', 'error'); return; }
-    paymentState.proofFile = file;
-    document.getElementById('dropZoneContent').classList.add('hidden');
-    document.getElementById('filePreview').classList.remove('hidden');
-    document.getElementById('fileName').textContent = file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
-    document.getElementById('dropZone').style.borderColor = '#10b981';
-}
-
-function submitManualPayment() {
-    if (!paymentState.package) return showToast('Pilih package!', 'error');
-    if (!paymentState.proofFile) return showToast('Upload bukti transfer!', 'error');
-    
-    const key = 'AT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    const note = document.getElementById('paymentNote').value || '-';
-    
-    const data = {
-        key: key, owner: State.user.username || 'User', package: paymentState.package,
-        plan: paymentState.package, months: paymentState.months, amount: paymentState.amount,
-        original_amount: paymentState.originalAmount, promo_code: document.getElementById('promoCode').value || '',
-        note: note, is_active: false, autotrade_enabled: paymentState.package === 'max',
-        max_pairs: paymentState.package === 'max' ? 10 : 5,
-        expires: new Date(Date.now() + paymentState.months * 30 * 86400000).toISOString(),
-        created: new Date().toISOString(), payment_method: 'manual_transfer',
-        payment_status: 'pending_verification', proof_filename: paymentState.proofFile.name
-    };
-    
-    db.ref('licenses/' + key).set(data).then(() => {
-        db.ref('payments/' + key).set({...data, timestamp: Date.now()});
-        db.ref('admin_notifications/payments').push({key: key, owner: data.owner, package: data.package, amount: data.amount, status: 'pending', timestamp: Date.now()});
-        showToast(' Pembayaran dikirim! Admin akan verifikasi 1x24 jam.', 'success');
-        document.getElementById('paymentTotalSection').classList.add('hidden');
-        document.getElementById('manualTransferSection').classList.add('hidden');
-        document.getElementById('proofFile').value = ''; document.getElementById('paymentNote').value = '';
-        document.getElementById('dropZoneContent').classList.remove('hidden');
-        document.getElementById('filePreview').classList.add('hidden');
-        document.getElementById('dropZone').style.borderColor = '';
-        paymentState = { package: '', months: 1, amount: 0, originalAmount: 0, proofFile: null, promoApplied: false };
-        loadPaymentHistory();
-    }).catch(() => showToast(' Gagal! Coba lagi.', 'error'));
-}
-
-function loadPaymentHistory() {
-    const key = State.user.licenseKey;
-    if (!key) return;
-    db.ref('payments').orderByChild('owner').equalTo(State.user.username || 'User').once('value').then(snap => {
-        const data = snap.val();
-        const container = document.getElementById('paymentHistoryList');
-        if (data) {
-            let html = '';
-            for (const [k, v] of Object.entries(data)) {
-                const statusIcon = v.payment_status === 'approved' ? '' : v.payment_status === 'rejected' ? '' : '';
-                const statusColor = v.payment_status === 'approved' ? 'text-profit' : v.payment_status === 'rejected' ? 'text-loss' : 'text-yellow-500';
-                const date = new Date(v.timestamp || v.created).toLocaleDateString('id-ID', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-                html += `<div class="glass rounded-xl p-3 text-sm mb-2 flex items-center justify-between"><div><span class="font-bold">${v.package.toUpperCase()}</span> - ${v.months} Bulan</div><div class="text-right"><span class="${statusColor}">${statusIcon} ${v.payment_status === 'approved' ? 'ACTIVE' : v.payment_status === 'rejected' ? 'REJECTED' : 'PENDING'}</span><p class="text-xs text-neutral">${date}</p>${v.payment_status === 'approved' ? `<button onclick="showInvoice('${k}')" class="text-accent-400 text-xs mt-1"> Invoice</button>` : ''}</div></div>`;
-            }
-            container.innerHTML = html;
-        }
-    });
-}
-
-function showInvoice(key) {
-    db.ref('licenses/' + key).once('value').then(snap => {
-        const d = snap.val();
-        if (d) {
-            document.getElementById('invoiceNumber').textContent = '#' + key;
-            document.getElementById('invoicePackage').textContent = d.package.toUpperCase();
-            document.getElementById('invoiceDuration').textContent = (d.months || 1) + ' Bulan';
-            document.getElementById('invoiceAmount').textContent = 'Rp ' + (d.amount || 0).toLocaleString();
-            document.getElementById('invoiceLicense').textContent = d.key;
-            document.getElementById('invoiceExpires').textContent = new Date(d.expires).toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'});
-            document.getElementById('invoiceModal').classList.remove('hidden');
-        }
-    });
-}
-
-function notifyMidtransActive() {
-    const key = State.user.licenseKey || 'anonymous';
-    db.ref('midtrans_notifications/' + key.replace(/[^a-zA-Z0-9]/g, '_')).set({notify: true, timestamp: Date.now()});
-    showToast(' Kamu akan dinotifikasi jika Midtrans sudah aktif!', 'success');
-}
-
-function copyText(text) {
-    if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => showToast(' Disalin!', 'success')); }
-}
-
-// Load history on page open
-document.addEventListener('DOMContentLoaded', () => { setTimeout(loadPaymentHistory, 2000); });
-</script>
-
 <!-- PAGE: LICENSE -->
 <div id="page-license" class="page-content hidden space-y-4">
     <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-4">License Details</h3><div id="licenseDetails"><p class="text-neutral">Register license to see details.</p></div></div>
@@ -550,14 +399,39 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(loadPaymentHist
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- SINGLE SCRIPT BLOCK - NO DUPLICATES        -->
+<!-- ========================================== -->
 <script>
-// CONFIG
+// ==========================================
+// 1. CONFIG
+// ==========================================
 const CONFIG={firebaseURL:"https://aethertrade-signals-default-rtdb.asia-southeast1.firebasedatabase.app/",apiURL:"http://89.21.85.27:8888",adminLicense:"AT-AB100702CB5771F2",packages:{pro:{name:'Pro',pricePerMonth:150000},max:{name:'Max',pricePerMonth:350000}},paymentMethods:{dana:'0859-3001-6248',gopay:'0859-3001-6248',seabank:'9017-9377-7670',name:'ANDIKA'}};
+
+// ==========================================
+// 2. FIREBASE INIT
+// ==========================================
 firebase.initializeApp({databaseURL:CONFIG.firebaseURL});const db=firebase.database();
+
+// ==========================================
+// 3. STATE
+// ==========================================
 const State={user:{licenseKey:localStorage.getItem('at_license')||'',username:localStorage.getItem('at_username')||'Trader',package:'',expires:''},currentPage:'market',payment:{package:'',months:1}};
+
+// ==========================================
+// 4. PAYMENT STATE
+// ==========================================
+let paymentState={package:'',months:1,amount:0,originalAmount:0,proofFile:null,promoApplied:false};
+const PROMO_CODES={'AETHER10':0.10,'TRADER20':0.20,'WELCOME':50000};
+
+// ==========================================
+// 5. GLOBAL VARS
+// ==========================================
 let currentPair='XAUUSD',currentInterval='15',tvWidget=null;
 
-// NAVIGATION
+// ==========================================
+// 6. NAVIGATION
+// ==========================================
 function navigate(page){
 State.currentPage=page;document.querySelectorAll('.page-content').forEach(p=>p.classList.add('hidden'));
 const target=document.getElementById('page-'+page);if(target)target.classList.remove('hidden');
@@ -568,36 +442,67 @@ const[t,s]=titles[page]||[page,''];document.getElementById('pageTitle').textCont
 if(page==='market'){loadMarketData();setTimeout(initChart,500);}
 if(page==='signals')loadSignals();if(page==='positions')loadPositions();if(page==='affiliate')loadAffiliate();
 if(page==='admin'){loadAdminLicenses();loadAdminPayments();}
+if(page==='payments'){loadPaymentHistory();}
 if(window.innerWidth<1024)toggleSidebar(false);
 }
 function toggleSidebar(force){const s=document.getElementById('sidebar'),o=document.getElementById('sidebarOverlay');const open=force!==undefined?force:!s.classList.contains('open');if(open){s.classList.add('open');o.classList.add('open')}else{s.classList.remove('open');o.classList.remove('open')}}
 
-// TOAST
+// ==========================================
+// 7. TOAST
+// ==========================================
 function showToast(msg,type='info'){const c=document.getElementById('toastContainer');const icons={success:'',error:'',warning:'',info:''};const borders={success:'border-l-profit',error:'border-l-loss',warning:'border-l-yellow-500',info:'border-l-neutral'};const colors={success:'text-profit',error:'text-loss',warning:'text-yellow-500',info:'text-white'};const t=document.createElement('div');t.className=`toast glass-light rounded-xl px-4 py-3 text-sm font-medium animate-slideInRight border-l-2 ${borders[type]} ${colors[type]}`;t.innerHTML=`<span class="mr-2">${icons[type]}</span>${msg}`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(100%)';setTimeout(()=>t.remove(),300)},3000)}
 
-// CHART
+// ==========================================
+// 8. CHART
+// ==========================================
 function changeChart(pair,interval){currentPair=pair;currentInterval=interval;document.querySelectorAll('.chart-pair-btn').forEach(b=>{b.classList.remove('active','bg-accent-400/20','text-accent-400');if(b.textContent.trim()===pair)b.classList.add('active','bg-accent-400/20','text-accent-400')});document.querySelectorAll('.chart-tf-btn').forEach(b=>{b.classList.remove('active','bg-accent-400/20','text-accent-400');if(b.textContent.trim()===interval+(interval==='1D'?'':'M').replace('60','H').replace('240','H'))b.classList.add('active','bg-accent-400/20','text-accent-400')});initChart()}
 function initChart(){const c=document.getElementById('tv_chart');if(!c||c.offsetParent===null){setTimeout(initChart,500);return}try{if(tvWidget)tvWidget.remove()}catch(e){}const sym='OANDA:'+(currentPair==='XAUUSD'?'XAUUSD':currentPair==='BTCUSD'?'BTCUSD':currentPair==='EURUSD'?'EURUSD':'NASDAQ:'+currentPair);tvWidget=new TradingView.widget({container_id:"tv_chart",symbol:sym,interval:currentInterval,theme:"dark",style:"1",locale:"en",toolbar_bg:"#0a0a0a",hide_top_toolbar:true,save_image:false,height:"100%",width:"100%",autosize:true,studies:["MASimple@tv-basicstudies","RSI@tv-basicstudies","MACD@tv-basicstudies"]})}
 
-// MARKET DATA
-function loadMarketData(){const key=State.user.licenseKey||CONFIG.adminLicense;db.ref(`performance/${key}/stats`).on('value',snap=>{const s=snap.val();if(s){document.getElementById('dashBalance').textContent='$'+(s.balance||0).toLocaleString();document.getElementById('dashEquity').textContent='$'+((s.balance||0)+(s.floating_pnl||0)).toLocaleString();document.getElementById('dashOpen').textContent=s.open_positions||0;document.getElementById('dashPL').textContent=(s.daily_pnl>=0?'+':'')+'$'+(s.daily_pnl||0).toFixed(2);document.getElementById('headerBalance').textContent='$'+(s.balance||0).toLocaleString();document.getElementById('headerPL').textContent=(s.daily_pnl>=0?'+':'')+'$'+(s.daily_pnl||0).toFixed(2)}});loadMarketSignals();loadMarketPositions();}
-function loadMarketSignals(){const c=document.getElementById('marketSignals');if(!c)return;db.ref(`signals/${CONFIG.adminLicense}/XAU_USD`).on('value',snap=>{const d=snap.val();if(d){let h='<p class="text-xs text-accent-400 font-bold mb-2">XAU/USD</p>';for(let s=1;s<=5;s++){const sig=d[s];if(sig&&sig.dir){const em=sig.dir==='BUY'?'':'';const trailInfo=sig.trailStart>0?`<span class="text-xs text-neutral">Trail: $${sig.trailStart}</span>`:'';h+=`<div class="glass rounded-xl p-2 text-xs mb-1"><span>${em}</span> <b>${sig.dir}</b> $${sig.entry} SL:$${sig.sl} ${trailInfo}</div>`}}c.innerHTML=h||'<p class="text-neutral text-sm text-center">Waiting...</p>'}else c.innerHTML='<p class="text-neutral text-sm text-center">Waiting...</p>'})}
-function loadMarketPositions(){const c=document.getElementById('marketPositions');if(!c)return;const key=State.user.licenseKey||CONFIG.adminLicense;db.ref(`performance/${key}/pairs`).once('value').then(snap=>{const d=snap.val();if(d){let h='';for(const[pair,stats]of Object.entries(d)){h+=`<div class="glass rounded-xl p-3 text-sm mb-2"><div class="flex justify-between"><span class="font-bold">${pair}</span><span class="text-profit">${stats.active} Open</span></div><p class="text-xs text-neutral">WR: ${stats.win_rate}% | P/L: ${stats.total_profit}</p></div>`}c.innerHTML=h||'<p class="text-neutral text-sm text-center">No positions</p>'}else c.innerHTML='<p class="text-neutral text-sm text-center">No positions</p>'})}
+// ==========================================
+// 9. MARKET DATA (HANYA 1X DEFINISI)
+// ==========================================
+function loadMarketData(){const key=State.user.licenseKey||CONFIG.adminLicense;db.ref(`performance/${key}/stats`).on('value',snap=>{const s=snap.val();if(s){document.getElementById('dashBalance').textContent='$'+(s.balance||0).toLocaleString();document.getElementById('dashEquity').textContent='$'+((s.balance||0)+(s.floating_pnl||0)).toLocaleString();document.getElementById('dashOpen').textContent=s.open_positions||0;document.getElementById('dashPL').textContent=(s.daily_pnl>=0?'+':'')+'$'+(s.daily_pnl||0).toFixed(2);document.getElementById('headerBalance').textContent='$'+(s.balance||0).toLocaleString();document.getElementById('headerPL').textContent=(s.daily_pnl>=0?'+':'')+'$'+(s.daily_pnl||0).toFixed(2)}});
+loadMarketSignals();loadMarketPositions();}
+function loadMarketSignals(){const c=document.getElementById('marketSignals');db.ref(`signals/${CONFIG.adminLicense}/XAU_USD`).on('value',snap=>{const d=snap.val();if(d){let h='<p class="text-xs text-accent-400 font-bold mb-2">XAU/USD</p>';for(let s=1;s<=5;s++){const sig=d[s];if(sig&&sig.dir){const em=sig.dir==='BUY'?'':'';const trailInfo=sig.trailStart>0?`<span class="text-xs text-neutral">Trail: $${sig.trailStart}</span>`:'';h+=`<div class="glass rounded-xl p-2 text-xs mb-1"><span>${em}</span> <b>${sig.dir}</b> $${sig.entry} SL:$${sig.sl} ${trailInfo}</div>`}}c.innerHTML=h||'<p class="text-neutral text-sm text-center">Waiting...</p>'}else c.innerHTML='<p class="text-neutral text-sm text-center">Waiting...</p>'})}
+function loadMarketPositions(){const c=document.getElementById('marketPositions');const key=State.user.licenseKey||CONFIG.adminLicense;db.ref(`performance/${key}/pairs`).on('value',snap=>{const d=snap.val();if(d){let h='';for(const[pair,stats]of Object.entries(d)){h+=`<div class="glass rounded-xl p-3 text-sm mb-2"><div class="flex justify-between"><span class="font-bold">${pair}</span><span class="text-profit">${stats.active} Open</span></div><p class="text-xs text-neutral">WR: ${stats.win_rate}% | P/L: ${stats.total_profit}</p></div>`}c.innerHTML=h||'<p class="text-neutral text-sm text-center">No positions</p>'}else c.innerHTML='<p class="text-neutral text-sm text-center">No positions</p>'})}
 
-// SIGNALS
+// ==========================================
+// 10. SIGNALS
+// ==========================================
 function loadSignals(){['XAU_USD','BTC_USD'].forEach(pp=>{const tid=pp==='XAU_USD'?'xauSignalLive':'btcSignalLive';const c=document.getElementById(tid);if(!c)return;c.innerHTML='<p class="text-neutral text-sm">Loading...</p>';db.ref(`signals/${CONFIG.adminLicense}/${pp}`).on('value',snap=>{const data=snap.val();if(data){let h='';for(let s=1;s<=5;s++){const d=data[s];if(d&&d.dir){const em=d.dir==='BUY'?'':'';const trailActive=d.trailStart>0;const trailClass=trailActive?'trail-active':'trail-inactive';const trailText=trailActive?`Trail: $${d.trailStart} (Step: ${d.trailStep})`:'Trail: Inactive';h+=`<div class="glass rounded-xl p-3 text-sm mb-2 animate-slideIn ${trailClass}"><span class="text-2xl">${em}</span> <span class="font-bold">${d.dir}</span> <span class="text-xs text-neutral">${d.strategy||'AI'}</span><div class="grid grid-cols-2 gap-1 text-xs mt-1"><p>Entry: <b>$${d.entry||'-'}</b></p><p>SL: <span class="text-loss">$${d.sl||'-'}</span></p></div><p class="text-xs text-neutral mt-1"> ${trailText}</p></div>`}}c.innerHTML=h||'<p class="text-neutral text-sm">Waiting...</p>'}else c.innerHTML='<p class="text-neutral text-sm">Waiting...</p>'})})}
 
-// POSITIONS
+// ==========================================
+// 11. POSITIONS
+// ==========================================
 function loadPositions(){const c=document.getElementById('positionsList');const mock=[{pair:'XAU/USD',dir:'BUY',entry:4178,sl:4061,lot:0.01,profit:12.5,trailActive:true,trailStart:4190},{pair:'BTC/USD',dir:'SELL',entry:63370,sl:63470,lot:0.01,profit:-8.2,trailActive:false}];c.innerHTML=mock.map(p=>{const dc=p.dir==='BUY'?'text-profit':'text-loss';const pc=p.profit>=0?'profit-positive':'profit-negative';const tc=p.trailActive?'trail-active':'trail-inactive';const tt=p.trailActive?`Trail: $${p.trailStart} (active since ${new Date().toLocaleTimeString()})`:'Trail: Not activated';return`<div class="glass rounded-xl p-4 ${tc}"><div class="flex justify-between"><div><span class="${dc} font-bold">${p.dir}</span> <span class="text-sm">${p.pair}</span><p class="text-xs text-neutral">Entry: $${p.entry} | SL: $${p.sl} | Lot: ${p.lot}</p><p class="text-xs text-neutral mt-1"> ${tt}</p></div><div class="text-right"><p class="font-bold ${pc}">${p.profit>=0?'+':''}$${p.profit.toFixed(2)}</p></div></div></div>`}).join('')}
 function emergencyStop(){if(confirm('Close ALL positions?')){db.ref(`signals/${CONFIG.adminLicense}/close_all`).set({action:'close_all',reason:'Panel Emergency',timestamp:Date.now()});showToast('Emergency stop activated!','warning')}}
 
-// AFFILIATE
+// ==========================================
+// 12. AFFILIATE
+// ==========================================
 function loadAffiliate(){const affId='AFF-'+(State.user.licenseKey||'DEMO').substring(3,9);document.getElementById('affLink').value=window.location.origin+'?ref='+affId;db.ref('affiliates/'+affId).on('value',snap=>{const d=snap.val()||{};document.getElementById('affTotal').textContent='Rp '+(d.total_commission||0).toLocaleString();document.getElementById('affPending').textContent='Rp '+(d.pending_commission||0).toLocaleString();document.getElementById('affReferrals').textContent=d.total_referrals||0;document.getElementById('affPaid').textContent='Rp '+(d.paid_commission||0).toLocaleString();const refs=d.total_referrals||0;let rank=' STAR',progress=Math.min(refs*10,100),next='BRONZE (3 refs)';if(refs>=25){rank=' CHAMPION';progress=100;next='MAX'}else if(refs>=10){rank=' DIAMOND';progress=Math.min((refs-10)*6.6+60,100);next='CHAMPION (25 refs)'}else if(refs>=5){rank=' SILVER';progress=Math.min((refs-5)*10+40,100);next='DIAMOND (10 refs)'}else if(refs>=3){rank=' BRONZE';progress=Math.min((refs-3)*20+20,100);next='SILVER (5 refs)'}else{progress=Math.min(refs*33,100);next='BRONZE (3 refs)'}document.getElementById('affProgress').style.width=progress+'%'})}
 
-// LICENSE
-function registerLicense(){const key=document.getElementById('regKey').value.trim().toUpperCase();if(!key)return showToast('Enter license key!','error');db.ref('licenses/'+key).once('value').then(snap=>{const d=snap.val();if(d?.is_active){State.user.licenseKey=key;State.user.package=d.package;State.user.expires=d.expires;localStorage.setItem('at_license',key);showToast('License registered!','success');navigate('market');loadMarketData()}else showToast('Invalid license!','error')}).catch(()=>showToast('Connection error','error'))}
+// ==========================================
+// 13. PAYMENT FUNCTIONS
+// ==========================================
+function selectPaymentPackage(pkg,el){paymentState.package=pkg;document.querySelectorAll('.payment-pkg-card').forEach(e=>e.style.borderColor='rgba(255,255,255,0.05)');if(el)el.style.borderColor='#f59e0b';calculatePaymentTotal();}
+function selectPaymentDuration(months,el){paymentState.months=months;document.querySelectorAll('.duration-btn').forEach(e=>{e.style.borderColor='rgba(255,255,255,0.05)';e.classList.remove('bg-accent-400/20');});if(el){el.style.borderColor='#f59e0b';el.classList.add('bg-accent-400/20');}calculatePaymentTotal();}
+function calculatePaymentTotal(){if(!paymentState.package)return;const prices={pro:150000,max:350000};const discounts={1:0,3:0.10,6:0.17,12:0.25};const base=prices[paymentState.package];const discount=discounts[paymentState.months]||0;paymentState.originalAmount=Math.round(base*paymentState.months*(1-discount));paymentState.amount=paymentState.originalAmount;if(paymentState.promoApplied&&paymentState.promoAmount){paymentState.amount=Math.max(0,paymentState.originalAmount-paymentState.promoAmount);}document.getElementById('paymentTotalSection').classList.remove('hidden');document.getElementById('manualTransferSection').classList.remove('hidden');document.getElementById('paymentTotalAmount').textContent='Rp '+paymentState.amount.toLocaleString();document.getElementById('finalTransferAmount').textContent='Rp '+paymentState.amount.toLocaleString();document.getElementById('paymentPerMonth').textContent='Rp '+Math.round(paymentState.amount/paymentState.months).toLocaleString()+'/bulan';if(discount>0){document.getElementById('paymentDiscount').classList.remove('hidden');document.getElementById('paymentDiscount').textContent=' Hemat '+(discount*100)+'%!';}}
+function applyPromoCode(){const code=document.getElementById('promoCode').value.trim().toUpperCase();const msg=document.getElementById('promoMessage');if(!code)return;if(PROMO_CODES[code]){const val=PROMO_CODES[code];if(typeof val==='number'&&val<1){paymentState.promoAmount=Math.round(paymentState.originalAmount*val);}else{paymentState.promoAmount=val;}paymentState.promoApplied=true;paymentState.amount=Math.max(0,paymentState.originalAmount-paymentState.promoAmount);document.getElementById('paymentTotalAmount').textContent='Rp '+paymentState.amount.toLocaleString();document.getElementById('finalTransferAmount').textContent='Rp '+paymentState.amount.toLocaleString();msg.classList.remove('hidden');msg.className='text-xs mb-2 text-profit';msg.textContent=' Kode promo berhasil! Diskon Rp '+paymentState.promoAmount.toLocaleString();}else{msg.classList.remove('hidden');msg.className='text-xs mb-2 text-loss';msg.textContent=' Kode promo tidak valid';}}
+function handleFileSelect(event){const file=event.target.files[0];if(!file)return;if(file.size>5*1024*1024){showToast('File terlalu besar! Max 5MB','error');return;}paymentState.proofFile=file;document.getElementById('dropZoneContent').classList.add('hidden');document.getElementById('filePreview').classList.remove('hidden');document.getElementById('fileName').textContent=file.name+' ('+(file.size/1024).toFixed(0)+' KB)';document.getElementById('dropZone').style.borderColor='#10b981';}
+function submitManualPayment(){if(!paymentState.package)return showToast('Pilih package!','error');if(!paymentState.proofFile)return showToast('Upload bukti transfer!','error');const key='AT-'+Math.random().toString(36).substring(2,8).toUpperCase();const note=document.getElementById('paymentNote').value||'-';const data={key:key,owner:State.user.username||'User',package:paymentState.package,plan:paymentState.package,months:paymentState.months,amount:paymentState.amount,original_amount:paymentState.originalAmount,promo_code:document.getElementById('promoCode').value||'',note:note,is_active:false,autotrade_enabled:paymentState.package==='max',max_pairs:paymentState.package==='max'?10:5,expires:new Date(Date.now()+paymentState.months*30*86400000).toISOString(),created:new Date().toISOString(),payment_method:'manual_transfer',payment_status:'pending_verification',proof_filename:paymentState.proofFile.name};db.ref('licenses/'+key).set(data).then(()=>{db.ref('payments/'+key).set({...data,timestamp:Date.now()});db.ref('admin_notifications/payments').push({key:key,owner:data.owner,package:data.package,amount:data.amount,status:'pending',timestamp:Date.now()});showToast(' Pembayaran dikirim! Admin akan verifikasi 1x24 jam.','success');document.getElementById('paymentTotalSection').classList.add('hidden');document.getElementById('manualTransferSection').classList.add('hidden');document.getElementById('proofFile').value='';document.getElementById('paymentNote').value='';document.getElementById('dropZoneContent').classList.remove('hidden');document.getElementById('filePreview').classList.add('hidden');document.getElementById('dropZone').style.borderColor='';paymentState={package:'',months:1,amount:0,originalAmount:0,proofFile:null,promoApplied:false};loadPaymentHistory();}).catch(()=>showToast(' Gagal! Coba lagi.','error'));}
+function loadPaymentHistory(){const key=State.user.licenseKey;if(!key)return;db.ref('payments').orderByChild('owner').equalTo(State.user.username||'User').once('value').then(snap=>{const data=snap.val();const container=document.getElementById('paymentHistoryList');if(data){let html='';for(const[k,v]of Object.entries(data)){const statusIcon=v.payment_status==='approved'?'':v.payment_status==='rejected'?'':'';const statusColor=v.payment_status==='approved'?'text-profit':v.payment_status==='rejected'?'text-loss':'text-yellow-500';const date=new Date(v.timestamp||v.created).toLocaleDateString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});html+=`<div class="glass rounded-xl p-3 text-sm mb-2 flex items-center justify-between"><div><span class="font-bold">${v.package.toUpperCase()}</span> - ${v.months} Bulan</div><div class="text-right"><span class="${statusColor}">${statusIcon} ${v.payment_status==='approved'?'ACTIVE':v.payment_status==='rejected'?'REJECTED':'PENDING'}</span><p class="text-xs text-neutral">${date}</p>${v.payment_status==='approved'?`<button onclick="showInvoice('${k}')" class="text-accent-400 text-xs mt-1"> Invoice</button>`:''}</div></div>`;}container.innerHTML=html;}});}
+function showInvoice(key){db.ref('licenses/'+key).once('value').then(snap=>{const d=snap.val();if(d){document.getElementById('invoiceNumber').textContent='#'+key;document.getElementById('invoicePackage').textContent=d.package.toUpperCase();document.getElementById('invoiceDuration').textContent=(d.months||1)+' Bulan';document.getElementById('invoiceAmount').textContent='Rp '+(d.amount||0).toLocaleString();document.getElementById('invoiceLicense').textContent=d.key;document.getElementById('invoiceExpires').textContent=new Date(d.expires).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});document.getElementById('invoiceModal').classList.remove('hidden');}});}
+function notifyMidtransActive(){const key=State.user.licenseKey||'anonymous';db.ref('midtrans_notifications/'+key.replace(/[^a-zA-Z0-9]/g,'_')).set({notify:true,timestamp:Date.now()});showToast(' Kamu akan dinotifikasi jika Midtrans sudah aktif!','success');}
 
-// ADMIN
+// ==========================================
+// 14. LICENSE
+// ==========================================
+function registerLicense(){const key=document.getElementById('regKey').value.trim().toUpperCase();if(!key)return showToast('Enter license key!','error');db.ref('licenses/'+key).once('value').then(snap=>{const d=snap.val();if(d?.is_active){State.user.licenseKey=key;State.user.package=d.package;State.user.expires=d.expires;localStorage.setItem('at_license',key);showToast('License registered!','success');checkAdminAccess();navigate('market');loadMarketData();}else showToast('Invalid license!','error')}).catch(()=>showToast('Connection error','error'))}
+
+// ==========================================
+// 15. ADMIN
+// ==========================================
 function adminTab(tab){document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active','bg-accent-400/20','text-accent-400'));event.target.classList.add('active','bg-accent-400/20','text-accent-400');document.getElementById('adminLicenses').classList.add('hidden');document.getElementById('adminPayments').classList.add('hidden');if(tab==='licenses')document.getElementById('adminLicenses').classList.remove('hidden');else{document.getElementById('adminPayments').classList.remove('hidden');loadAdminPayments()}}
 function checkAdminAccess(){if(State.user.licenseKey===CONFIG.adminLicense)document.getElementById('adminNavBtn').style.display='flex'}
 function loadAdminLicenses(){db.ref('licenses').once('value').then(snap=>{const l=snap.val();if(l)renderLicenseTable(l);else document.getElementById('adminLicenseList').innerHTML='<tr><td colspan="6" class="text-center py-8 text-neutral">No licenses</td></tr>'})}
@@ -610,66 +515,16 @@ function saveLicense(){const ek=document.getElementById('editLicenseKey').value;
 function toggleLicense(key,isActive){db.ref('licenses/'+key).update({is_active:isActive}).then(()=>{loadAdminLicenses();showToast(`License ${isActive?'activated':'deactivated'}!`,'success')})}
 function deleteLicense(key){if(!confirm('Delete '+key+'?'))return;db.ref('licenses/'+key).remove().then(()=>{db.ref('signals/'+key).remove();loadAdminLicenses();showToast('Deleted!','success')})}
 
-// HELPERS
-function copyText(id){const el=document.getElementById(id);if(!el)return;if(navigator.clipboard)navigator.clipboard.writeText(el.value).then(()=>showToast('Copied!','success'));else{el.select();document.execCommand('copy');showToast('Copied!','success')}}
+// ==========================================
+// 16. HELPERS
+// ==========================================
+function copyText(arg){if(typeof arg==='string'&&arg.startsWith('AT-')||arg.match(/^\d/)){if(navigator.clipboard){navigator.clipboard.writeText(arg).then(()=>showToast(' Disalin!','success'));}}else{const el=document.getElementById(arg);if(el){const text=el.value||el.textContent;if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>showToast(' Disalin!','success'));else{el.select();document.execCommand('copy');showToast(' Disalin!','success')}}}}
 
-// ============================================================
-// MARKET DATA
-// ============================================================
-function loadMarketData(){
-    const key = State.user.licenseKey || CONFIG.adminLicense;
-    db.ref(`performance/${key}/stats`).on('value', snap => {
-        const s = snap.val();
-        if(s){
-            document.getElementById('dashBalance').textContent = '$' + (s.balance || 0).toLocaleString();
-            document.getElementById('dashEquity').textContent = '$' + ((s.balance || 0) + (s.floating_pnl || 0)).toLocaleString();
-            document.getElementById('dashOpen').textContent = s.open_positions || 0;
-            document.getElementById('dashPL').textContent = (s.daily_pnl >= 0 ? '+' : '') + '$' + (s.daily_pnl || 0).toFixed(2);
-            document.getElementById('headerBalance').textContent = '$' + (s.balance || 0).toLocaleString();
-            document.getElementById('headerPL').textContent = (s.daily_pnl >= 0 ? '+' : '') + '$' + (s.daily_pnl || 0).toFixed(2);
-            document.getElementById('headerUser').textContent = State.user.username;
-        }
-    });
-    loadMarketSignals();
-    loadMarketPositions();
-}
-function loadMarketSignals(){
-    const c = document.getElementById('marketSignals');
-    if(!c) return;
-    db.ref(`signals/${CONFIG.adminLicense}/XAU_USD`).on('value', snap => {
-        const d = snap.val();
-        if(d){
-            let h = '<p class="text-xs text-accent-400 font-bold mb-2"> XAU/USD</p>';
-            for(let s = 1; s <= 5; s++){
-                const sig = d[s];
-                if(sig && sig.dir){
-                    const em = sig.dir === 'BUY' ? '' : '';
-                    const trailInfo = sig.trailStart > 0 ? `<span class="text-xs text-neutral"> Trail: $${sig.trailStart}</span>` : '<span class="text-xs text-neutral"> Trail: Inactive</span>';
-                    h += `<div class="glass rounded-xl p-2 text-xs mb-1"><span>${em}</span> <b>${sig.dir}</b> $${sig.entry} SL:$${sig.sl} ${trailInfo}</div>`;
-                }
-            }
-            c.innerHTML = h || '<p class="text-neutral text-sm text-center">Waiting...</p>';
-        } else c.innerHTML = '<p class="text-neutral text-sm text-center">Waiting...</p>';
-    });
-}
-function loadMarketPositions(){
-    const c = document.getElementById('marketPositions');
-    if(!c) return;
-    const key = State.user.licenseKey || CONFIG.adminLicense;
-    db.ref(`performance/${key}/pairs`).once('value').then(snap => {
-        const d = snap.val();
-        if(d){
-            let h = '';
-            for(const [pair, stats] of Object.entries(d)){
-                h += `<div class="glass rounded-xl p-3 text-sm mb-2"><div class="flex justify-between"><span class="font-bold">${pair}</span><span class="text-profit">${stats.active} Open</span></div><p class="text-xs text-neutral">WR: ${stats.win_rate}% | P/L: ${stats.total_profit}</p></div>`;
-            }
-            c.innerHTML = h || '<p class="text-neutral text-sm text-center">No positions</p>';
-        } else c.innerHTML = '<p class="text-neutral text-sm text-center">No positions</p>';
-    });
-}
-
-// INIT
-document.addEventListener('DOMContentLoaded',()=>{navigate('market');loadMarketData();setTimeout(initChart,800);setTimeout(checkAdminAccess,2000)});
+// ==========================================
+// 17. SINGLE INIT
+// ==========================================
+document.addEventListener('DOMContentLoaded',()=>{console.log(' AetherTrade v2.7 Init');navigate('market');loadMarketData();setTimeout(initChart,800);setTimeout(checkAdminAccess,500);setTimeout(loadPaymentHistory,2000);console.log(' Init complete');});
 </script>
+
 </body>
 </html>
