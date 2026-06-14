@@ -44,6 +44,10 @@
         .trail-active{background:rgba(16,185,129,0.15);border-left:3px solid #10b981}
         .trail-inactive{background:rgba(107,114,128,0.1);border-left:3px solid #6b7280}
         @media(max-width:1024px){.sidebar{transform:translateX(-100%);transition:transform 0.3s ease;position:fixed;z-index:50;height:100vh}.sidebar.open{transform:translateX(0)}.sidebar-overlay{display:none}.sidebar-overlay.open{display:block;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:40}}
+        @keyframes shimmerBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+        .animate-shimmer{animation:shimmerBar 2s infinite}
+        .aff-tier-node{transition:all 0.5s cubic-bezier(0.4,0,0.2,1)}
+        .line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
     </style>
 </head>
 <body class="bg-surface-950 text-white font-sans">
@@ -139,194 +143,298 @@
 <!-- PAGE: HISTORY -->
 <div id="page-history" class="page-content hidden"><div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-4">Trade History</h3><table class="w-full text-sm"><thead><tr class="text-neutral border-b border-white/5"><th class="text-left py-3">Date</th><th class="text-left py-3">Pair</th><th class="text-left py-3">Type</th><th class="text-right py-3">Entry</th><th class="text-right py-3">P/L</th></tr></thead><tbody id="historyBody"><tr><td colspan="5" class="text-center py-8 text-neutral">No trades yet</td></tr></tbody></table></div></div>
 
-<!-- PAGE: AFFILIATE -->
-<div id="page-affiliate" class="page-content hidden space-y-4">
+<!-- PAGE: AFFILIATE (ULTIMATE v3.0) -->
+<div id="page-affiliate" class="page-content hidden space-y-5">
+
+    <!--  HERO BANNER — MOTIVASI -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-accent-500/20 via-surface-800 to-primary-600/20 border border-accent-400/20 p-6 lg:p-8 animate-slideIn">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-accent-400/20 to-primary-500/10 rounded-full blur-5xl -translate-y-1/2 translate-x-1/4"></div>
+        <div class="absolute bottom-0 left-1/2 w-64 h-64 bg-gradient-to-tr from-profit/10 to-transparent rounded-full blur-4xl"></div>
+        <div class="relative z-10 flex flex-col lg:flex-row items-center gap-6">
+            <div class="flex-1 text-center lg:text-left">
+                <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 text-xs mb-4">
+                    <span class="w-2 h-2 rounded-full bg-profit animate-pulse"></span>
+                    <span class="text-neutral">Affiliate Program v3.0</span>
+                </div>
+                <h1 class="text-3xl lg:text-4xl font-black mb-2 leading-tight">
+                    Earn Up to <span class="bg-gradient-to-r from-accent-400 to-primary-400 bg-clip-text text-transparent">Rp 5.000.000</span> <span class="text-white">/bulan</span>
+                </h1>
+                <p class="text-neutral text-sm lg:text-base mb-2 max-w-lg">20% komisi permanen dari setiap referral yang berlangganan. <b>Tanpa batas, tanpa syarat tersembunyi.</b></p>
+                <div class="flex flex-wrap gap-3 justify-center lg:justify-start text-xs">
+                    <div class="flex items-center gap-1 glass-light rounded-full px-3 py-1.5"><span class="text-profit"></span> Komisi instant</div>
+                    <div class="flex items-center gap-1 glass-light rounded-full px-3 py-1.5"><span class="text-profit"></span> Lifetime earning</div>
+                    <div class="flex items-center gap-1 glass-light rounded-full px-3 py-1.5"><span class="text-profit"></span> Withdraw anytime</div>
+                </div>
+            </div>
+            <div class="glass rounded-2xl p-5 text-center min-w-[220px]">
+                <p class="text-xs text-neutral mb-1">Potensi Bulanan</p>
+                <p class="text-4xl font-black text-accent-400" id="affPotential">Rp 0</p>
+                <p class="text-xs text-neutral mt-1" id="affPotentialDetail">0 refs × Rp 150K = Rp 0</p>
+                <div class="mt-3 glass-light rounded-xl p-3">
+                    <p class="text-[10px] text-neutral"> Total Earned</p>
+                    <p class="text-xl font-bold text-profit" id="affTotalEarned">Rp 0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--  RANK + STATS GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- RANK CARD -->
+        <div class="glass-light rounded-2xl p-5 lg:col-span-1 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-accent-400/20 to-transparent rounded-full blur-2xl"></div>
+            <p class="text-xs text-neutral uppercase tracking-widest mb-2">Current Rank</p>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center text-3xl shadow-lg shadow-accent-400/20" id="affRankEmoji"></div>
+                <div>
+                    <p class="text-xl font-black" id="affRankName">SILVER</p>
+                    <p class="text-xs text-neutral">Rp 300K/ref</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs"><span class="text-neutral">Progress to <b class="text-accent-400" id="affNextTier">DIAMOND</b></span><span id="affProgressPercent">60%</span></div>
+                <div class="w-full h-2.5 bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-accent-400 to-primary-500 rounded-full transition-all duration-700 relative" style="width:60%" id="affProgressBar">
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                    </div>
+                </div>
+                <p class="text-[10px] text-neutral text-right" id="affNeedMore">4 referrals to DIAMOND</p>
+            </div>
+        </div>
+        
+        <!-- STATS CARDS -->
+        <div class="lg:col-span-2 grid grid-cols-2 gap-3">
+            <div class="glass-light rounded-2xl p-4 card-hover">
+                <p class="text-2xl mb-1"></p>
+                <p class="text-2xl font-black" id="affReferrals">0</p>
+                <p class="text-xs text-neutral">Total Referrals</p>
+                <div class="mt-2 flex items-center gap-1 text-[10px] text-profit"><span></span> <span id="affRefsGrowth">0 this month</span></div>
+            </div>
+            <div class="glass-light rounded-2xl p-4 card-hover">
+                <p class="text-2xl mb-1"></p>
+                <p class="text-2xl font-black text-accent-400" id="affTotal">Rp 0</p>
+                <p class="text-xs text-neutral">Total Commission</p>
+                <div class="mt-2 flex items-center gap-1 text-[10px] text-neutral"><span></span> <span id="affPendingAmount">Rp 0 pending</span></div>
+            </div>
+            <div class="glass-light rounded-2xl p-4 card-hover">
+                <p class="text-2xl mb-1"></p>
+                <p class="text-2xl font-black text-profit" id="affPaid">Rp 0</p>
+                <p class="text-xs text-neutral">Paid Out</p>
+                <div class="mt-2 flex items-center gap-1 text-[10px] text-neutral"><span></span> <span id="affLastPaid">No withdrawals</span></div>
+            </div>
+            <div class="glass-light rounded-2xl p-4 card-hover">
+                <p class="text-2xl mb-1"></p>
+                <p class="text-2xl font-black" id="affConvRate">0%</p>
+                <p class="text-xs text-neutral">Conversion Rate</p>
+                <div class="mt-2 flex items-center gap-1 text-[10px] text-neutral"><span></span> <span id="affClicksText">0 clicks</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!--  SHARE TOOLS — ZONA AKSI -->
     <div class="glass-light rounded-2xl p-5">
-        <div class="flex items-center gap-3 mb-4"><div class="text-3xl"></div><div><h3 class="font-bold text-lg">SILVER Rank</h3><p class="text-xs text-neutral">60% to GOLD (10 referrals needed, you have 6)</p></div></div>
-        <div class="w-full h-3 bg-white/5 rounded-full mb-6"><div class="h-full bg-gradient-to-r from-accent-400 to-primary-500 rounded-full animate-progress" style="width:60%" id="affProgress"></div></div>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <div class="glass rounded-xl p-3 text-center"><p class="text-xs text-neutral">Total</p><p class="text-xl font-bold text-accent-400" id="affTotal">Rp 0</p></div>
-            <div class="glass rounded-xl p-3 text-center"><p class="text-xs text-neutral">Pending</p><p class="text-xl font-bold text-yellow-500" id="affPending">Rp 0</p></div>
-            <div class="glass rounded-xl p-3 text-center"><p class="text-xs text-neutral">Referrals</p><p class="text-xl font-bold" id="affReferrals">0</p></div>
-            <div class="glass rounded-xl p-3 text-center"><p class="text-xs text-neutral">Paid</p><p class="text-xl font-bold text-profit" id="affPaid">Rp 0</p></div>
+        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-accent-400/20 flex items-center justify-center"><i class="fas fa-share-alt text-accent-400"></i></span>
+            Share & Earn
+        </h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div>
+                <p class="text-xs text-neutral mb-2"> Your Referral Link</p>
+                <div class="flex gap-2 mb-3">
+                    <div class="flex-1 glass rounded-xl px-4 py-3 text-sm font-mono truncate bg-surface-900/50 border border-white/5 focus-within:border-accent-400/50 transition-all" id="affLinkDisplay" onclick="copyText('affLink')">Loading...</div>
+                    <button onclick="copyText('affLink')" class="bg-accent-500 text-black font-bold px-4 py-3 rounded-xl text-sm hover:bg-accent-400 transition-all whitespace-nowrap">
+                        <i class="fas fa-copy mr-1"></i> Copy
+                    </button>
+                </div>
+                <input type="text" id="affLink" readonly class="hidden">
+                <p class="text-xs text-neutral mb-2"> Share Directly</p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="shareTo('telegram')" class="glass rounded-xl px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-[#0088cc]/20 transition-all hover:border-[#0088cc]/50">
+                        <i class="fab fa-telegram text-[#0088cc] text-lg"></i> Telegram
+                    </button>
+                    <button onclick="shareTo('whatsapp')" class="glass rounded-xl px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-[#25D366]/20 transition-all hover:border-[#25D366]/50">
+                        <i class="fab fa-whatsapp text-[#25D366] text-lg"></i> WhatsApp
+                    </button>
+                    <button onclick="shareTo('discord')" class="glass rounded-xl px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-[#5865F2]/20 transition-all hover:border-[#5865F2]/50">
+                        <i class="fab fa-discord text-[#5865F2] text-lg"></i> Discord
+                    </button>
+                    <button onclick="shareTo('facebook')" class="glass rounded-xl px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-[#1877F2]/20 transition-all hover:border-[#1877F2]/50">
+                        <i class="fab fa-facebook text-[#1877F2] text-lg"></i> Facebook
+                    </button>
+                </div>
+            </div>
+            <div>
+                <p class="text-xs text-neutral mb-2"> Template Pesan</p>
+                <div class="space-y-2">
+                    <div class="glass rounded-xl p-3 cursor-pointer hover:bg-white/5 transition-all group" onclick="copyAffMessage('short')">
+                        <div class="flex justify-between items-start">
+                            <p class="text-xs font-bold"> Pesan Singkat</p>
+                            <span class="text-[10px] text-neutral opacity-0 group-hover:opacity-100 transition-all">Click to copy</span>
+                        </div>
+                        <p class="text-xs text-neutral mt-1 line-clamp-2"> AetherTrade AI — Trading signals akurat! Daftar pakai link gw dapet diskon </p>
+                    </div>
+                    <div class="glass rounded-xl p-3 cursor-pointer hover:bg-white/5 transition-all group" onclick="copyAffMessage('detailed')">
+                        <div class="flex justify-between items-start">
+                            <p class="text-xs font-bold"> Pesan Detail</p>
+                            <span class="text-[10px] text-neutral opacity-0 group-hover:opacity-100 transition-all">Click to copy</span>
+                        </div>
+                        <p class="text-xs text-neutral mt-1 line-clamp-2"> AetherTrade AI — Trading Terminal Profesional! AI Signals, Auto Trading EA, Win Rate 70%+. Join sekarang!</p>
+                    </div>
+                    <div class="glass rounded-xl p-3 cursor-pointer hover:bg-white/5 transition-all group" onclick="copyAffMessage('testimonial')">
+                        <div class="flex justify-between items-start">
+                            <p class="text-xs font-bold"> Testimonial Style</p>
+                            <span class="text-[10px] text-neutral opacity-0 group-hover:opacity-100 transition-all">Click to copy</span>
+                        </div>
+                        <p class="text-xs text-neutral mt-1 line-clamp-2">Gw udah pake AetherTrade 3 bulan, profit konsisten! Ini linknya, mumpung ada promo </p>
+                    </div>
+                </div>
+            </div>
         </div>
-        <h3 class="font-bold text-sm mb-3">Top Affiliates</h3>
-        <div class="space-y-2 mb-4" id="affLeaderboard"><p class="text-neutral text-sm">Loading...</p></div>
-        <h3 class="font-bold text-sm mb-3">Reward Tiers</h3>
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-2 text-xs mb-4">
-            <div class="glass rounded-xl p-3 text-center"><p class="text-lg"></p><p class="font-bold">STAR</p><p class="text-neutral">1 ref</p><p class="text-accent-400">Rp 50K</p></div>
-            <div class="glass rounded-xl p-3 text-center"><p class="text-lg"></p><p class="font-bold">BRONZE</p><p class="text-neutral">3 refs</p><p class="text-accent-400">Rp 150K</p></div>
-            <div class="glass rounded-xl p-3 text-center border border-accent-400/30"><p class="text-lg"></p><p class="font-bold text-accent-400">SILVER</p><p class="text-neutral">5 refs</p><p class="text-accent-400">Rp 300K</p></div>
-            <div class="glass rounded-xl p-3 text-center"><p class="text-lg"></p><p class="font-bold">DIAMOND</p><p class="text-neutral">10 refs</p><p class="text-accent-400">Rp 1M</p></div>
-            <div class="glass rounded-xl p-3 text-center"><p class="text-lg"></p><p class="font-bold">CHAMPION</p><p class="text-neutral">25 refs</p><p class="text-accent-400">Rp 3M</p></div>
+    </div>
+
+    <!--  TIER SYSTEM — VISUAL TIMELINE -->
+    <div class="glass-light rounded-2xl p-5">
+        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-accent-400/20 flex items-center justify-center"><i class="fas fa-crown text-accent-400"></i></span>
+            Reward Tiers
+        </h3>
+        <div class="hidden lg:block">
+            <div class="relative">
+                <div class="absolute top-8 left-0 right-0 h-1 bg-white/5 rounded-full"></div>
+                <div class="absolute top-8 left-0 h-1 bg-gradient-to-r from-accent-400 to-primary-500 rounded-full transition-all duration-700" style="width:60%" id="affTierLine"></div>
+                <div class="grid grid-cols-5 gap-2 relative">
+                    <div class="text-center" data-tier="star">
+                        <div class="w-16 h-16 rounded-2xl glass flex items-center justify-center text-2xl mx-auto mb-2 aff-tier-node" id="tierNode_star"></div>
+                        <p class="font-bold text-xs">STAR</p>
+                        <p class="text-[10px] text-neutral">1 Ref</p>
+                        <p class="text-xs text-accent-400 font-bold">Rp 50K</p>
+                        <p class="text-[10px] text-neutral">/ref</p>
+                    </div>
+                    <div class="text-center" data-tier="bronze">
+                        <div class="w-16 h-16 rounded-2xl glass flex items-center justify-center text-2xl mx-auto mb-2 aff-tier-node" id="tierNode_bronze"></div>
+                        <p class="font-bold text-xs">BRONZE</p>
+                        <p class="text-[10px] text-neutral">3 Refs</p>
+                        <p class="text-xs text-accent-400 font-bold">Rp 150K</p>
+                        <p class="text-[10px] text-neutral">/ref</p>
+                    </div>
+                    <div class="text-center" data-tier="silver">
+                        <div class="w-16 h-16 rounded-2xl glass flex items-center justify-center text-2xl mx-auto mb-2 aff-tier-node" id="tierNode_silver"></div>
+                        <p class="font-bold text-xs">SILVER</p>
+                        <p class="text-[10px] text-neutral">5 Refs</p>
+                        <p class="text-xs text-accent-400 font-bold">Rp 300K</p>
+                        <p class="text-[10px] text-neutral">/ref</p>
+                    </div>
+                    <div class="text-center" data-tier="diamond">
+                        <div class="w-16 h-16 rounded-2xl glass flex items-center justify-center text-2xl mx-auto mb-2 aff-tier-node" id="tierNode_diamond"></div>
+                        <p class="font-bold text-xs">DIAMOND</p>
+                        <p class="text-[10px] text-neutral">10 Refs</p>
+                        <p class="text-xs text-accent-400 font-bold">Rp 1M</p>
+                        <p class="text-[10px] text-neutral">/ref</p>
+                    </div>
+                    <div class="text-center" data-tier="champion">
+                        <div class="w-16 h-16 rounded-2xl glass flex items-center justify-center text-2xl mx-auto mb-2 aff-tier-node" id="tierNode_champion"></div>
+                        <p class="font-bold text-xs">CHAMPION</p>
+                        <p class="text-[10px] text-neutral">25 Refs</p>
+                        <p class="text-xs text-accent-400 font-bold">Rp 3M</p>
+                        <p class="text-[10px] text-neutral">/ref</p>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="flex gap-2 mb-3"><input type="text" id="affLink" readonly class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono"><button onclick="copyText('affLink')" class="bg-accent-500 text-black font-bold px-4 py-2 rounded-xl text-sm"><i class="fas fa-copy"></i></button></div>
-        <p class="text-sm text-neutral">Earn <span class="text-accent-400 font-bold">20%</span> commission!</p>
+        <div class="lg:hidden space-y-2">
+            <div class="glass rounded-xl p-3 flex items-center gap-3 aff-tier-mobile" data-tier="star">
+                <div class="w-10 h-10 rounded-xl bg-profit/20 flex items-center justify-center text-xl aff-tier-node-mobile"></div>
+                <div class="flex-1"><p class="font-bold text-sm">STAR</p><p class="text-[10px] text-neutral">1 Referral</p></div>
+                <div class="text-right"><p class="text-sm text-accent-400 font-bold">Rp 50K</p><p class="text-[10px] text-neutral">/ref</p></div>
+                <span class="text-profit text-xs"></span>
+            </div>
+            <div class="glass rounded-xl p-3 flex items-center gap-3 aff-tier-mobile" data-tier="bronze">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-xl aff-tier-node-mobile"></div>
+                <div class="flex-1"><p class="font-bold text-sm">BRONZE</p><p class="text-[10px] text-neutral">3 Referrals</p></div>
+                <div class="text-right"><p class="text-sm text-accent-400 font-bold">Rp 150K</p><p class="text-[10px] text-neutral">/ref</p></div>
+                <span class="text-profit text-xs"></span>
+            </div>
+            <div class="glass rounded-xl p-3 flex items-center gap-3 border-accent-400/50 bg-accent-400/5 aff-tier-mobile" data-tier="silver">
+                <div class="w-10 h-10 rounded-xl bg-accent-400/20 flex items-center justify-center text-xl aff-tier-node-mobile"></div>
+                <div class="flex-1"><p class="font-bold text-sm text-accent-400">SILVER</p><p class="text-[10px] text-neutral">5 Referrals</p></div>
+                <div class="text-right"><p class="text-sm text-accent-400 font-bold">Rp 300K</p><p class="text-[10px] text-neutral">/ref</p></div>
+                <span class="text-accent-400 text-xs font-bold">CURRENT</span>
+            </div>
+            <div class="glass rounded-xl p-3 flex items-center gap-3 opacity-50 aff-tier-mobile" data-tier="diamond">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-xl aff-tier-node-mobile"></div>
+                <div class="flex-1"><p class="font-bold text-sm">DIAMOND</p><p class="text-[10px] text-neutral">10 Referrals</p></div>
+                <div class="text-right"><p class="text-sm text-accent-400 font-bold">Rp 1M</p><p class="text-[10px] text-neutral">/ref</p></div>
+                <span class="text-neutral text-xs"></span>
+            </div>
+            <div class="glass rounded-xl p-3 flex items-center gap-3 opacity-50 aff-tier-mobile" data-tier="champion">
+                <div class="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center text-xl aff-tier-node-mobile"></div>
+                <div class="flex-1"><p class="font-bold text-sm">CHAMPION</p><p class="text-[10px] text-neutral">25 Referrals</p></div>
+                <div class="text-right"><p class="text-sm text-accent-400 font-bold">Rp 3M</p><p class="text-[10px] text-neutral">/ref</p></div>
+                <span class="text-neutral text-xs"></span>
+            </div>
+        </div>
+        <div class="mt-4 p-3 glass rounded-xl bg-accent-400/5 border border-accent-400/20">
+            <p class="text-xs"> <b>Bonus Tier:</b> DIAMOND  Free License MAX 1 bulan | CHAMPION  Free License MAX 3 bulan + Priority Support + Badge Eksklusif</p>
+        </div>
+    </div>
+
+    <!--  HISTORY + LEADERBOARD GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="glass-light rounded-2xl p-5">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2"><i class="fas fa-clock-rotate-left text-accent-400"></i> Recent Referrals</h3>
+            <div class="space-y-2 max-h-80 overflow-y-auto" id="affHistoryList">
+                <div class="glass rounded-xl p-4 text-center">
+                    <p class="text-3xl mb-2"></p>
+                    <p class="text-sm text-neutral">No referrals yet</p>
+                    <p class="text-xs text-neutral mt-1">Share your link to start earning!</p>
+                </div>
+            </div>
+        </div>
+        <div class="glass-light rounded-2xl p-5">
+            <h3 class="font-bold text-sm mb-3 flex items-center gap-2"><i class="fas fa-trophy text-accent-400"></i> Top Earners</h3>
+            <div class="space-y-2 max-h-80 overflow-y-auto" id="affLeaderboardList">
+                <p class="text-neutral text-sm text-center py-4">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!--  HOW IT WORKS — MINIMAL -->
+    <div class="glass-light rounded-2xl p-5">
+        <h3 class="font-bold text-sm mb-3 flex items-center gap-2"><i class="fas fa-circle-info text-accent-400"></i> How It Works</h3>
+        <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="glass rounded-xl p-3">
+                <p class="text-2xl mb-1"></p>
+                <p class="font-bold text-xs">Share Link</p>
+                <p class="text-[10px] text-neutral">Bagikan ke komunitas trading</p>
+            </div>
+            <div class="glass rounded-xl p-3">
+                <p class="text-2xl mb-1"></p>
+                <p class="font-bold text-xs">They Join</p>
+                <p class="text-[10px] text-neutral">Daftar & beli license</p>
+            </div>
+            <div class="glass rounded-xl p-3">
+                <p class="text-2xl mb-1"></p>
+                <p class="font-bold text-xs">You Earn 20%</p>
+                <p class="text-[10px] text-neutral">Komisi permanen!</p>
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- PAGE: PAYMENTS -->
 <div id="page-payments" class="page-content hidden space-y-4">
-    
-    <!-- MAINTENANCE BANNER -->
-    <div class="glass-light rounded-2xl p-5 border-l-4 border-yellow-500 animate-slideIn">
-        <div class="flex items-start gap-3">
-            <div class="text-2xl"></div>
-            <div>
-                <h3 class="font-bold text-yellow-400">Midtrans Auto Payment — Maintenance</h3>
-                <p class="text-sm text-neutral mt-1">Pembayaran otomatis (GoPay, DANA, QRIS, VA) sedang dalam proses verifikasi Midtrans.</p>
-                <p class="text-sm text-neutral">Estimasi aktif: <b>1-2 minggu</b>. Sementara gunakan <b>Manual Transfer</b> di bawah.</p>
-                <button onclick="notifyMidtransActive()" class="mt-2 glass rounded-full px-4 py-1.5 text-xs hover:bg-white/10 transition-all">
-                    <i class="fas fa-bell"></i> Notifikasi saya jika sudah aktif
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- PACKAGE SELECTION -->
     <div class="glass-light rounded-2xl p-5">
-        <h3 class="font-bold text-lg mb-2"> Pilih Package</h3>
-        <p class="text-sm text-neutral mb-4">Pilih package dan durasi. Harga sudah termasuk semua fitur.</p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div onclick="selectPaymentPackage('pro', this)" class="payment-pkg-card glass rounded-2xl p-5 text-center cursor-pointer border-2 border-white/5 hover:border-accent-400/50 transition-all">
-                <div class="text-3xl mb-2"></div>
-                <p class="font-bold text-lg">PRO</p>
-                <p class="text-xs text-neutral">Analisa Manual AI</p>
-                <div class="my-2 space-y-1 text-xs text-neutral">
-                    <p> AI Chat Telegram</p><p> Analisa Multi-TF</p>
-                    <p> Live Chart</p><p> Notifikasi</p><p> 5 Pair</p>
-                </div>
-                <p class="text-xl font-black text-accent-400">Rp 150K</p><p class="text-xs text-neutral">/bulan</p>
-            </div>
-            <div onclick="selectPaymentPackage('max', this)" class="payment-pkg-card glass rounded-2xl p-5 text-center cursor-pointer border-2 border-accent-400/50 hover:border-accent-400 transition-all relative">
-                <div class="absolute top-3 right-3 bg-accent-500 text-black text-xs px-2 py-1 rounded-full font-bold">BEST</div>
-                <div class="text-3xl mb-2"></div>
-                <p class="font-bold text-lg">MAX</p>
-                <p class="text-xs text-neutral">Manual + Auto Trading EA</p>
-                <div class="my-2 space-y-1 text-xs text-neutral">
-                    <p> Semua PRO</p><p> Auto Trading EA</p>
-                    <p> Multi-Pair</p><p> Firebase</p><p> Priority Support</p>
-                </div>
-                <p class="text-xl font-black text-accent-400">Rp 350K</p><p class="text-xs text-neutral">/bulan</p>
-            </div>
+        <h3 class="font-bold text-lg mb-4">Purchase License</h3>
+        <p class="text-sm text-neutral mb-4">Pilih package untuk memulai trading dengan AetherTrade AI.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div onclick="selectPackage('pro',this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer border-2 border-white/5 hover:border-accent-400/50 transition-all"><p class="text-2xl mb-2"></p><p class="font-bold text-lg">Pro</p><p class="text-sm text-neutral">Analisa Manual AI</p><p class="text-2xl font-black text-accent-400 my-2">Rp 150K</p><p class="text-xs text-neutral">/bulan</p></div>
+            <div onclick="selectPackage('max',this)" class="pkg-card glass rounded-2xl p-5 text-center cursor-pointer border-2 border-white/5 hover:border-accent-400/50 transition-all relative"><div class="absolute top-3 right-3 bg-accent-500 text-black text-xs px-2 py-1 rounded-full font-bold">POPULER</div><p class="text-2xl mb-2"></p><p class="font-bold text-lg">Max</p><p class="text-sm text-neutral">Manual + Auto Trading</p><p class="text-2xl font-black text-accent-400 my-2">Rp 350K</p><p class="text-xs text-neutral">/bulan</p></div>
         </div>
-        
-        <!-- DURASI -->
-        <p class="text-sm text-neutral mb-2"> Pilih Durasi:</p>
-        <div class="flex flex-wrap gap-2 mb-4">
-            <button onclick="selectPaymentDuration(1, this)" class="duration-btn glass rounded-xl px-4 py-3 text-sm border border-white/5 hover:border-accent-400/50">1 Bulan</button>
-            <button onclick="selectPaymentDuration(3, this)" class="duration-btn glass rounded-xl px-4 py-3 text-sm border border-white/5 hover:border-accent-400/50">3 Bulan <span class="text-xs text-profit">-10%</span></button>
-            <button onclick="selectPaymentDuration(6, this)" class="duration-btn glass rounded-xl px-4 py-3 text-sm border border-white/5 hover:border-accent-400/50">6 Bulan <span class="text-xs text-profit">-17%</span></button>
-            <button onclick="selectPaymentDuration(12, this)" class="duration-btn glass rounded-xl px-4 py-3 text-sm border border-white/5 hover:border-accent-400/50">12 Bulan <span class="text-xs text-profit">-25%</span></button>
-        </div>
-        
-        <!-- PROMO CODE -->
-        <div class="flex gap-2 mb-4">
-            <input type="text" id="promoCode" placeholder="Kode Promo (opsional)" class="flex-1 bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-accent-400/50 focus:outline-none">
-            <button onclick="applyPromoCode()" class="glass rounded-xl px-4 py-3 text-sm hover:bg-white/10">Pakai</button>
-        </div>
-        <p id="promoMessage" class="text-xs hidden mb-2"></p>
-        
-        <!-- TOTAL -->
-        <div id="paymentTotalSection" class="hidden glass rounded-2xl p-5 text-center mb-4 animate-slideIn">
-            <p class="text-sm text-neutral">Total Pembayaran</p>
-            <p class="text-3xl font-black text-accent-400" id="paymentTotalAmount">Rp 0</p>
-            <p class="text-xs text-neutral" id="paymentPerMonth"></p>
-            <p class="text-xs text-profit hidden" id="paymentDiscount"></p>
-        </div>
-    </div>
-
-    <!-- MANUAL TRANSFER GUIDE -->
-    <div id="manualTransferSection" class="hidden space-y-4 animate-slideIn">
-        <div class="glass-light rounded-2xl p-5">
-            <h3 class="font-bold text-lg mb-3"> Manual Transfer</h3>
-            
-            <!-- STEPS -->
-            <div class="space-y-3 mb-4">
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-accent-400 text-black flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
-                    <div><p class="font-bold text-sm">Transfer Tepat</p><p class="text-xs text-neutral">Transfer sesuai jumlah ke salah satu rekening. <b>Jumlah harus TEPAT</b>.</p></div>
-                </div>
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-accent-400 text-black flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
-                    <div><p class="font-bold text-sm">Upload & Kirim</p><p class="text-xs text-neutral">Upload bukti transfer yang jelas. Admin akan verifikasi.</p></div>
-                </div>
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-accent-400 text-black flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
-                    <div><p class="font-bold text-sm">License Aktif</p><p class="text-xs text-neutral">Verifikasi <b>1x24 jam kerja</b>. License otomatis aktif + invoice dikirim.</p></div>
-                </div>
-            </div>
-            
-            <!-- REKENING -->
-            <p class="text-sm font-bold mb-2"> Rekening Tujuan:</p>
-            <div class="space-y-2 mb-4">
-                <div class="glass rounded-xl p-3 flex items-center justify-between">
-                    <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center text-lg"></div><div><p class="font-bold text-sm">DANA</p><p class="text-xs text-neutral">0859-3001-6248</p></div></div>
-                    <div class="flex items-center gap-2"><p class="text-xs text-neutral">a/n ANDIKA</p><button onclick="copyText('085930016248')" class="glass rounded-lg px-3 py-1 text-xs hover:bg-white/10"><i class="fas fa-copy"></i></button></div>
-                </div>
-                <div class="glass rounded-xl p-3 flex items-center justify-between">
-                    <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center text-lg"></div><div><p class="font-bold text-sm">GoPay</p><p class="text-xs text-neutral">0859-3001-6248</p></div></div>
-                    <div class="flex items-center gap-2"><p class="text-xs text-neutral">a/n ANDIKA</p><button onclick="copyText('085930016248')" class="glass rounded-lg px-3 py-1 text-xs hover:bg-white/10"><i class="fas fa-copy"></i></button></div>
-                </div>
-                <div class="glass rounded-xl p-3 flex items-center justify-between">
-                    <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center text-lg"></div><div><p class="font-bold text-sm">SEABANK</p><p class="text-xs text-neutral">9017-9377-7670</p></div></div>
-                    <div class="flex items-center gap-2"><p class="text-xs text-neutral">a/n ANDIKA</p><button onclick="copyText('901793777670')" class="glass rounded-lg px-3 py-1 text-xs hover:bg-white/10"><i class="fas fa-copy"></i></button></div>
-                </div>
-            </div>
-            
-            <div class="glass rounded-xl p-3 text-xs text-neutral mb-4">
-                <p> <b>PENTING:</b> Transfer <b>TEPAT</b> sesuai jumlah • Screenshot jelas • Cantumkan username Telegram • Verifikasi 1x24 jam kerja</p>
-            </div>
-            
-            <!-- UPLOAD -->
-            <p class="text-sm font-bold mb-2"> Upload Bukti Transfer:</p>
-            <div class="glass rounded-xl p-4 text-center mb-3 cursor-pointer hover:bg-white/5 transition-all" id="dropZone" onclick="document.getElementById('proofFile').click()">
-                <input type="file" id="proofFile" accept="image/*,.pdf" class="hidden" onchange="handleFileSelect(event)">
-                <div id="dropZoneContent"><p class="text-3xl mb-2"></p><p class="text-sm font-bold">Klik atau Drag & Drop</p><p class="text-xs text-neutral">JPG, PNG, PDF (Max 5MB)</p></div>
-                <div id="filePreview" class="hidden"><p class="text-sm font-bold text-profit"> File dipilih</p><p class="text-xs text-neutral" id="fileName"></p></div>
-            </div>
-            
-            <div class="mb-4"><label class="text-xs text-neutral"> Catatan:</label><input type="text" id="paymentNote" placeholder="Username Telegram: @trader_pro" class="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm mt-1 focus:border-accent-400/50 focus:outline-none"></div>
-            
-            <div class="glass rounded-xl p-4 mb-4 text-center bg-accent-400/5"><p class="text-xs text-neutral">Total yang harus ditransfer:</p><p class="text-2xl font-black text-accent-400" id="finalTransferAmount">Rp 0</p><p class="text-xs text-loss mt-1"> Transfer tidak sesuai jumlah = ditolak</p></div>
-            
-            <button onclick="submitManualPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-6 py-4 rounded-xl text-sm w-full hover:scale-[1.02] transition-transform"> KIRIM BUKTI PEMBAYARAN</button>
-            <p class="text-xs text-neutral text-center mt-2"> Admin akan verifikasi dalam 1x24 jam kerja</p>
-        </div>
-    </div>
-
-    <!-- CONTACT -->
-    <div class="glass-light rounded-2xl p-5">
-        <h3 class="font-bold text-lg mb-3"> Butuh Bantuan?</h3>
-        <div class="grid grid-cols-2 gap-3">
-            <a href="https://t.me/rimuru_genkai" target="_blank" class="glass rounded-xl p-4 text-center hover:bg-white/5"><p class="text-2xl mb-1"><i class="fab fa-telegram text-blue-400"></i></p><p class="text-sm font-bold">Telegram</p><p class="text-xs text-neutral">@rimuru_genkai</p></a>
-            <a href="https://wa.me/6285930016248" target="_blank" class="glass rounded-xl p-4 text-center hover:bg-white/5"><p class="text-2xl mb-1"><i class="fab fa-whatsapp text-green-400"></i></p><p class="text-sm font-bold">WhatsApp</p><p class="text-xs text-neutral">0859-3001-6248</p></a>
-        </div>
-    </div>
-
-    <!-- PAYMENT HISTORY + STATUS TRACKER -->
-    <div class="glass-light rounded-2xl p-5">
-        <h3 class="font-bold text-lg mb-3"> Riwayat & Status Pembayaran</h3>
-        <div id="paymentHistoryList"><p class="text-neutral text-sm text-center py-4">Belum ada pembayaran</p></div>
-    </div>
-
-    <!-- INVOICE MODAL -->
-    <div id="invoiceModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
-        <div class="glass-light rounded-2xl p-6 w-full max-w-md animate-slideIn text-center">
-            <p class="text-3xl mb-2"></p>
-            <h3 class="text-xl font-bold mb-2">Invoice</h3>
-            <p class="text-sm text-neutral mb-1" id="invoiceNumber">#AT-XXXXXXXX</p>
-            <div class="glass rounded-xl p-4 my-3 text-left text-sm space-y-2">
-                <div class="flex justify-between"><span>Package</span><span class="font-bold" id="invoicePackage">-</span></div>
-                <div class="flex justify-between"><span>Durasi</span><span class="font-bold" id="invoiceDuration">-</span></div>
-                <div class="flex justify-between"><span>Jumlah</span><span class="font-bold text-accent-400" id="invoiceAmount">-</span></div>
-                <div class="flex justify-between"><span>Status</span><span class="text-profit font-bold">LUNAS </span></div>
-                <hr class="border-white/5">
-                <div class="flex justify-between"><span>License</span><span class="font-bold font-mono" id="invoiceLicense">-</span></div>
-                <div class="flex justify-between"><span>Expires</span><span class="font-bold" id="invoiceExpires">-</span></div>
-            </div>
-            <button onclick="document.getElementById('invoiceModal').classList.add('hidden')" class="glass rounded-xl px-6 py-3 text-sm mt-3">Tutup</button>
+        <div id="paymentDetails" class="hidden glass-light rounded-2xl p-5 text-center">
+            <p class="text-lg font-bold mb-3">Ringkasan</p>
+            <p class="text-2xl font-black text-accent-400" id="payTotal">Rp 0</p>
+            <button onclick="showManualPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-8 py-4 rounded-xl text-lg w-full sm:w-auto mt-4">Pay Now — Manual Transfer</button>
+            <p class="text-xs text-neutral mt-2">Midtrans coming soon</p>
         </div>
     </div>
 </div>
@@ -399,39 +507,14 @@
     </div>
 </div>
 
-<!-- ========================================== -->
-<!-- SINGLE SCRIPT BLOCK - NO DUPLICATES        -->
-<!-- ========================================== -->
 <script>
-// ==========================================
-// 1. CONFIG
-// ==========================================
+// CONFIG
 const CONFIG={firebaseURL:"https://aethertrade-signals-default-rtdb.asia-southeast1.firebasedatabase.app/",apiURL:"http://89.21.85.27:8888",adminLicense:"AT-AB100702CB5771F2",packages:{pro:{name:'Pro',pricePerMonth:150000},max:{name:'Max',pricePerMonth:350000}},paymentMethods:{dana:'0859-3001-6248',gopay:'0859-3001-6248',seabank:'9017-9377-7670',name:'ANDIKA'}};
-
-// ==========================================
-// 2. FIREBASE INIT
-// ==========================================
 firebase.initializeApp({databaseURL:CONFIG.firebaseURL});const db=firebase.database();
-
-// ==========================================
-// 3. STATE
-// ==========================================
 const State={user:{licenseKey:localStorage.getItem('at_license')||'',username:localStorage.getItem('at_username')||'Trader',package:'',expires:''},currentPage:'market',payment:{package:'',months:1}};
-
-// ==========================================
-// 4. PAYMENT STATE
-// ==========================================
-let paymentState={package:'',months:1,amount:0,originalAmount:0,proofFile:null,promoApplied:false};
-const PROMO_CODES={'AETHER10':0.10,'TRADER20':0.20,'WELCOME':50000};
-
-// ==========================================
-// 5. GLOBAL VARS
-// ==========================================
 let currentPair='XAUUSD',currentInterval='15',tvWidget=null;
 
-// ==========================================
-// 6. NAVIGATION
-// ==========================================
+// NAVIGATION
 function navigate(page){
 State.currentPage=page;document.querySelectorAll('.page-content').forEach(p=>p.classList.add('hidden'));
 const target=document.getElementById('page-'+page);if(target)target.classList.remove('hidden');
@@ -442,67 +525,222 @@ const[t,s]=titles[page]||[page,''];document.getElementById('pageTitle').textCont
 if(page==='market'){loadMarketData();setTimeout(initChart,500);}
 if(page==='signals')loadSignals();if(page==='positions')loadPositions();if(page==='affiliate')loadAffiliate();
 if(page==='admin'){loadAdminLicenses();loadAdminPayments();}
-if(page==='payments'){loadPaymentHistory();}
 if(window.innerWidth<1024)toggleSidebar(false);
 }
 function toggleSidebar(force){const s=document.getElementById('sidebar'),o=document.getElementById('sidebarOverlay');const open=force!==undefined?force:!s.classList.contains('open');if(open){s.classList.add('open');o.classList.add('open')}else{s.classList.remove('open');o.classList.remove('open')}}
 
-// ==========================================
-// 7. TOAST
-// ==========================================
+// TOAST
 function showToast(msg,type='info'){const c=document.getElementById('toastContainer');const icons={success:'',error:'',warning:'',info:''};const borders={success:'border-l-profit',error:'border-l-loss',warning:'border-l-yellow-500',info:'border-l-neutral'};const colors={success:'text-profit',error:'text-loss',warning:'text-yellow-500',info:'text-white'};const t=document.createElement('div');t.className=`toast glass-light rounded-xl px-4 py-3 text-sm font-medium animate-slideInRight border-l-2 ${borders[type]} ${colors[type]}`;t.innerHTML=`<span class="mr-2">${icons[type]}</span>${msg}`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(100%)';setTimeout(()=>t.remove(),300)},3000)}
 
-// ==========================================
-// 8. CHART
-// ==========================================
+// CHART
 function changeChart(pair,interval){currentPair=pair;currentInterval=interval;document.querySelectorAll('.chart-pair-btn').forEach(b=>{b.classList.remove('active','bg-accent-400/20','text-accent-400');if(b.textContent.trim()===pair)b.classList.add('active','bg-accent-400/20','text-accent-400')});document.querySelectorAll('.chart-tf-btn').forEach(b=>{b.classList.remove('active','bg-accent-400/20','text-accent-400');if(b.textContent.trim()===interval+(interval==='1D'?'':'M').replace('60','H').replace('240','H'))b.classList.add('active','bg-accent-400/20','text-accent-400')});initChart()}
 function initChart(){const c=document.getElementById('tv_chart');if(!c||c.offsetParent===null){setTimeout(initChart,500);return}try{if(tvWidget)tvWidget.remove()}catch(e){}const sym='OANDA:'+(currentPair==='XAUUSD'?'XAUUSD':currentPair==='BTCUSD'?'BTCUSD':currentPair==='EURUSD'?'EURUSD':'NASDAQ:'+currentPair);tvWidget=new TradingView.widget({container_id:"tv_chart",symbol:sym,interval:currentInterval,theme:"dark",style:"1",locale:"en",toolbar_bg:"#0a0a0a",hide_top_toolbar:true,save_image:false,height:"100%",width:"100%",autosize:true,studies:["MASimple@tv-basicstudies","RSI@tv-basicstudies","MACD@tv-basicstudies"]})}
 
-// ==========================================
-// 9. MARKET DATA (HANYA 1X DEFINISI)
-// ==========================================
+// MARKET DATA
 function loadMarketData(){const key=State.user.licenseKey||CONFIG.adminLicense;db.ref(`performance/${key}/stats`).on('value',snap=>{const s=snap.val();if(s){document.getElementById('dashBalance').textContent='$'+(s.balance||0).toLocaleString();document.getElementById('dashEquity').textContent='$'+((s.balance||0)+(s.floating_pnl||0)).toLocaleString();document.getElementById('dashOpen').textContent=s.open_positions||0;document.getElementById('dashPL').textContent=(s.daily_pnl>=0?'+':'')+'$'+(s.daily_pnl||0).toFixed(2);document.getElementById('headerBalance').textContent='$'+(s.balance||0).toLocaleString();document.getElementById('headerPL').textContent=(s.daily_pnl>=0?'+':'')+'$'+(s.daily_pnl||0).toFixed(2)}});
 loadMarketSignals();loadMarketPositions();}
 function loadMarketSignals(){const c=document.getElementById('marketSignals');db.ref(`signals/${CONFIG.adminLicense}/XAU_USD`).on('value',snap=>{const d=snap.val();if(d){let h='<p class="text-xs text-accent-400 font-bold mb-2">XAU/USD</p>';for(let s=1;s<=5;s++){const sig=d[s];if(sig&&sig.dir){const em=sig.dir==='BUY'?'':'';const trailInfo=sig.trailStart>0?`<span class="text-xs text-neutral">Trail: $${sig.trailStart}</span>`:'';h+=`<div class="glass rounded-xl p-2 text-xs mb-1"><span>${em}</span> <b>${sig.dir}</b> $${sig.entry} SL:$${sig.sl} ${trailInfo}</div>`}}c.innerHTML=h||'<p class="text-neutral text-sm text-center">Waiting...</p>'}else c.innerHTML='<p class="text-neutral text-sm text-center">Waiting...</p>'})}
-function loadMarketPositions(){const c=document.getElementById('marketPositions');const key=State.user.licenseKey||CONFIG.adminLicense;db.ref(`performance/${key}/pairs`).on('value',snap=>{const d=snap.val();if(d){let h='';for(const[pair,stats]of Object.entries(d)){h+=`<div class="glass rounded-xl p-3 text-sm mb-2"><div class="flex justify-between"><span class="font-bold">${pair}</span><span class="text-profit">${stats.active} Open</span></div><p class="text-xs text-neutral">WR: ${stats.win_rate}% | P/L: ${stats.total_profit}</p></div>`}c.innerHTML=h||'<p class="text-neutral text-sm text-center">No positions</p>'}else c.innerHTML='<p class="text-neutral text-sm text-center">No positions</p>'})}
+function loadMarketPositions(){const c=document.getElementById('marketPositions');const key=State.user.licenseKey||CONFIG.adminLicense;db.ref(`performance/${key}/pairs`).once('value').then(snap=>{const d=snap.val();if(d){let h='';for(const[pair,stats]of Object.entries(d)){h+=`<div class="glass rounded-xl p-3 text-sm mb-2"><div class="flex justify-between"><span class="font-bold">${pair}</span><span class="text-profit">${stats.active} Open</span></div><p class="text-xs text-neutral">WR: ${stats.win_rate}% | P/L: ${stats.total_profit}</p></div>`}c.innerHTML=h||'<p class="text-neutral text-sm text-center">No positions</p>'}else c.innerHTML='<p class="text-neutral text-sm text-center">No positions</p>'})}
 
-// ==========================================
-// 10. SIGNALS
-// ==========================================
+// SIGNALS
 function loadSignals(){['XAU_USD','BTC_USD'].forEach(pp=>{const tid=pp==='XAU_USD'?'xauSignalLive':'btcSignalLive';const c=document.getElementById(tid);if(!c)return;c.innerHTML='<p class="text-neutral text-sm">Loading...</p>';db.ref(`signals/${CONFIG.adminLicense}/${pp}`).on('value',snap=>{const data=snap.val();if(data){let h='';for(let s=1;s<=5;s++){const d=data[s];if(d&&d.dir){const em=d.dir==='BUY'?'':'';const trailActive=d.trailStart>0;const trailClass=trailActive?'trail-active':'trail-inactive';const trailText=trailActive?`Trail: $${d.trailStart} (Step: ${d.trailStep})`:'Trail: Inactive';h+=`<div class="glass rounded-xl p-3 text-sm mb-2 animate-slideIn ${trailClass}"><span class="text-2xl">${em}</span> <span class="font-bold">${d.dir}</span> <span class="text-xs text-neutral">${d.strategy||'AI'}</span><div class="grid grid-cols-2 gap-1 text-xs mt-1"><p>Entry: <b>$${d.entry||'-'}</b></p><p>SL: <span class="text-loss">$${d.sl||'-'}</span></p></div><p class="text-xs text-neutral mt-1"> ${trailText}</p></div>`}}c.innerHTML=h||'<p class="text-neutral text-sm">Waiting...</p>'}else c.innerHTML='<p class="text-neutral text-sm">Waiting...</p>'})})}
 
-// ==========================================
-// 11. POSITIONS
-// ==========================================
+// POSITIONS
 function loadPositions(){const c=document.getElementById('positionsList');const mock=[{pair:'XAU/USD',dir:'BUY',entry:4178,sl:4061,lot:0.01,profit:12.5,trailActive:true,trailStart:4190},{pair:'BTC/USD',dir:'SELL',entry:63370,sl:63470,lot:0.01,profit:-8.2,trailActive:false}];c.innerHTML=mock.map(p=>{const dc=p.dir==='BUY'?'text-profit':'text-loss';const pc=p.profit>=0?'profit-positive':'profit-negative';const tc=p.trailActive?'trail-active':'trail-inactive';const tt=p.trailActive?`Trail: $${p.trailStart} (active since ${new Date().toLocaleTimeString()})`:'Trail: Not activated';return`<div class="glass rounded-xl p-4 ${tc}"><div class="flex justify-between"><div><span class="${dc} font-bold">${p.dir}</span> <span class="text-sm">${p.pair}</span><p class="text-xs text-neutral">Entry: $${p.entry} | SL: $${p.sl} | Lot: ${p.lot}</p><p class="text-xs text-neutral mt-1"> ${tt}</p></div><div class="text-right"><p class="font-bold ${pc}">${p.profit>=0?'+':''}$${p.profit.toFixed(2)}</p></div></div></div>`}).join('')}
 function emergencyStop(){if(confirm('Close ALL positions?')){db.ref(`signals/${CONFIG.adminLicense}/close_all`).set({action:'close_all',reason:'Panel Emergency',timestamp:Date.now()});showToast('Emergency stop activated!','warning')}}
 
 // ==========================================
-// 12. AFFILIATE
+// AFFILIATE (ULTIMATE v3.0)
 // ==========================================
-function loadAffiliate(){const affId='AFF-'+(State.user.licenseKey||'DEMO').substring(3,9);document.getElementById('affLink').value=window.location.origin+'?ref='+affId;db.ref('affiliates/'+affId).on('value',snap=>{const d=snap.val()||{};document.getElementById('affTotal').textContent='Rp '+(d.total_commission||0).toLocaleString();document.getElementById('affPending').textContent='Rp '+(d.pending_commission||0).toLocaleString();document.getElementById('affReferrals').textContent=d.total_referrals||0;document.getElementById('affPaid').textContent='Rp '+(d.paid_commission||0).toLocaleString();const refs=d.total_referrals||0;let rank=' STAR',progress=Math.min(refs*10,100),next='BRONZE (3 refs)';if(refs>=25){rank=' CHAMPION';progress=100;next='MAX'}else if(refs>=10){rank=' DIAMOND';progress=Math.min((refs-10)*6.6+60,100);next='CHAMPION (25 refs)'}else if(refs>=5){rank=' SILVER';progress=Math.min((refs-5)*10+40,100);next='DIAMOND (10 refs)'}else if(refs>=3){rank=' BRONZE';progress=Math.min((refs-3)*20+20,100);next='SILVER (5 refs)'}else{progress=Math.min(refs*33,100);next='BRONZE (3 refs)'}document.getElementById('affProgress').style.width=progress+'%'})}
+const AFF_MESSAGES={
+    short:' *AetherTrade AI — Smart Trading!*\n\n AI Signals (XAUUSD/BTC/EURUSD)\n Auto Trading EA\n Win Rate 70%+\n\n Daftar pakai link ini: {link}\n\n#Trading #Forex #Crypto',
+    detailed:' *AetherTrade AI — Professional Trading Terminal*\n\nFitur lengkap:\n AI-Powered Trading Signals\n Real-time Firebase Integration\n Auto Trading EA (MT5)\n Multi-Pair Support\n Risk Management System\n\n *20% affiliate commission — gabung gratis!*\n\n {link}',
+    testimonial:' *AetherTrade AI Review*\n\n"Udah 3 bulan pake, sinyal akurat & EA-nya jalan mulus. Profit konsisten!"\n\nCoba sendiri, daftar di: {link}\n\n#TradingJourney #PassiveIncome'
+};
+let affId='';
+function loadAffiliate(){
+    affId='AFF-'+(State.user.licenseKey||'DEMO').substring(3,9);
+    const link=window.location.origin+'?ref='+affId;
+    document.getElementById('affLink').value=link;
+    document.getElementById('affLinkDisplay').textContent=link;
+    db.ref('affiliates/'+affId).on('value',snap=>{
+        const d=snap.val()||{};
+        const totalCommission=d.total_commission||0;
+        const pendingCommission=d.pending_commission||0;
+        const paidCommission=d.paid_commission||0;
+        const totalReferrals=d.total_referrals||0;
+        const clicks=d.link_clicks||0;
+        const conversions=d.conversions||0;
+        const refsThisMonth=d.refs_this_month||0;
+        const lastPaidDate=d.last_paid_date||'';
+        updateText('affReferrals',totalReferrals);
+        updateText('affTotal','Rp '+totalCommission.toLocaleString());
+        updateText('affPaid','Rp '+paidCommission.toLocaleString());
+        updateText('affConvRate',(clicks>0?((conversions/clicks)*100).toFixed(1):'0')+'%');
+        updateText('affRefsGrowth',refsThisMonth+' this month');
+        updateText('affPendingAmount','Rp '+pendingCommission.toLocaleString()+' pending');
+        updateText('affClicksText',clicks+' clicks');
+        updateText('affLastPaid',lastPaidDate?'Last: '+formatDate(lastPaidDate):'No withdrawals');
+        updateText('affTotalEarned','Rp '+totalCommission.toLocaleString());
+        const avgPerRef=totalReferrals>0?Math.round(totalCommission/totalReferrals):150000;
+        const potential=totalReferrals*avgPerRef;
+        updateText('affPotential','Rp '+potential.toLocaleString());
+        updateText('affPotentialDetail',totalReferrals+' refs × Rp '+(avgPerRef/1000).toFixed(0)+'K = Rp '+potential.toLocaleString());
+        const tiers=[
+            {name:'STAR',emoji:'',min:1,reward:50000,color:'neutral'},
+            {name:'BRONZE',emoji:'',min:3,reward:150000,color:'amber-400'},
+            {name:'SILVER',emoji:'',min:5,reward:300000,color:'accent-400'},
+            {name:'DIAMOND',emoji:'',min:10,reward:1000000,color:'cyan-400'},
+            {name:'CHAMPION',emoji:'',min:25,reward:3000000,color:'yellow-400'}
+        ];
+        let current=tiers[0],next=tiers[1];
+        for(let i=tiers.length-1;i>=0;i--){
+            if(totalReferrals>=tiers[i].min){current=tiers[i];next=tiers[i+1]||tiers[i];break;}
+        }
+        const needed=next.min-totalReferrals;
+        const progress=next.min===current.min?100:Math.min(100,Math.round(((totalReferrals-current.min)/(next.min-current.min))*100));
+        updateText('affRankEmoji',current.emoji);
+        const rankName=document.getElementById('affRankName');
+        rankName.textContent=current.name;
+        rankName.className='text-xl font-black text-'+current.color;
+        updateText('affNextTier',next.name);
+        updateText('affProgressPercent',progress+'%');
+        document.getElementById('affProgressBar').style.width=progress+'%';
+        updateText('affNeedMore',needed<=0?' Maximum tier achieved!':needed+' referrals to '+next.name);
+        updateTierNodes(tiers,totalReferrals,current);
+        loadAffHistory(affId);
+        loadAffLeaderboard(affId);
+    });
+}
+function updateTierNodes(tiers,totalRefs,current){
+    tiers.forEach(tier=>{
+        const isAchieved=totalRefs>=tier.min;
+        const isCurrent=tier.name===current.name;
+        const isNext=tier.min>totalRefs&&tier===tiers.find(t=>t.min>totalRefs);
+        const node=document.getElementById('tierNode_'+tier.name.toLowerCase());
+        if(node){
+            node.classList.remove('bg-profit/20','border-profit','bg-accent-400/20','border-accent-400','opacity-40','scale-90');
+            if(isCurrent||isAchieved){
+                node.classList.add('bg-profit/20','border-profit','border-2');
+                node.style.transform='scale(1.1)';
+            }else if(isNext){
+                node.classList.add('bg-accent-400/20','border-accent-400','border-2');
+            }else{
+                node.classList.add('opacity-40','scale-90');
+            }
+        }
+    });
+    const tierLine=document.getElementById('affTierLine');
+    if(tierLine){
+        const widths={STAR:5,BRONZE:25,SILVER:45,DIAMOND:72,CHAMPION:100};
+        tierLine.style.width=widths[current.name]+'%';
+    }
+    document.querySelectorAll('.aff-tier-mobile').forEach(el=>{
+        const tierName=el.dataset.tier?.toUpperCase();
+        const tier=tiers.find(t=>t.name===tierName);
+        if(tier){
+            const isAchieved=totalRefs>=tier.min;
+            const isCurrent=tier.name===current.name;
+            el.classList.remove('border-accent-400/50','bg-accent-400/5','opacity-50');
+            const statusEl=el.querySelector('span:last-child');
+            if(isCurrent){
+                el.classList.add('border-accent-400/50','bg-accent-400/5');
+                if(statusEl){statusEl.textContent='CURRENT';statusEl.className='text-accent-400 text-xs font-bold';}
+            }else if(isAchieved){
+                if(statusEl){statusEl.textContent='';statusEl.className='text-profit text-xs';}
+            }else{
+                el.classList.add('opacity-50');
+                if(statusEl){statusEl.textContent='';statusEl.className='text-neutral text-xs';}
+            }
+        }
+    });
+}
+function loadAffHistory(affId){
+    db.ref('affiliate_history/'+affId).limitToLast(10).once('value').then(snap=>{
+        const data=snap.val();
+        const container=document.getElementById('affHistoryList');
+        if(data){
+            const entries=Object.entries(data).reverse();
+            let html='';
+            entries.forEach(([k,v])=>{
+                const statusIcon=v.status==='paid'?'':v.status==='pending'?'':'';
+                const statusColor=v.status==='paid'?'text-profit':v.status==='pending'?'text-yellow-500':'text-loss';
+                const date=formatDate(v.timestamp||v.date);
+                html+=`<div class="glass rounded-xl p-3 flex items-center gap-3 text-sm">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-accent-400/30 to-primary-500/30 flex items-center justify-center text-xs font-bold">${(v.username||'U')[0].toUpperCase()}</div>
+                    <div class="flex-1 min-w-0"><p class="font-bold text-xs truncate">${v.username||'User'}</p><p class="text-[10px] text-neutral">${date} · ${(v.package||'pro').toUpperCase()}</p></div>
+                    <div class="text-right"><p class="text-xs font-bold text-accent-400">Rp ${(v.commission||0).toLocaleString()}</p><p class="text-[10px] ${statusColor}">${statusIcon} ${v.status||'pending'}</p></div>
+                </div>`;
+            });
+            container.innerHTML=html;
+        }else{
+            container.innerHTML='<div class="glass rounded-xl p-4 text-center"><p class="text-3xl mb-2"></p><p class="text-sm text-neutral">No referrals yet</p><p class="text-xs text-neutral mt-1">Share your link to start earning!</p></div>';
+        }
+    });
+}
+function loadAffLeaderboard(myAffId){
+    db.ref('affiliates').orderByChild('total_commission').limitToLast(15).once('value').then(snap=>{
+        const data=snap.val();
+        const container=document.getElementById('affLeaderboardList');
+        if(data){
+            const entries=Object.entries(data).sort((a,b)=>(b[1].total_commission||0)-(a[1].total_commission||0)).slice(0,10);
+            const medals={0:'',1:'',2:''};
+            let html='';
+            entries.forEach(([key,val],idx)=>{
+                const isMe=key===myAffId;
+                const bgClass=isMe?'bg-accent-400/10 border-accent-400/30':'';
+                html+=`<div class="glass rounded-xl p-3 flex items-center gap-3 text-sm ${bgClass}">
+                    <span class="text-lg w-7 text-center font-bold">${medals[idx]||(idx+1)}</span>
+                    <div class="w-7 h-7 rounded-full bg-gradient-to-br from-accent-400/30 to-primary-500/30 flex items-center justify-center text-[10px] font-bold">${(val.username||'A')[0].toUpperCase()}</div>
+                    <div class="flex-1 min-w-0"><p class="font-bold text-xs ${isMe?'text-accent-400':''} truncate">${isMe?' You':val.username||'Anonymous'}</p><p class="text-[10px] text-neutral">${val.total_referrals||0} refs · ${val.rank||'STAR'}</p></div>
+                    <p class="text-xs font-bold text-accent-400">Rp ${(val.total_commission||0).toLocaleString()}</p>
+                </div>`;
+            });
+            container.innerHTML=html;
+        }else{
+            container.innerHTML='<p class="text-neutral text-sm text-center py-4">No affiliates yet. Be the first! </p>';
+        }
+    });
+}
+function shareTo(platform){
+    const link=document.getElementById('affLink').value;
+    const msg=AFF_MESSAGES.short.replace('{link}',link);
+    const msgEncoded=encodeURIComponent(msg);
+    const urls={
+        telegram:'https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent(msg),
+        whatsapp:'https://wa.me/?text='+msgEncoded,
+        facebook:'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(link)+'&quote='+msgEncoded
+    };
+    if(platform==='discord'){
+        copyTextStr(msg);
+        showToast(' Pesan disalin! Paste di Discord','success');
+    }else{
+        window.open(urls[platform],'_blank');
+    }
+    trackClick();
+}
+function copyAffMessage(type){
+    const link=document.getElementById('affLink').value;
+    const msg=AFF_MESSAGES[type].replace('{link}',link);
+    copyTextStr(msg);
+    showToast(' Template pesan disalin!','success');
+    trackClick();
+}
+function trackClick(){
+    db.ref('affiliates/'+affId+'/link_clicks').transaction(val=>(val||0)+1);
+}
+function formatDate(ts){return new Date(ts).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});}
+function updateText(id,text){const el=document.getElementById(id);if(el)el.textContent=text;}
 
-// ==========================================
-// 13. PAYMENT FUNCTIONS
-// ==========================================
-function selectPaymentPackage(pkg,el){paymentState.package=pkg;document.querySelectorAll('.payment-pkg-card').forEach(e=>e.style.borderColor='rgba(255,255,255,0.05)');if(el)el.style.borderColor='#f59e0b';calculatePaymentTotal();}
-function selectPaymentDuration(months,el){paymentState.months=months;document.querySelectorAll('.duration-btn').forEach(e=>{e.style.borderColor='rgba(255,255,255,0.05)';e.classList.remove('bg-accent-400/20');});if(el){el.style.borderColor='#f59e0b';el.classList.add('bg-accent-400/20');}calculatePaymentTotal();}
-function calculatePaymentTotal(){if(!paymentState.package)return;const prices={pro:150000,max:350000};const discounts={1:0,3:0.10,6:0.17,12:0.25};const base=prices[paymentState.package];const discount=discounts[paymentState.months]||0;paymentState.originalAmount=Math.round(base*paymentState.months*(1-discount));paymentState.amount=paymentState.originalAmount;if(paymentState.promoApplied&&paymentState.promoAmount){paymentState.amount=Math.max(0,paymentState.originalAmount-paymentState.promoAmount);}document.getElementById('paymentTotalSection').classList.remove('hidden');document.getElementById('manualTransferSection').classList.remove('hidden');document.getElementById('paymentTotalAmount').textContent='Rp '+paymentState.amount.toLocaleString();document.getElementById('finalTransferAmount').textContent='Rp '+paymentState.amount.toLocaleString();document.getElementById('paymentPerMonth').textContent='Rp '+Math.round(paymentState.amount/paymentState.months).toLocaleString()+'/bulan';if(discount>0){document.getElementById('paymentDiscount').classList.remove('hidden');document.getElementById('paymentDiscount').textContent=' Hemat '+(discount*100)+'%!';}}
-function applyPromoCode(){const code=document.getElementById('promoCode').value.trim().toUpperCase();const msg=document.getElementById('promoMessage');if(!code)return;if(PROMO_CODES[code]){const val=PROMO_CODES[code];if(typeof val==='number'&&val<1){paymentState.promoAmount=Math.round(paymentState.originalAmount*val);}else{paymentState.promoAmount=val;}paymentState.promoApplied=true;paymentState.amount=Math.max(0,paymentState.originalAmount-paymentState.promoAmount);document.getElementById('paymentTotalAmount').textContent='Rp '+paymentState.amount.toLocaleString();document.getElementById('finalTransferAmount').textContent='Rp '+paymentState.amount.toLocaleString();msg.classList.remove('hidden');msg.className='text-xs mb-2 text-profit';msg.textContent=' Kode promo berhasil! Diskon Rp '+paymentState.promoAmount.toLocaleString();}else{msg.classList.remove('hidden');msg.className='text-xs mb-2 text-loss';msg.textContent=' Kode promo tidak valid';}}
-function handleFileSelect(event){const file=event.target.files[0];if(!file)return;if(file.size>5*1024*1024){showToast('File terlalu besar! Max 5MB','error');return;}paymentState.proofFile=file;document.getElementById('dropZoneContent').classList.add('hidden');document.getElementById('filePreview').classList.remove('hidden');document.getElementById('fileName').textContent=file.name+' ('+(file.size/1024).toFixed(0)+' KB)';document.getElementById('dropZone').style.borderColor='#10b981';}
-function submitManualPayment(){if(!paymentState.package)return showToast('Pilih package!','error');if(!paymentState.proofFile)return showToast('Upload bukti transfer!','error');const key='AT-'+Math.random().toString(36).substring(2,8).toUpperCase();const note=document.getElementById('paymentNote').value||'-';const data={key:key,owner:State.user.username||'User',package:paymentState.package,plan:paymentState.package,months:paymentState.months,amount:paymentState.amount,original_amount:paymentState.originalAmount,promo_code:document.getElementById('promoCode').value||'',note:note,is_active:false,autotrade_enabled:paymentState.package==='max',max_pairs:paymentState.package==='max'?10:5,expires:new Date(Date.now()+paymentState.months*30*86400000).toISOString(),created:new Date().toISOString(),payment_method:'manual_transfer',payment_status:'pending_verification',proof_filename:paymentState.proofFile.name};db.ref('licenses/'+key).set(data).then(()=>{db.ref('payments/'+key).set({...data,timestamp:Date.now()});db.ref('admin_notifications/payments').push({key:key,owner:data.owner,package:data.package,amount:data.amount,status:'pending',timestamp:Date.now()});showToast(' Pembayaran dikirim! Admin akan verifikasi 1x24 jam.','success');document.getElementById('paymentTotalSection').classList.add('hidden');document.getElementById('manualTransferSection').classList.add('hidden');document.getElementById('proofFile').value='';document.getElementById('paymentNote').value='';document.getElementById('dropZoneContent').classList.remove('hidden');document.getElementById('filePreview').classList.add('hidden');document.getElementById('dropZone').style.borderColor='';paymentState={package:'',months:1,amount:0,originalAmount:0,proofFile:null,promoApplied:false};loadPaymentHistory();}).catch(()=>showToast(' Gagal! Coba lagi.','error'));}
-function loadPaymentHistory(){const key=State.user.licenseKey;if(!key)return;db.ref('payments').orderByChild('owner').equalTo(State.user.username||'User').once('value').then(snap=>{const data=snap.val();const container=document.getElementById('paymentHistoryList');if(data){let html='';for(const[k,v]of Object.entries(data)){const statusIcon=v.payment_status==='approved'?'':v.payment_status==='rejected'?'':'';const statusColor=v.payment_status==='approved'?'text-profit':v.payment_status==='rejected'?'text-loss':'text-yellow-500';const date=new Date(v.timestamp||v.created).toLocaleDateString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});html+=`<div class="glass rounded-xl p-3 text-sm mb-2 flex items-center justify-between"><div><span class="font-bold">${v.package.toUpperCase()}</span> - ${v.months} Bulan</div><div class="text-right"><span class="${statusColor}">${statusIcon} ${v.payment_status==='approved'?'ACTIVE':v.payment_status==='rejected'?'REJECTED':'PENDING'}</span><p class="text-xs text-neutral">${date}</p>${v.payment_status==='approved'?`<button onclick="showInvoice('${k}')" class="text-accent-400 text-xs mt-1"> Invoice</button>`:''}</div></div>`;}container.innerHTML=html;}});}
-function showInvoice(key){db.ref('licenses/'+key).once('value').then(snap=>{const d=snap.val();if(d){document.getElementById('invoiceNumber').textContent='#'+key;document.getElementById('invoicePackage').textContent=d.package.toUpperCase();document.getElementById('invoiceDuration').textContent=(d.months||1)+' Bulan';document.getElementById('invoiceAmount').textContent='Rp '+(d.amount||0).toLocaleString();document.getElementById('invoiceLicense').textContent=d.key;document.getElementById('invoiceExpires').textContent=new Date(d.expires).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});document.getElementById('invoiceModal').classList.remove('hidden');}});}
-function notifyMidtransActive(){const key=State.user.licenseKey||'anonymous';db.ref('midtrans_notifications/'+key.replace(/[^a-zA-Z0-9]/g,'_')).set({notify:true,timestamp:Date.now()});showToast(' Kamu akan dinotifikasi jika Midtrans sudah aktif!','success');}
+// PAYMENTS
+function selectPackage(pkg,el){State.payment.package=pkg;document.querySelectorAll('.pkg-card').forEach(e=>e.style.borderColor='rgba(255,255,255,0.05)');if(el)el.style.borderColor='#f59e0b';State.payment.months=1;document.getElementById('paymentDetails').classList.remove('hidden');document.getElementById('payTotal').textContent='Rp '+CONFIG.packages[pkg].pricePerMonth.toLocaleString()}
+function showManualPayment(){const amount=CONFIG.packages[State.payment.package].pricePerMonth*State.payment.months;document.getElementById('manualPayAmount').textContent='Rp '+amount.toLocaleString();document.getElementById('manualPayModal').classList.remove('hidden')}
+function confirmManualPayment(){const key='AT-'+Math.random().toString(36).substring(2,8).toUpperCase();const data={key:key,owner:State.user.username||'User',package:State.payment.package,plan:State.payment.package,is_active:true,autotrade_enabled:State.payment.package==='max',max_pairs:State.payment.package==='max'?10:5,expires:new Date(Date.now()+30*86400000).toISOString(),created:new Date().toISOString(),payment_method:'manual',payment_amount:CONFIG.packages[State.payment.package].pricePerMonth,payment_status:'pending'};db.ref('licenses/'+key).set(data).then(()=>{db.ref('payments/'+key).set({...data,timestamp:Date.now()});document.getElementById('manualPayModal').classList.add('hidden');showToast('Pembayaran dikirim! Admin akan verifikasi.','success');State.user.licenseKey=key;localStorage.setItem('at_license',key)})}
 
-// ==========================================
-// 14. LICENSE
-// ==========================================
-function registerLicense(){const key=document.getElementById('regKey').value.trim().toUpperCase();if(!key)return showToast('Enter license key!','error');db.ref('licenses/'+key).once('value').then(snap=>{const d=snap.val();if(d?.is_active){State.user.licenseKey=key;State.user.package=d.package;State.user.expires=d.expires;localStorage.setItem('at_license',key);showToast('License registered!','success');checkAdminAccess();navigate('market');loadMarketData();}else showToast('Invalid license!','error')}).catch(()=>showToast('Connection error','error'))}
+// LICENSE
+function registerLicense(){const key=document.getElementById('regKey').value.trim().toUpperCase();if(!key)return showToast('Enter license key!','error');db.ref('licenses/'+key).once('value').then(snap=>{const d=snap.val();if(d?.is_active){State.user.licenseKey=key;State.user.package=d.package;State.user.expires=d.expires;localStorage.setItem('at_license',key);showToast('License registered!','success');navigate('market');loadMarketData()}else showToast('Invalid license!','error')}).catch(()=>showToast('Connection error','error'))}
 
-// ==========================================
-// 15. ADMIN
-// ==========================================
+// ADMIN
 function adminTab(tab){document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active','bg-accent-400/20','text-accent-400'));event.target.classList.add('active','bg-accent-400/20','text-accent-400');document.getElementById('adminLicenses').classList.add('hidden');document.getElementById('adminPayments').classList.add('hidden');if(tab==='licenses')document.getElementById('adminLicenses').classList.remove('hidden');else{document.getElementById('adminPayments').classList.remove('hidden');loadAdminPayments()}}
 function checkAdminAccess(){if(State.user.licenseKey===CONFIG.adminLicense)document.getElementById('adminNavBtn').style.display='flex'}
 function loadAdminLicenses(){db.ref('licenses').once('value').then(snap=>{const l=snap.val();if(l)renderLicenseTable(l);else document.getElementById('adminLicenseList').innerHTML='<tr><td colspan="6" class="text-center py-8 text-neutral">No licenses</td></tr>'})}
@@ -515,16 +753,24 @@ function saveLicense(){const ek=document.getElementById('editLicenseKey').value;
 function toggleLicense(key,isActive){db.ref('licenses/'+key).update({is_active:isActive}).then(()=>{loadAdminLicenses();showToast(`License ${isActive?'activated':'deactivated'}!`,'success')})}
 function deleteLicense(key){if(!confirm('Delete '+key+'?'))return;db.ref('licenses/'+key).remove().then(()=>{db.ref('signals/'+key).remove();loadAdminLicenses();showToast('Deleted!','success')})}
 
-// ==========================================
-// 16. HELPERS
-// ==========================================
-function copyText(arg){if(typeof arg==='string'&&arg.startsWith('AT-')||arg.match(/^\d/)){if(navigator.clipboard){navigator.clipboard.writeText(arg).then(()=>showToast(' Disalin!','success'));}}else{const el=document.getElementById(arg);if(el){const text=el.value||el.textContent;if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>showToast(' Disalin!','success'));else{el.select();document.execCommand('copy');showToast(' Disalin!','success')}}}}
+// HELPERS
+function copyText(arg){
+    let text='';
+    if(typeof arg==='string'&&!document.getElementById(arg)){
+        text=arg;
+    }else{
+        const el=document.getElementById(arg);
+        if(!el)return;
+        text=el.value||el.textContent||'';
+    }
+    copyTextStr(text);
+}
+function copyTextStr(text){
+    if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>showToast(' Disalin!','success'));}
+}
 
-// ==========================================
-// 17. SINGLE INIT
-// ==========================================
-document.addEventListener('DOMContentLoaded',()=>{console.log(' AetherTrade v2.7 Init');navigate('market');loadMarketData();setTimeout(initChart,800);setTimeout(checkAdminAccess,500);setTimeout(loadPaymentHistory,2000);console.log(' Init complete');});
+// INIT
+document.addEventListener('DOMContentLoaded',()=>{navigate('market');loadMarketData();setTimeout(initChart,800);setTimeout(checkAdminAccess,2000)});
 </script>
-
 </body>
 </html>
