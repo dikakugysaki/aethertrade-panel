@@ -443,6 +443,7 @@
 <div id="page-license" class="page-content hidden space-y-4">
     <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-4">License Details</h3><div id="licenseDetails"><p class="text-neutral">Register license to see details.</p></div></div>
     <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-4">Payment History</h3><div id="paymentHistory"><p class="text-neutral text-sm">No payments yet.</p></div></div>
+    <div class="glass-light rounded-2xl p-5"><h3 class="font-bold text-lg mb-3"> Invoice</h3><div id="invoiceList"><p class="text-neutral text-sm">No invoice yet.</p></div></div>
 </div>
 
 <!-- PAGE: SETTINGS -->
@@ -465,12 +466,35 @@
         </div>
         <div id="adminPayments" class="hidden">
             <h3 class="font-bold mb-3">Payment Queue</h3>
+            <div class="flex gap-2 mb-4">
+                <button onclick="filterPayments('all')" class="pay-filter-btn glass rounded-full px-4 py-1.5 text-xs active bg-accent-400/20 text-accent-400">All</button>
+                <button onclick="filterPayments('pending_verification')" class="pay-filter-btn glass rounded-full px-4 py-1.5 text-xs text-yellow-500">Pending</button>
+                <button onclick="filterPayments('approved')" class="pay-filter-btn glass rounded-full px-4 py-1.5 text-xs text-profit">Approved</button>
+                <button onclick="filterPayments('rejected')" class="pay-filter-btn glass rounded-full px-4 py-1.5 text-xs text-loss">Rejected</button>
+            </div>
             <div id="adminPaymentList"><p class="text-neutral text-sm">Loading...</p></div>
         </div>
     </div>
 </div>
 
 </main>
+</div>
+
+<!-- NOTIFICATION BELL + DROPDOWN -->
+<div class="fixed top-4 right-20 z-50">
+    <button onclick="toggleNotifications()" class="glass rounded-xl p-2.5 relative hover:bg-white/10 transition-all">
+        <i class="fas fa-bell text-lg"></i>
+        <span id="notifBadge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-loss text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
+    </button>
+    <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 glass rounded-2xl p-3 max-h-96 overflow-y-auto shadow-2xl border border-white/10">
+        <div class="flex justify-between items-center mb-3">
+            <p class="font-bold text-sm"> Notifications</p>
+            <button onclick="markAllNotifRead()" class="text-xs text-accent-400 hover:underline">Mark all read</button>
+        </div>
+        <div id="notifList" class="space-y-2">
+            <p class="text-neutral text-xs text-center py-4">No notifications</p>
+        </div>
+    </div>
 </div>
 
 <!-- MANUAL PAYMENT MODAL -->
@@ -488,6 +512,21 @@
         <button onclick="confirmManualPayment()" class="bg-gradient-to-r from-accent-400 to-primary-500 text-black font-bold px-6 py-3 rounded-xl text-sm w-full mb-2">Konfirmasi Pembayaran</button>
         <button onclick="document.getElementById('manualPayModal').classList.add('hidden')" class="glass rounded-xl px-6 py-3 text-sm w-full">Batal</button>
         <p class="text-xs text-neutral text-center mt-3">Admin akan verifikasi dalam 1x24 jam</p>
+    </div>
+</div>
+
+<!-- PAYMENT DETAIL MODAL -->
+<div id="paymentDetailModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+    <div class="glass-light rounded-2xl p-6 w-full max-w-lg animate-slideIn max-h-[90vh] overflow-y-auto">
+        <h3 class="text-xl font-bold mb-4">Payment Detail</h3>
+        <div id="paymentDetailContent">
+            <p class="text-neutral text-sm">Loading...</p>
+        </div>
+        <div class="flex gap-2 mt-4">
+            <button onclick="approvePaymentFromModal()" id="btnApprovePayment" class="bg-profit text-white font-bold px-6 py-3 rounded-xl text-sm flex-1"> Approve</button>
+            <button onclick="rejectPaymentFromModal()" id="btnRejectPayment" class="bg-loss/80 text-white font-bold px-6 py-3 rounded-xl text-sm"> Reject</button>
+            <button onclick="closePaymentDetail()" class="glass rounded-xl px-6 py-3 text-sm">Tutup</button>
+        </div>
     </div>
 </div>
 
@@ -509,7 +548,7 @@
 
 <script>
 // CONFIG
-const CONFIG={firebaseURL:"https://aethertrade-signals-default-rtdb.asia-southeast1.firebasedatabase.app/",apiURL:"http://89.21.85.27:8888",adminLicense:"AT-AB100702CB5771F2",packages:{pro:{name:'Pro',pricePerMonth:150000},max:{name:'Max',pricePerMonth:350000}},paymentMethods:{dana:'0859-3001-6248',gopay:'0859-3001-6248',seabank:'9017-9377-7670',name:'ANDIKA'}};
+const CONFIG={firebaseURL:"https://aethertrade-signals-default-rtdb.asia-southeast1.firebasedatabase.app/",apiURL:"http://89.21.85.27:8888",adminLicense:"AT-AB100702CB5771F2",telegramBotToken:"8532463057:AAENhEzEK2u6OcgHS2MWDy__wiSZF8OBlFY",telegramChatId:"6000348929",packages:{pro:{name:'Pro',pricePerMonth:150000},max:{name:'Max',pricePerMonth:350000}},paymentMethods:{dana:'0859-3001-6248',gopay:'0859-3001-6248',seabank:'9017-9377-7670',name:'ANDIKA'}};
 firebase.initializeApp({databaseURL:CONFIG.firebaseURL});const db=firebase.database();
 const State={user:{licenseKey:localStorage.getItem('at_license')||'',username:localStorage.getItem('at_username')||'Trader',package:'',expires:''},currentPage:'market',payment:{package:'',months:1}};
 let currentPair='XAUUSD',currentInterval='15',tvWidget=null;
@@ -525,6 +564,7 @@ const[t,s]=titles[page]||[page,''];document.getElementById('pageTitle').textCont
 if(page==='market'){loadMarketData();setTimeout(initChart,500);}
 if(page==='signals')loadSignals();if(page==='positions')loadPositions();if(page==='affiliate')loadAffiliate();
 if(page==='admin'){loadAdminLicenses();loadAdminPayments();}
+if(page==='license')loadLicensePage();
 if(window.innerWidth<1024)toggleSidebar(false);
 }
 function toggleSidebar(force){const s=document.getElementById('sidebar'),o=document.getElementById('sidebarOverlay');const open=force!==undefined?force:!s.classList.contains('open');if(open){s.classList.add('open');o.classList.add('open')}else{s.classList.remove('open');o.classList.remove('open')}}
@@ -735,7 +775,154 @@ function updateText(id,text){const el=document.getElementById(id);if(el)el.textC
 // PAYMENTS
 function selectPackage(pkg,el){State.payment.package=pkg;document.querySelectorAll('.pkg-card').forEach(e=>e.style.borderColor='rgba(255,255,255,0.05)');if(el)el.style.borderColor='#f59e0b';State.payment.months=1;document.getElementById('paymentDetails').classList.remove('hidden');document.getElementById('payTotal').textContent='Rp '+CONFIG.packages[pkg].pricePerMonth.toLocaleString()}
 function showManualPayment(){const amount=CONFIG.packages[State.payment.package].pricePerMonth*State.payment.months;document.getElementById('manualPayAmount').textContent='Rp '+amount.toLocaleString();document.getElementById('manualPayModal').classList.remove('hidden')}
-function confirmManualPayment(){const key='AT-'+Math.random().toString(36).substring(2,8).toUpperCase();const data={key:key,owner:State.user.username||'User',package:State.payment.package,plan:State.payment.package,is_active:true,autotrade_enabled:State.payment.package==='max',max_pairs:State.payment.package==='max'?10:5,expires:new Date(Date.now()+30*86400000).toISOString(),created:new Date().toISOString(),payment_method:'manual',payment_amount:CONFIG.packages[State.payment.package].pricePerMonth,payment_status:'pending'};db.ref('licenses/'+key).set(data).then(()=>{db.ref('payments/'+key).set({...data,timestamp:Date.now()});document.getElementById('manualPayModal').classList.add('hidden');showToast('Pembayaran dikirim! Admin akan verifikasi.','success');State.user.licenseKey=key;localStorage.setItem('at_license',key)})}
+// ==========================================
+// PAYMENT — TELEGRAM INTEGRATION
+// ==========================================
+function confirmManualPayment(){
+    if(!State.payment.package)return showToast('Pilih package!','error');
+    
+    const key='AT-'+Math.random().toString(36).substring(2,8).toUpperCase();
+    const note=prompt('Catatan (username Telegram):','')||'';
+    
+    const fileInput=document.getElementById('proofFile');
+    if(fileInput&&fileInput.files[0]){
+        const file=fileInput.files[0];
+        if(file.size>5*1024*1024){showToast('File terlalu besar! Max 5MB','error');return;}
+        
+        showToast(' Mengirim bukti ke Telegram...','info');
+        const reader=new FileReader();
+        reader.onload=function(e){
+            const base64=e.target.result;
+            sendPaymentToTelegram(key,note,base64,file.name);
+        };
+        reader.readAsDataURL(file);
+    }else{
+        sendPaymentToTelegram(key,note,null,null);
+    }
+}
+
+function sendPaymentToTelegram(key,note,photoBase64,filename){
+    const amount=CONFIG.packages[State.payment.package].pricePerMonth*State.payment.months;
+    const isMax=State.payment.package==='max';
+    const packageName=State.payment.package.toUpperCase();
+    const username=State.user.username||'User';
+    
+    const caption=
+` *NEW PAYMENT — VERIFICATION NEEDED*
+
+ *License:* \\`${key}\\`
+ *User:* ${username}
+ *Package:* ${packageName}
+ *Duration:* ${State.payment.months} Bulan
+ *Amount:* Rp ${amount.toLocaleString()}
+ *Note:* ${note||'Tidak ada'}
+ *Date:* ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+
+_ Verifikasi di panel admin: Settings  Payments  Pending_`;
+    
+    const data={
+        key:key,
+        owner:username,
+        package:State.payment.package,
+        plan:State.payment.package,
+        months:State.payment.months,
+        amount:amount,
+        is_active:false,
+        autotrade_enabled:isMax,
+        max_pairs:isMax?10:5,
+        expires:new Date(Date.now()+State.payment.months*30*86400000).toISOString(),
+        created:new Date().toISOString(),
+        payment_method:'manual_transfer',
+        payment_status:'pending_verification',
+        note:note,
+        proof_filename:filename||'',
+        proof_telegram_sent:true
+    };
+    
+    const telegramAPI='https://api.telegram.org/bot'+CONFIG.telegramBotToken;
+    
+    function simpanData(){
+        db.ref('licenses/'+key).set(data).then(()=>{
+            db.ref('payments/'+key).set({...data,timestamp:Date.now()});
+            db.ref('admin_notifications/payments').push({
+                key:key,owner:username,package:State.payment.package,amount:amount,status:'pending',timestamp:Date.now()
+            });
+            document.getElementById('manualPayModal').classList.add('hidden');
+            document.getElementById('paymentDetails').classList.add('hidden');
+            State.user.licenseKey=key;
+            localStorage.setItem('at_license',key);
+        }).catch(()=>showToast(' Gagal menyimpan data!','error'));
+    }
+    
+    if(photoBase64&&filename){
+        // Kirim foto ke Telegram
+        const arr=photoBase64.split(',');
+        const mime=arr[0].match(/:(.*?);/)[1];
+        const bstr=atob(arr[1]);
+        let n=bstr.length;
+        const u8arr=new Uint8Array(n);
+        while(n--){u8arr[n]=bstr.charCodeAt(n);}
+        const blob=new Blob([u8arr],{type:mime});
+        
+        const formData=new FormData();
+        formData.append('chat_id',CONFIG.telegramChatId);
+        formData.append('photo',blob,filename);
+        formData.append('caption',caption);
+        formData.append('parse_mode','Markdown');
+        
+        fetch(telegramAPI+'/sendPhoto',{method:'POST',body:formData})
+        .then(r=>r.json())
+        .then(res=>{
+            if(res.ok){
+                simpanData();
+                showToast(' Pembayaran dikirim! Bukti terkirim ke Telegram Admin.','success');
+            }else{
+                // Fallback: kirim teks saja
+                fetch(telegramAPI+'/sendMessage',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({
+                        chat_id:CONFIG.telegramChatId,
+                        text:caption+'\\n\\n _Gambar gagal terkirim. Minta user kirim ulang via Telegram._',
+                        parse_mode:'Markdown'
+                    })
+                });
+                simpanData();
+                showToast(' Data tersimpan. Gambar gagal dikirim.','warning');
+            }
+        })
+        .catch(()=>{
+            fetch(telegramAPI+'/sendMessage',{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({
+                    chat_id:CONFIG.telegramChatId,
+                    text:caption+'\\n\\n _Kirim via Telegram gagal. Cek koneksi._',
+                    parse_mode:'Markdown'
+                })
+            });
+            simpanData();
+            showToast(' Data tersimpan. Telegram error.','warning');
+        });
+    }else{
+        // Tanpa gambar — kirim teks saja
+        fetch(telegramAPI+'/sendMessage',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                chat_id:CONFIG.telegramChatId,
+                text:caption+'\\n\\n *TANPA BUKTI TRANSFER!*',
+                parse_mode:'Markdown'
+            })
+        }).then(()=>{
+            simpanData();
+            showToast(' Pembayaran dikirim (tanpa bukti). Admin akan verifikasi.','success');
+        }).catch(()=>{
+            simpanData();
+            showToast(' Data tersimpan. Notifikasi Telegram gagal.','warning');
+        });
+    }
+}
 
 // LICENSE
 function registerLicense(){const key=document.getElementById('regKey').value.trim().toUpperCase();if(!key)return showToast('Enter license key!','error');db.ref('licenses/'+key).once('value').then(snap=>{const d=snap.val();if(d?.is_active){State.user.licenseKey=key;State.user.package=d.package;State.user.expires=d.expires;localStorage.setItem('at_license',key);showToast('License registered!','success');navigate('market');loadMarketData()}else showToast('Invalid license!','error')}).catch(()=>showToast('Connection error','error'))}
@@ -745,8 +932,164 @@ function adminTab(tab){document.querySelectorAll('.admin-tab-btn').forEach(b=>b.
 function checkAdminAccess(){if(State.user.licenseKey===CONFIG.adminLicense)document.getElementById('adminNavBtn').style.display='flex'}
 function loadAdminLicenses(){db.ref('licenses').once('value').then(snap=>{const l=snap.val();if(l)renderLicenseTable(l);else document.getElementById('adminLicenseList').innerHTML='<tr><td colspan="6" class="text-center py-8 text-neutral">No licenses</td></tr>'})}
 function renderLicenseTable(licenses){const t=document.getElementById('adminLicenseList');t.innerHTML=Object.entries(licenses).map(([k,l])=>{const a=l.is_active,e=l.expires?new Date(l.expires):null,d=e?Math.ceil((e-new Date())/86400000):0;return`<tr class="border-b border-white/5"><td class="py-3 font-mono text-xs">${k.substring(0,12)}...</td><td class="py-3">${l.owner||'-'}</td><td class="py-3">${(l.package||'pro').toUpperCase()}</td><td class="py-3"><button onclick="toggleLicense('${k}',${!a})" class="px-2 py-1 rounded-full text-xs ${a?'bg-profit/20 text-profit':'bg-loss/20 text-loss'}">${a?'ACTIVE':'INACTIVE'}</button></td><td class="py-3 text-xs">${e?e.toLocaleDateString()+' ('+d+'d)':'N/A'}</td><td class="py-3"><button onclick="editLicense('${k}')" class="text-accent-400 text-xs mr-2"><i class="fas fa-edit"></i></button><button onclick="deleteLicense('${k}')" class="text-loss text-xs"><i class="fas fa-trash"></i></button></td></tr>`}).join('')}
-function loadAdminPayments(){db.ref('payments').once('value').then(snap=>{const p=snap.val()||{};const c=document.getElementById('adminPaymentList');const rows=Object.entries(p).map(([k,v])=>`<div class="glass rounded-xl p-3 text-sm mb-2 flex justify-between"><div><span class="font-bold">${v.owner||'User'}</span> - ${(v.package||'pro').toUpperCase()}</div><div><span class="text-accent-400">Rp ${(v.payment_amount||0).toLocaleString()}</span><button onclick="approvePayment('${k}')" class="bg-profit text-white px-2 py-1 rounded text-xs ml-2">Approve</button></div></div>`).join('');c.innerHTML=rows||'<p class="text-neutral text-sm">No pending payments</p>'})}
-function approvePayment(key){db.ref('licenses/'+key).update({is_active:true,payment_status:'approved'});db.ref('payments/'+key).update({status:'approved'});showToast('Payment approved!','success');loadAdminPayments();loadAdminLicenses()}
+// ==========================================
+// ADMIN PAYMENTS (UPGRADED)
+// ==========================================
+let currentPaymentFilter='all';
+let currentPaymentKey='';
+let allPaymentsData={};
+
+function filterPayments(filter){
+    currentPaymentFilter=filter;
+    document.querySelectorAll('.pay-filter-btn').forEach(b=>{
+        b.classList.remove('active','bg-accent-400/20','text-accent-400');
+    });
+    event.target.classList.add('active','bg-accent-400/20','text-accent-400');
+    renderPaymentList(allPaymentsData,filter);
+}
+
+function loadAdminPayments(){
+    db.ref('payments').on('value',snap=>{
+        allPaymentsData=snap.val()||{};
+        renderPaymentList(allPaymentsData,currentPaymentFilter);
+    });
+}
+
+function renderPaymentList(data,filter){
+    const c=document.getElementById('adminPaymentList');
+    if(!data||Object.keys(data).length===0){
+        c.innerHTML='<p class="text-neutral text-sm text-center py-4">No payments found</p>';return;
+    }
+    let entries=Object.entries(data);
+    if(filter!=='all'){
+        entries=entries.filter(([k,v])=>{
+            const status=v.payment_status||v.status||'pending';
+            return status===filter;
+        });
+    }
+    entries.sort((a,b)=>(b[1].timestamp||b[1].created||0)-(a[1].timestamp||a[1].created||0));
+    if(entries.length===0){
+        c.innerHTML='<p class="text-neutral text-sm text-center py-4">No '+filter+' payments</p>';return;
+    }
+    let html='';
+    entries.forEach(([k,v])=>{
+        const status=v.payment_status||v.status||'pending';
+        const statusIcon=status==='approved'?'':status==='rejected'?'':'';
+        const statusColor=status==='approved'?'text-profit':status==='rejected'?'text-loss':'text-yellow-500';
+        const date=new Date(v.timestamp||v.created).toLocaleDateString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+        const hasProof=v.proof_filename?'':'';
+        html+=`<div class="glass rounded-xl p-4 text-sm mb-3 hover:bg-white/5 transition-all cursor-pointer" onclick="openPaymentDetail('${k}')">
+            <div class="flex justify-between items-start mb-2">
+                <div><span class="font-bold">${v.owner||'User'}</span><span class="text-xs bg-accent-400/10 text-accent-400 px-2 py-0.5 rounded-full ml-2">${(v.package||v.plan||'pro').toUpperCase()}</span>${hasProof}</div>
+                <span class="${statusColor} text-xs">${statusIcon} ${status.toUpperCase()}</span>
+            </div>
+            <div class="flex justify-between text-xs text-neutral">
+                <span>Rp ${(v.amount||v.payment_amount||0).toLocaleString()} · ${v.months||1} Bulan</span><span>${date}</span>
+            </div>
+            <div class="flex gap-2 mt-2" onclick="event.stopPropagation()">
+                ${status==='pending_verification'||status==='pending'?`
+                <button onclick="approvePaymentDirect('${k}')" class="bg-profit/20 text-profit px-3 py-1 rounded-lg text-xs hover:bg-profit/30 transition-all"> Approve</button>
+                <button onclick="rejectPaymentDirect('${k}')" class="bg-loss/20 text-loss px-3 py-1 rounded-lg text-xs hover:bg-loss/30 transition-all"> Reject</button>`:''}
+                <button onclick="openPaymentDetail('${k}')" class="glass px-3 py-1 rounded-lg text-xs hover:bg-white/10 transition-all"> Detail</button>
+            </div>
+        </div>`;
+    });
+    c.innerHTML=html;
+}
+
+function openPaymentDetail(key){
+    currentPaymentKey=key;
+    db.ref('payments/'+key).once('value').then(snap=>{
+        const v=snap.val();if(!v)return;
+        const status=v.payment_status||v.status||'pending';
+        const date=new Date(v.timestamp||v.created).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+        const expiresDate=v.expires?new Date(v.expires).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):'N/A';
+        let html=`<div class="space-y-3"><div class="grid grid-cols-2 gap-2">
+            <div class="glass rounded-xl p-3"><p class="text-[10px] text-neutral uppercase">License Key</p><p class="font-mono font-bold text-sm">${key}</p></div>
+            <div class="glass rounded-xl p-3"><p class="text-[10px] text-neutral uppercase">Status</p><p class="${status==='approved'?'text-profit':status==='rejected'?'text-loss':'text-yellow-500'} font-bold text-sm">${status.toUpperCase()}</p></div>
+            <div class="glass rounded-xl p-3"><p class="text-[10px] text-neutral uppercase">Owner</p><p class="font-bold text-sm">${v.owner||'User'}</p></div>
+            <div class="glass rounded-xl p-3"><p class="text-[10px] text-neutral uppercase">Package</p><p class="font-bold text-accent-400 text-sm">${(v.package||v.plan||'pro').toUpperCase()} · ${v.months||1} Bulan</p></div>
+            <div class="glass rounded-xl p-3"><p class="text-[10px] text-neutral uppercase">Jumlah</p><p class="font-bold text-accent-400 text-lg">Rp ${(v.amount||v.payment_amount||0).toLocaleString()}</p></div>
+            <div class="glass rounded-xl p-3"><p class="text-[10px] text-neutral uppercase">Tanggal</p><p class="text-sm">${date}</p></div>
+            <div class="glass rounded-xl p-3"><p class="text-[10px] text-neutral uppercase">Promo</p><p class="text-sm">${v.promo_code||'-'}</p></div>
+            <div class="glass rounded-xl p-3"><p class="text-[10px] text-neutral uppercase">Expires</p><p class="text-sm">${expiresDate}</p></div>
+            <div class="glass rounded-xl p-3"><p class="text-[10px] text-neutral uppercase">Metode</p><p class="text-sm">${v.payment_method||'manual_transfer'}</p></div>
+            <div class="glass rounded-xl p-3"><p class="text-[10px] text-neutral uppercase">Notifikasi</p><p class="text-sm text-profit"> Telegram</p></div>
+            <div class="glass rounded-xl p-3 col-span-2"><p class="text-[10px] text-neutral uppercase">Catatan</p><p class="text-sm">${v.note||'-'}</p></div></div>`;
+        
+        // BUKTI TRANSFER — TELEGRAM VERSION
+        if(v.proof_telegram_sent&&v.proof_filename){
+            html+=`<div class="glass rounded-xl p-4 bg-profit/5 border border-profit/20">
+                <p class="text-xs text-neutral mb-2"> Bukti Transfer</p>
+                <p class="text-sm font-bold">${v.proof_filename}</p>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xl"></span>
+                    <div>
+                        <p class="text-xs text-profit font-bold"> Telah dikirim ke Telegram Admin</p>
+                        <p class="text-[10px] text-neutral">Cek Telegram @rimuru_genkai untuk melihat bukti transfer</p>
+                    </div>
+                </div>
+            </div>`;
+        }else if(v.proof_filename){
+            html+=`<div class="glass rounded-xl p-4 bg-yellow-500/5 border border-yellow-500/20">
+                <p class="text-xs text-neutral mb-2"> Bukti Transfer</p>
+                <p class="text-sm font-bold">${v.proof_filename}</p>
+                <p class="text-xs text-yellow-500 mt-1"> File ada tapi belum terkirim ke Telegram. Cek manual.</p>
+            </div>`;
+        }else{
+            html+=`<div class="glass rounded-xl p-4 bg-loss/5 border border-loss/20">
+                <p class="text-xs text-neutral mb-2"> Tidak Ada Bukti Transfer</p>
+                <p class="text-xs text-neutral">User tidak mengupload bukti transfer. Verifikasi manual via Telegram @rimuru_genkai.</p>
+            </div>`;
+        }
+        
+        html+=`</div>`;
+        document.getElementById('paymentDetailContent').innerHTML=html;
+        const btnApprove=document.getElementById('btnApprovePayment');
+        const btnReject=document.getElementById('btnRejectPayment');
+        if(status==='pending_verification'||status==='pending'){
+            btnApprove.style.display='block';btnReject.style.display='block';
+        }else{
+            btnApprove.style.display='none';btnReject.style.display='none';
+        }
+        document.getElementById('paymentDetailModal').classList.remove('hidden');
+    });
+}
+
+function closePaymentDetail(){document.getElementById('paymentDetailModal').classList.add('hidden');currentPaymentKey='';}
+function approvePaymentFromModal(){if(!currentPaymentKey)return;approvePaymentDirect(currentPaymentKey);closePaymentDetail();}
+function rejectPaymentFromModal(){if(!currentPaymentKey)return;rejectPaymentDirect(currentPaymentKey);closePaymentDetail();}
+
+function approvePaymentDirect(key){
+    if(!confirm('Approve payment: '+key+'?'))return;
+    db.ref('payments/'+key).once('value').then(snap=>{
+        const v=snap.val();if(!v)return;
+        const months=v.months||1;
+        const isMax=(v.package==='max'||v.plan==='max');
+        const now=Date.now();
+        const expiresDate=new Date(now+months*30*86400000).toISOString();
+        db.ref('payments/'+key).update({payment_status:'approved',status:'approved',approved_at:now,approved_by:'admin'});
+        db.ref('licenses/'+key).update({is_active:true,payment_status:'approved',autotrade_enabled:isMax,max_pairs:isMax?10:5,months:months,expires:expiresDate,package:v.package||v.plan||'pro',plan:v.package||v.plan||'pro',approved_at:now});
+        db.ref('invoices/'+key).set({license_key:key,owner:v.owner||'User',package:v.package||v.plan||'pro',months:months,amount:v.amount||v.payment_amount||0,status:'paid',created:new Date().toISOString(),expires:expiresDate});
+        const username=(v.owner||'User').replace(/[^a-zA-Z0-9]/g,'_');
+        db.ref('user_notifications/'+username).push({type:'payment_approved',license_key:key,package:v.package||'pro',months:months,amount:v.amount||0,message:' Pembayaran DISETUJUI! License '+key+' sekarang AKTIF. Berlaku sampai '+new Date(expiresDate).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+'.',invoice_key:key,timestamp:now,read:false});
+        showToast(' Payment approved! License active + invoice generated + notification sent.','success');
+    });
+}
+
+function rejectPaymentDirect(key){
+    const reason=prompt('Alasan reject (opsional):');
+    if(reason===null)return;
+    db.ref('payments/'+key).update({payment_status:'rejected',status:'rejected',rejected_at:Date.now(),reject_reason:reason||''});
+    db.ref('licenses/'+key).update({is_active:false,payment_status:'rejected'});
+    db.ref('payments/'+key).once('value').then(snap=>{
+        const v=snap.val();
+        const username=(v.owner||'User').replace(/[^a-zA-Z0-9]/g,'_');
+        db.ref('user_notifications/'+username).push({type:'payment_rejected',license_key:key,message:' Pembayaran DITOLAK. Alasan: '+(reason||'Tidak ada')+'. Hubungi admin.',timestamp:Date.now(),read:false});
+    });
+    showToast(' Payment rejected.','warning');
+}
+
 function showAddLicenseModal(){document.getElementById('licenseModalTitle').textContent='Add License';document.getElementById('editLicenseKey').value='';document.getElementById('licKey').value='';document.getElementById('licOwner').value='';document.getElementById('licAccount').value='';document.getElementById('licExpires').value='';document.getElementById('licenseModal').classList.remove('hidden')}
 function editLicense(k){db.ref('licenses/'+k).once('value').then(s=>{const l=s.val();if(l){document.getElementById('licenseModalTitle').textContent='Edit License';document.getElementById('editLicenseKey').value=k;document.getElementById('licKey').value=k;document.getElementById('licOwner').value=l.owner||'';document.getElementById('licPackage').value=l.package||'pro';document.getElementById('licAccount').value=l.account_login||'';document.getElementById('licExpires').value=l.expires?l.expires.substring(0,10):'';document.getElementById('licenseModal').classList.remove('hidden')}})}
 function saveLicense(){const ek=document.getElementById('editLicenseKey').value;const key=document.getElementById('licKey').value||'AT-'+Math.random().toString(36).substring(2,8).toUpperCase();const data={key:key,owner:document.getElementById('licOwner').value||'User',package:document.getElementById('licPackage').value,plan:document.getElementById('licPackage').value,is_active:true,autotrade_enabled:document.getElementById('licPackage').value==='max',max_pairs:document.getElementById('licPackage').value==='max'?10:5,expires:document.getElementById('licExpires').value?new Date(document.getElementById('licExpires').value).toISOString():new Date(Date.now()+30*86400000).toISOString(),created:new Date().toISOString(),account_login:document.getElementById('licAccount').value};db.ref('licenses/'+key).set(data).then(()=>{showToast(ek?'Updated!':'Created!','success');document.getElementById('licenseModal').classList.add('hidden');loadAdminLicenses()})}
@@ -769,8 +1112,66 @@ function copyTextStr(text){
     if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>showToast(' Disalin!','success'));}
 }
 
+// ==========================================
+// NOTIFICATION SYSTEM
+// ==========================================
+let notifUnread=0;
+
+function initNotifications(){
+    const username=State.user.username||'User';
+    const notifPath='user_notifications/'+username.replace(/[^a-zA-Z0-9]/g,'_');
+    db.ref(notifPath).orderByChild('timestamp').limitToLast(20).on('value',snap=>{
+        const data=snap.val();
+        const container=document.getElementById('notifList');
+        const badge=document.getElementById('notifBadge');
+        if(data){
+            const entries=Object.entries(data).reverse();
+            notifUnread=entries.filter(([k,v])=>!v.read).length;
+            if(notifUnread>0){badge.classList.remove('hidden');badge.textContent=notifUnread>99?'99+':notifUnread;}else{badge.classList.add('hidden');}
+            let html='';
+            entries.slice(0,10).forEach(([k,v])=>{
+                const icon=v.type==='payment_approved'?'':v.type==='payment_rejected'?'':'';
+                const bgClass=v.read?'':'bg-accent-400/5 border-l-2 border-accent-400';
+                const timeAgo=getTimeAgo(v.timestamp);
+                html+=`<div class="glass rounded-xl p-3 text-xs cursor-pointer ${bgClass} hover:bg-white/5 transition-all" onclick="markNotifRead('${k}')">
+                    <div class="flex items-start gap-2"><span class="text-lg">${icon}</span><div><p class="text-white">${v.message||''}</p><p class="text-neutral mt-1">${timeAgo}</p></div>${!v.read?'<span class="w-2 h-2 rounded-full bg-accent-400 flex-shrink-0 mt-1"></span>':''}</div></div>`;
+            });
+            container.innerHTML=html||'<p class="text-neutral text-xs text-center py-4">No notifications</p>';
+        }
+    });
+}
+
+function toggleNotifications(){document.getElementById('notifDropdown').classList.toggle('hidden');}
+function markNotifRead(key){const username=State.user.username||'User';const notifPath='user_notifications/'+username.replace(/[^a-zA-Z0-9]/g,'_');db.ref(notifPath+'/'+key+'/read').set(true);}
+function markAllNotifRead(){const username=State.user.username||'User';const notifPath='user_notifications/'+username.replace(/[^a-zA-Z0-9]/g,'_');db.ref(notifPath).once('value').then(snap=>{const data=snap.val();if(data){for(const key of Object.keys(data)){db.ref(notifPath+'/'+key+'/read').set(true);}}showToast(' Semua notifikasi ditandai sudah dibaca','success');});}
+function getTimeAgo(ts){if(!ts)return'';const diff=Date.now()-ts;const mins=Math.floor(diff/60000);if(mins<1)return'Baru saja';if(mins<60)return mins+'m ago';const hours=Math.floor(mins/60);if(hours<24)return hours+'h ago';const days=Math.floor(hours/24);return days+'d ago';}
+
+document.addEventListener('click',(e)=>{const dropdown=document.getElementById('notifDropdown');const bell=e.target.closest('button');if(dropdown&&!dropdown.contains(e.target)&&!bell){dropdown.classList.add('hidden');}});
+
+// ==========================================
+// LICENSE PAGE
+// ==========================================
+function loadLicensePage(){
+    const key=State.user.licenseKey;if(!key)return;
+    db.ref('licenses/'+key).on('value',snap=>{
+        const d=snap.val();
+        if(d){
+            const el=document.getElementById('licenseDetails');
+            const status=d.is_active?' Active':' Inactive';
+            const statusColor=d.is_active?'text-profit':'text-loss';
+            const exp=new Date(d.expires).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+            el.innerHTML=`<div class="space-y-2"><div class="flex justify-between"><span>License</span><span class="font-mono">${key}</span></div><div class="flex justify-between"><span>Package</span><span class="text-accent-400 font-bold">${(d.package||'pro').toUpperCase()}</span></div><div class="flex justify-between"><span>Status</span><span class="${statusColor} font-bold">${status}</span></div><div class="flex justify-between"><span>Expires</span><span>${exp}</span></div><div class="flex justify-between"><span>AutoTrade</span><span>${d.autotrade_enabled?' Enabled':' Disabled'}</span></div></div>`;
+        }
+    });
+    db.ref('invoices/'+key).on('value',snap=>{
+        const d=snap.val();
+        const el=document.getElementById('invoiceList');
+        if(d){el.innerHTML=`<div class="glass rounded-xl p-4"><p class="font-bold">Invoice #${key}</p><div class="text-xs text-neutral space-y-1 mt-2"><p>Package: ${d.package.toUpperCase()}</p><p>Durasi: ${d.months} Bulan</p><p>Jumlah: <span class="text-accent-400 font-bold">Rp ${(d.amount||0).toLocaleString()}</span></p><p>Status: <span class="text-profit font-bold">${d.status||'paid'}</span></p><p>Expires: ${new Date(d.expires).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</p></div></div>`;}
+    });
+}
+
 // INIT
-document.addEventListener('DOMContentLoaded',()=>{navigate('market');loadMarketData();setTimeout(initChart,800);setTimeout(checkAdminAccess,2000)});
+document.addEventListener('DOMContentLoaded',()=>{navigate('market');loadMarketData();setTimeout(initChart,800);setTimeout(checkAdminAccess,2000);setTimeout(initNotifications,3000);});
 </script>
 </body>
 </html>
