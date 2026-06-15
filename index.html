@@ -135,14 +135,13 @@
 </div>
 
 <!-- PAGE: POSITIONS -->
-<!-- PAGE: POSITIONS -->
 <div id="page-positions" class="page-content hidden space-y-4">
     
     <!-- Header -->
     <div class="flex items-center justify-between mb-2">
         <div>
             <h2 class="text-2xl font-bold">Open Positions</h2>
-            <p class="text-sm text-neutral" id="posLastUpdate">Last update: --</p>
+            <p class="text-sm text-neutral" id="posLastUpdate">EA Live: -- <span class="text-xs text-neutral ml-2" id="sessionIndicator"></span></p>
         </div>
         <button onclick="emergencyStop()" class="glass border-2 border-loss text-loss font-bold px-5 py-3 rounded-xl text-sm hover:bg-loss/10 transition-all">
             <i class="fas fa-shield-halved mr-2"></i>EMERGENCY STOP
@@ -154,7 +153,7 @@
         <p class="text-neutral text-center py-8">Register license first.</p>
     </div>
 
-    <!--  TRAILING STATUS v2.0  -->
+    <!--  TRAILING MONITOR v4.0 ULTIMATE  -->
     <div class="glass-light rounded-2xl p-5 mt-6 border-l-4 border-accent-400">
         
         <!-- Header -->
@@ -172,6 +171,9 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
+                <button onclick="exportTrailCSV()" class="glass rounded-lg px-3 py-2 text-xs hover:bg-white/10 transition-all" title="Export CSV">
+                    <i class="fas fa-download"></i>
+                </button>
                 <button onclick="copyTrailStatus()" class="glass rounded-lg px-3 py-2 text-xs hover:bg-white/10 transition-all" title="Copy Status">
                     <i class="fas fa-copy"></i>
                 </button>
@@ -228,19 +230,29 @@
             </div>
         </div>
 
-        <!-- Per-Slot Detail -->
-        <div class="space-y-2 max-h-96 overflow-y-auto" id="trailDetailList">
-            <div class="text-center py-8">
-                <div class="inline-block animate-spin text-2xl mb-2">&#9889;</div>
-                <p class="text-neutral text-sm">Loading trailing data...</p>
+        <!-- Per-Position Detail -->
+        <div class="space-y-2 max-h-[500px] overflow-y-auto" id="trailDetailList">
+            <div class="text-center py-12">
+                <div class="inline-block glass rounded-2xl p-6">
+                    <p class="text-4xl mb-3"></p>
+                    <p class="text-neutral font-medium">Waiting for EA data...</p>
+                    <p class="text-xs text-neutral mt-2">EA uploads trailing status every 15 seconds</p>
+                    <div class="mt-3 flex items-center justify-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-neutral animate-pulse"></span>
+                        <span class="w-2 h-2 rounded-full bg-neutral animate-pulse" style="animation-delay:0.2s"></span>
+                        <span class="w-2 h-2 rounded-full bg-neutral animate-pulse" style="animation-delay:0.4s"></span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Legend -->
         <div class="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-white/5 text-xs text-neutral">
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-profit"></span> Active</span>
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-yellow-500"></span> Pending</span>
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-neutral"></span> Waiting</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-400"></span> Active</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-orange-400"></span> Close</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-yellow-400"></span> Near</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-400"></span> Mid</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-neutral"></span> Far</span>
             <span class="flex items-center gap-1.5"><i class="fas fa-clock text-yellow-400"></i> Candle close check</span>
         </div>
     </div>
@@ -711,16 +723,267 @@ function copyText(arg){let text='';if(typeof arg==='string'&&!document.getElemen
 function copyTextStr(text){if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>showToast('[OK] Disalin!','success'));}}
 
 // ==========================================
-// TRAILING STATUS v2.0
+// TRAILING MONITOR v4.0 — ULTIMATE PROFESSIONAL
 // ==========================================
-let trailCurrentPair='BTC/USD';let trailInterval=null;
-function switchTrailPair(pair){trailCurrentPair=pair;document.querySelectorAll('.trail-tab-btn').forEach(b=>{b.classList.remove('border-accent-400','bg-accent-400/10','text-accent-400');b.classList.add('border-transparent','text-neutral');});const activeTab=document.getElementById('trailTab'+pair.replace('/USD',''));if(activeTab){activeTab.classList.add('border-accent-400','bg-accent-400/10','text-accent-400');activeTab.classList.remove('border-transparent','text-neutral');}loadTrailingStatus();}
-function loadTrailingStatus(){const pairPath=trailCurrentPair.replace('/','_');db.ref('trailing/'+CONFIG.adminLicense+'/'+pairPath).once('value').then(snap=>{const data=snap.val();if(!data||!data.positions||data.positions.length===0){showTrailEmpty();return;}const positions=data.positions;const totalTrail=data.totalTrails||0;const activeTrail=data.activeTrails||0;const pendingTrail=totalTrail-activeTrail;const totalProfitLocked=data.totalProfitLocked||0;document.getElementById('trailTotal').textContent=totalTrail;document.getElementById('trailActive').textContent=activeTrail;document.getElementById('trailPending').textContent=pendingTrail;document.getElementById('trailProfitLocked').textContent='$'+totalProfitLocked.toFixed(2);const overallPct=totalTrail>0?Math.round((activeTrail/totalTrail)*100):0;document.getElementById('trailOverallPct').textContent=overallPct+'%';document.getElementById('trailOverallBar').style.width=overallPct+'%';const updateTime=data.updated?new Date(data.updated*1000).toLocaleTimeString():'--';document.getElementById('posLastUpdate').textContent='EA Update: '+updateTime;let html='';positions.forEach(pos=>{const dir=pos.dir;const entry=pos.entry;const sl=pos.sl;const profit=pos.profit;const trailStart=pos.trailStart;const trailStep=pos.trailStep;const active=pos.active;const ticket=pos.ticket;let progressPct=0;let statusText,statusColor,borderColor,bgGlow;if(active){progressPct=100;statusText='ACTIVE';statusColor='text-profit';borderColor='border-l-2 border-profit';bgGlow='bg-profit/5';}else if(dir==='BUY'&&entry>0&&trailStart>entry){const totalDist=trailStart-entry;const profitDist=Math.abs(profit);progressPct=totalDist>0?Math.min(99,(profitDist/(totalDist*100))*100):0;statusText='PENDING';statusColor='text-yellow-400';borderColor='border-l-2 border-yellow-500';bgGlow='bg-yellow-500/5';}else if(dir==='SELL'&&entry>0&&trailStart<entry){const totalDist=entry-trailStart;const profitDist=Math.abs(profit);progressPct=totalDist>0?Math.min(99,(profitDist/(totalDist*100))*100):0;statusText='PENDING';statusColor='text-yellow-400';borderColor='border-l-2 border-yellow-500';bgGlow='bg-yellow-500/5';}else{progressPct=0;statusText='WAITING';statusColor='text-neutral';borderColor='border-l-2 border-white/10';bgGlow='';}const barGradient=progressPct>=100?'bg-gradient-to-r from-profit to-emerald-400':progressPct>50?'bg-gradient-to-r from-yellow-500 to-accent-400':'bg-gradient-to-r from-neutral to-yellow-500';const profitEmoji=profit>=0?'':'';const profitClass=profit>=0?'text-profit':'text-loss';const now2=new Date();const mins2=now2.getMinutes(),secs2=now2.getSeconds();const currentCandle=Math.floor(mins2/15)*15;const nextCandle=(currentCandle+15)%60;let minsToClose=nextCandle-mins2;if(minsToClose<=0)minsToClose+=15;const totalSecs=minsToClose*60-secs2;const countdownMin=Math.floor(totalSecs/60);const countdownSec=totalSecs%60;html+='<div class="glass rounded-xl p-3 '+borderColor+' '+bgGlow+' transition-all card-hover"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><span>'+(dir==='BUY'?'':'')+'</span><span class="font-bold text-xs">#'+ticket+'</span><span class="text-xs px-2 py-0.5 rounded-full '+statusColor+' bg-white/5">'+statusText+'</span></div><span class="text-xs font-bold '+profitClass+'">'+(profit>=0?'+':'')+'$'+profit.toFixed(2)+'</span></div><div class="grid grid-cols-3 gap-2 text-xs mb-2"><div><span class="text-neutral">Entry</span><p class="text-white">$'+entry.toFixed(2)+'</p></div><div><span class="text-neutral">SL</span><p class="text-loss">$'+sl.toFixed(2)+'</p></div><div><span class="text-neutral">TT</span><p class="text-yellow-400">$'+trailStart.toFixed(2)+'</p></div></div><div class="w-full h-2 bg-white/5 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-700 '+barGradient+'" style="width:'+progressPct+'%"></div></div><div class="flex justify-between text-[10px] text-neutral mt-1"><span>$'+entry.toFixed(2)+'</span><span>$'+trailStart.toFixed(2)+'</span></div>'+(active?'<div class="mt-2 pt-2 border-t border-profit/20 flex items-center justify-between"><span class="text-xs text-profit flex items-center gap-1"><i class="fas fa-shield-check"></i> Trailing Active</span><span class="text-xs text-profit font-bold">SL  $'+sl.toFixed(2)+'</span></div>':'<div class="mt-2 pt-2 border-t border-white/5"><p class="text-xs text-neutral flex items-center gap-1"><i class="fas fa-clock text-yellow-400"></i> Next check: ~'+countdownMin+'m '+countdownSec+'s</p></div>')+'</div>';});document.getElementById('trailDetailList').innerHTML=html||'<p class="text-neutral text-center py-4">No trailing positions</p>';updateNextCheckCountdown();}).catch(err=>{console.error('Trailing load error:',err);showTrailEmpty();});}
-function showTrailEmpty(){document.getElementById('trailTotal').textContent='--';document.getElementById('trailActive').textContent='--';document.getElementById('trailPending').textContent='--';document.getElementById('trailProfitLocked').textContent='--';document.getElementById('trailOverallPct').textContent='0%';document.getElementById('trailOverallBar').style.width='0%';document.getElementById('trailDetailList').innerHTML='<div class="text-center py-8"><p class="text-3xl mb-2"></p><p class="text-neutral text-sm">Waiting for EA data...</p><p class="text-xs text-neutral mt-1">EA uploads trailing status every 30s</p></div>';document.getElementById('posLastUpdate').textContent='Waiting for EA...';}
-function updateNextCheckCountdown(){const now3=new Date();const mins3=now3.getMinutes(),secs3=now3.getSeconds();const currentCandle2=Math.floor(mins3/15)*15;const nextCandle2=(currentCandle2+15)%60;let minsToClose2=nextCandle2-mins3;if(minsToClose2<=0)minsToClose2+=15;const totalSecs2=minsToClose2*60-secs3;const countdownMin2=Math.floor(totalSecs2/60);const countdownSec2=totalSecs2%60;const el=document.getElementById('trailNextCheck');if(el)el.textContent='Next check: '+countdownMin2+'m '+countdownSec2+'s';}
-function copyTrailStatus(){const total=document.getElementById('trailTotal').textContent;const active=document.getElementById('trailActive').textContent;const pending=document.getElementById('trailPending').textContent;const profit=document.getElementById('trailProfitLocked').textContent;const overall=document.getElementById('trailOverallPct').textContent;const text=' Trailing Status — '+trailCurrentPair+'\n'+'========================\n'+'Total: '+total+' | Active: '+active+' | Pending: '+pending+'\n'+'Overall: '+overall+' | Profit Locked: '+profit+'\n'+'========================\n'+new Date().toLocaleString();navigator.clipboard.writeText(text).then(()=>showToast(' Status copied!','success'));}
-function startTrailAutoRefresh(){if(trailInterval)clearInterval(trailInterval);trailInterval=setInterval(function(){if(State.currentPage==='positions'){loadTrailingStatus();}},10000);loadTrailingStatus();}
+let trailCurrentPair='BTC/USD';let trailInterval=null;let trailLivePrices={BTCUSD:0,XAUUSD:0};
+let trailAutoScroll=true;let trailLastActiveCount=0;let trailSoundEnabled=true;
+
+function switchTrailPair(pair){
+    trailCurrentPair=pair;
+    document.querySelectorAll('.trail-tab-btn').forEach(b=>{b.classList.remove('border-accent-400','bg-accent-400/10','text-accent-400');b.classList.add('border-transparent','text-neutral');});
+    const activeTab=document.getElementById('trailTab'+pair.replace('/USD',''));
+    if(activeTab){activeTab.classList.add('border-accent-400','bg-accent-400/10','text-accent-400');activeTab.classList.remove('border-transparent','text-neutral');}
+    trailAutoScroll=true;loadTrailingStatus();
+}
+
+function updateLivePrices(){
+    db.ref('prices/BTCUSD').once('value').then(snap=>{const p=snap.val();if(p){trailLivePrices.BTCUSD=typeof p==='object'?p.bid:p;document.getElementById('tickerBTC').textContent='$'+trailLivePrices.BTCUSD.toFixed(2);document.getElementById('tickerBTC').className=trailLivePrices.BTCUSD>=0?'text-profit':'text-loss';}}).catch(()=>{});
+    db.ref('prices/XAUUSD').once('value').then(snap=>{const p=snap.val();if(p){trailLivePrices.XAUUSD=typeof p==='object'?p.bid:p;document.getElementById('tickerXAU').textContent='$'+trailLivePrices.XAUUSD.toFixed(2);document.getElementById('tickerXAU').className=trailLivePrices.XAUUSD>=0?'text-profit':'text-loss';}}).catch(()=>{});
+    if(State.currentPage==='positions')loadTrailingStatus();
+}
+
+function playTrailSound(){if(trailSoundEnabled){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;o.type='sine';g.gain.value=0.1;o.start();o.stop(ctx.currentTime+0.15);}catch(e){}}}
+
+function exportTrailCSV(){
+    const rows=[['Ticket','Direction','Entry','SL','TT','Price','Profit','Status','Distance to TT']];
+    document.querySelectorAll('#trailDetailList > div').forEach(div=>{
+        const ticket=div.querySelector('.ticket-id')?.textContent?.replace('#','')||'';
+        const dir=div.querySelector('.dir-icon')?.textContent?.includes('')?'BUY':'SELL';
+        const cells=div.querySelectorAll('.grid-cols-4 .font-bold');
+        const entry=cells[0]?.textContent?.replace('$','')||'';
+        const sl=cells[1]?.textContent?.replace('$','')||'';
+        const tt=cells[2]?.textContent?.replace('$','')||'';
+        const price=cells[3]?.textContent?.replace('$','')||'';
+        const profit=div.querySelector('.profit-text')?.textContent?.replace('$','')||'';
+        const status=div.querySelector('.status-badge')?.textContent?.trim()||'';
+        const need=div.querySelector('.need-text')?.textContent?.replace('Need: $','')||'0';
+        rows.push([ticket,dir,entry,sl,tt,price,profit,status,need]);
+    });
+    const csv=rows.map(r=>r.join(',')).join('\n');
+    const blob=new Blob([csv],{type:'text/csv'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='trailing_'+trailCurrentPair.replace('/','_')+'_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();URL.revokeObjectURL(url);
+    showToast(' CSV exported!','success');
+}
+
+function loadTrailingStatus(){
+    const pairPath=trailCurrentPair.replace('/','_');
+    db.ref('trailing/'+CONFIG.adminLicense+'/'+pairPath).once('value').then(snap=>{
+        const data=snap.val();
+        if(!data||!data.positions||data.positions.length===0){showTrailEmpty();return;}
+        
+        const positions=data.positions;
+        const totalTrail=data.totalTrails||0;
+        const activeTrail=data.activeTrails||0;
+        const pendingTrail=totalTrail-activeTrail;
+        const totalProfitLocked=data.totalProfitLocked||0;
+        const totalProfit=data.totalProfit||0;
+        
+        // Sound alert kalau ada trailing baru aktif
+        if(activeTrail>trailLastActiveCount){playTrailSound();}
+        trailLastActiveCount=activeTrail;
+        
+        // Summary dengan format rapi
+        document.getElementById('trailTotal').textContent=totalTrail;
+        document.getElementById('trailActive').textContent=activeTrail;
+        document.getElementById('trailPending').textContent=pendingTrail;
+        document.getElementById('trailProfitLocked').textContent='$'+totalProfitLocked.toFixed(2);
+        
+        const overallPct=totalTrail>0?Math.round((activeTrail/totalTrail)*100):0;
+        document.getElementById('trailOverallPct').textContent=overallPct+'%';
+        document.getElementById('trailOverallBar').style.width=overallPct+'%';
+        
+        // Update header dengan session
+        const updateTime=data.updated?new Date(data.updated*1000).toLocaleTimeString():'--';
+        const hour=new Date().getHours();
+        const session=hour>=7&&hour<15?' ASIA':hour>=15&&hour<21?' LONDON':hour>=21||hour<7?' NEW YORK':' CLOSED';
+        document.getElementById('posLastUpdate').innerHTML='EA Live: '+updateTime+' <span class="text-xs text-neutral ml-2">'+session+'</span>';
+        
+        // Total floating P/L di header
+        const headerPL=document.getElementById('headerPL');
+        if(headerPL)headerPL.textContent=(totalProfit>=0?'+':'')+'$'+totalProfit.toFixed(2);
+        
+        const priceKey=trailCurrentPair==='BTC/USD'?'BTCUSD':'XAUUSD';
+        const livePrice=data.currentBid||trailLivePrices[priceKey]||0;
+        
+        // Sort: active first, then by profit desc
+        positions.sort((a,b)=>(b.active-a.active)||((b.profit||0)-(a.profit||0)));
+        
+        let html='';
+        positions.forEach((pos,index)=>{
+            const dir=pos.dir;
+            const entry=pos.entry;
+            const sl=pos.sl;
+            const profit=pos.profit||0;
+            const trailStart=pos.trailStart;
+            const trailStep=pos.trailStep;
+            const active=pos.active;
+            const ticket=pos.ticket;
+            const distanceToTrail=pos.distanceToTrail||0;
+            const currentPrice=pos.currentPrice||livePrice;
+            const entryTime=pos.entryTime?new Date(pos.entryTime*1000).toLocaleString():'';
+            
+            // Progress calculation
+            let progressPct=0;
+            let statusText,statusColor,borderColor,bgGlow,heatColor;
+            
+            if(active){
+                progressPct=100;
+                statusText=' ACTIVE';
+                statusColor='text-profit';
+                borderColor='border-l-2 border-profit';
+                bgGlow='bg-gradient-to-r from-profit/10 to-transparent';
+                heatColor='#10b981';
+            }else{
+                const distPct=trailStart>0?Math.abs(currentPrice-trailStart)/Math.abs(trailStart-entry)*100:100;
+                if(distPct<10){progressPct=90;statusText=' CLOSE';statusColor='text-orange-400';borderColor='border-l-2 border-orange-500';bgGlow='bg-gradient-to-r from-orange-500/10 to-transparent';heatColor='#f97316';}
+                else if(distPct<25){progressPct=70;statusText=' NEAR';statusColor='text-yellow-400';borderColor='border-l-2 border-yellow-500';bgGlow='bg-gradient-to-r from-yellow-500/10 to-transparent';heatColor='#eab308';}
+                else if(distPct<50){progressPct=40;statusText=' MID';statusColor='text-blue-400';borderColor='border-l-2 border-blue-500';bgGlow='';heatColor='#3b82f6';}
+                else{progressPct=10;statusText=' FAR';statusColor='text-neutral';borderColor='border-l-2 border-white/10';bgGlow='';heatColor='#6b7280';}
+            }
+            
+            const barGradient=progressPct>=100?'bg-gradient-to-r from-emerald-400 to-profit animate-trail-pulse':
+                progressPct>=70?'bg-gradient-to-r from-yellow-400 to-emerald-400':
+                progressPct>=30?'bg-gradient-to-r from-orange-400 to-yellow-400':
+                'bg-gradient-to-r from-neutral to-blue-400';
+            
+            // Sparkline mini (entry  TT  current)
+            const sparklineWidth=100;
+            const entryPos=0;
+            const ttPos=50;
+            const currentPos=progressPct>=100?100:Math.min(95,progressPct);
+            const slPos=active?Math.min(90,(sl-entry)/(trailStart-entry)*50+50):50;
+            
+            // Row color
+            const rowBg=index%2===0?'':'bg-white/[0.02]';
+            
+            // Countdown
+            const now2=new Date();
+            const mins2=now2.getMinutes(),secs2=now2.getSeconds();
+            const currentCandle=Math.floor(mins2/15)*15;
+            const nextCandle=(currentCandle+15)%60;
+            let minsToClose=nextCandle-mins2;
+            if(minsToClose<=0)minsToClose+=15;
+            const totalSecs=minsToClose*60-secs2;
+            const countdownMin=Math.floor(totalSecs/60);
+            const countdownSec=totalSecs%60;
+            
+            html+='<div class="glass rounded-xl p-3 '+borderColor+' '+bgGlow+' '+rowBg+' transition-all card-hover relative overflow-hidden">'+
+                // Heat dot
+                '<div class="absolute top-2 right-2 w-2 h-2 rounded-full" style="background:'+heatColor+'"></div>'+
+                // Row 1: Ticket + Status
+                '<div class="flex items-center justify-between mb-2">'+
+                    '<div class="flex items-center gap-2">'+
+                        '<span class="text-lg dir-icon">'+(dir==='BUY'?'':'')+'</span>'+
+                        '<span class="font-bold text-xs ticket-id">#'+ticket+'</span>'+
+                        '<span class="text-[10px] text-neutral hidden sm:inline">'+entryTime+'</span>'+
+                        '<span class="text-xs px-2 py-0.5 rounded-full '+statusColor+' bg-white/5 status-badge">'+statusText+'</span>'+
+                    '</div>'+
+                    '<div class="flex items-center gap-3">'+
+                        '<span class="text-xs font-bold profit-text '+(profit>=0?'text-profit':'text-loss')+'">'+(profit>=0?'+':'')+'$'+profit.toFixed(2)+'</span>'+
+                        '<span class="text-[10px] font-bold '+statusColor+' w-8 text-right">'+progressPct.toFixed(0)+'%</span>'+
+                    '</div>'+
+                '</div>'+
+                // Row 2: Mini Sparkline
+                '<div class="relative h-4 mb-2 mx-1">'+
+                    '<div class="absolute inset-0 flex items-center">'+
+                        '<div class="w-full h-0.5 bg-white/10 rounded-full relative">'+
+                            '<div class="absolute top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-white" style="left:'+entryPos+'%"></div>'+
+                            '<div class="absolute top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-yellow-400" style="left:'+ttPos+'%"></div>'+
+                            (active?'<div class="absolute top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-profit animate-pulse" style="left:'+slPos+'%"></div>':'')+
+                            '<div class="absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border-2 border-white shadow-lg shadow-white/50" style="left:'+currentPos+'%"></div>'+
+                        '</div>'+
+                    '</div>'+
+                '</div>'+
+                // Row 3: Data Grid
+                '<div class="grid grid-cols-4 gap-2 text-xs mb-2">'+
+                    '<div><span class="text-neutral">Entry</span><p class="text-white font-bold">$'+entry.toFixed(2)+'</p></div>'+
+                    '<div><span class="text-neutral">SL '+(active?'':'')+'</span><p class="'+(active?'text-profit':'text-loss')+' font-bold">$'+sl.toFixed(2)+'</p></div>'+
+                    '<div><span class="text-neutral">TT</span><p class="text-yellow-400 font-bold">$'+trailStart.toFixed(2)+'</p></div>'+
+                    '<div><span class="text-neutral">Now</span><p class="text-white font-bold">$'+currentPrice.toFixed(2)+'</p></div>'+
+                '</div>'+
+                // Row 4: Progress Bar
+                '<div class="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-1">'+
+                    '<div class="h-full rounded-full transition-all duration-700 '+barGradient+'" style="width:'+progressPct+'%"></div>'+
+                '</div>'+
+                // Row 5: Footer
+                '<div class="flex justify-between text-[10px]">'+
+                    '<span class="text-neutral">$'+entry.toFixed(2)+'</span>'+
+                    '<span class="text-neutral">$'+trailStart.toFixed(2)+'</span>'+
+                '</div>'+
+                // Row 6: Action info
+                (active?
+                    '<div class="mt-2 pt-2 border-t border-profit/20 flex items-center justify-between">'+
+                        '<span class="text-xs text-profit flex items-center gap-1"><i class="fas fa-shield-check"></i> Secured: $'+(Math.abs(sl-entry)).toFixed(2)+'</span>'+
+                        '<span class="text-[10px] text-profit">Step: $'+trailStep.toFixed(2)+'</span>'+
+                    '</div>':
+                    '<div class="mt-2 pt-2 border-t border-white/5 flex items-center justify-between">'+
+                        '<span class="text-xs text-neutral flex items-center gap-1"><i class="fas fa-clock text-yellow-400"></i> Check: ~'+countdownMin+'m '+countdownSec+'s</span>'+
+                        '<span class="text-xs text-yellow-400 need-text">Need: $'+Math.abs(distanceToTrail).toFixed(2)+'</span>'+
+                    '</div>')+
+            '</div>';
+        });
+        
+        document.getElementById('trailDetailList').innerHTML=html||'<p class="text-neutral text-center py-4">No active positions</p>';
+        
+        // Auto-scroll ke trailing yang baru aktif
+        if(trailAutoScroll&&activeTrail>0){
+            setTimeout(()=>{
+                const activeEl=document.querySelector('#trailDetailList .border-l-2.border-profit');
+                if(activeEl)activeEl.scrollIntoView({behavior:'smooth',block:'center'});
+            },300);
+            trailAutoScroll=false;
+        }
+        
+        updateNextCheckCountdown();
+    }).catch(err=>{console.error('Trailing error:',err);showTrailEmpty();});
+}
+
+function showTrailEmpty(){
+    document.getElementById('trailTotal').textContent='--';
+    document.getElementById('trailActive').textContent='--';
+    document.getElementById('trailPending').textContent='--';
+    document.getElementById('trailProfitLocked').textContent='--';
+    document.getElementById('trailOverallPct').textContent='0%';
+    document.getElementById('trailOverallBar').style.width='0%';
+    document.getElementById('trailDetailList').innerHTML='<div class="text-center py-12"><div class="inline-block glass rounded-2xl p-6"><p class="text-4xl mb-3"></p><p class="text-neutral font-medium">Waiting for EA data...</p><p class="text-xs text-neutral mt-2">EA uploads trailing status every 15 seconds</p><div class="mt-3 flex items-center justify-center gap-1"><span class="w-2 h-2 rounded-full bg-neutral animate-pulse"></span><span class="w-2 h-2 rounded-full bg-neutral animate-pulse" style="animation-delay:0.2s"></span><span class="w-2 h-2 rounded-full bg-neutral animate-pulse" style="animation-delay:0.4s"></span></div></div></div>';
+    document.getElementById('posLastUpdate').textContent='Waiting for EA...';
+}
+
+function updateNextCheckCountdown(){
+    const now3=new Date();
+    const mins3=now3.getMinutes(),secs3=now3.getSeconds();
+    const currentCandle2=Math.floor(mins3/15)*15;
+    const nextCandle2=(currentCandle2+15)%60;
+    let minsToClose2=nextCandle2-mins3;
+    if(minsToClose2<=0)minsToClose2+=15;
+    const totalSecs2=minsToClose2*60-secs3;
+    const countdownMin2=Math.floor(totalSecs2/60);
+    const countdownSec2=totalSecs2%60;
+    const el=document.getElementById('trailNextCheck');
+    if(el)el.textContent='Next check: '+countdownMin2+'m '+countdownSec2+'s';
+}
+
+function copyTrailStatus(){
+    const total=document.getElementById('trailTotal').textContent;
+    const active=document.getElementById('trailActive').textContent;
+    const pending=document.getElementById('trailPending').textContent;
+    const profit=document.getElementById('trailProfitLocked').textContent;
+    const overall=document.getElementById('trailOverallPct').textContent;
+    const text=' Trailing Status — '+trailCurrentPair+'\n'+'\n'+'Total: '+total+' | Active: '+active+' | Pending: '+pending+'\n'+'Overall: '+overall+' | Profit Locked: '+profit+'\n'+'\n'+new Date().toLocaleString();
+    navigator.clipboard.writeText(text).then(()=>showToast(' Copied!','success'));
+}
+
+function startTrailAutoRefresh(){
+    if(trailInterval)clearInterval(trailInterval);
+    trailInterval=setInterval(function(){if(State.currentPage==='positions'){loadTrailingStatus();}},5000);
+    loadTrailingStatus();
+}
+
 setInterval(updateNextCheckCountdown,1000);
+setInterval(updateLivePrices,5000);
+updateLivePrices();
 
 // ==========================================
 // NOTIFICATION SYSTEM
