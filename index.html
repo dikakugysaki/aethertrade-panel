@@ -623,7 +623,6 @@ const CONFIG={firebaseURL:"https://aethertrade-signals-default-rtdb.asia-southea
 firebase.initializeApp({databaseURL:CONFIG.firebaseURL});const db=firebase.database();
 const State={user:{licenseKey:localStorage.getItem('at_license')||'',username:localStorage.getItem('at_username')||'Trader',package:'',expires:''},currentPage:'market',payment:{package:'',months:1}};
 let currentPair='XAUUSD',currentInterval='15',tvWidget=null;
-let trailCurrentPair='BTC/USD';  //
 
 // NAVIGATION
 function navigate(page){
