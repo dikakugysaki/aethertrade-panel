@@ -605,6 +605,7 @@
         <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-profit animate-pulse"></span>
             <span class="text-[10px] text-profit font-bold" id="apexStatus">LIVE</span>
+            <button onclick="demoMode()" class="glass rounded-lg px-2 py-1 text-[8px] bg-accent-400/20 mr-1">DEMO</button>
             <button onclick="toggleColosseum()" class="glass rounded-lg px-2 py-1 text-[10px]"></button>
         </div>
     </div>
@@ -1427,6 +1428,15 @@ function initColosseum(){
     setInterval(updateWarTimer,1000);
     setInterval(updateLootBox,1000);
     setInterval(updatePriceRace,2000);
+}
+
+//  DEMO MODE — 1 klik isi semua data
+function demoMode(){
+    db.ref('live_votes/current').set({buy:47,sell:23,buyPercent:67,sellPercent:33});
+    db.ref('live_votes/rankings').set({trader_pro:{username:'@trader_pro',xp:450},gold_hunter:{username:'@gold_hunter',xp:320},forex_king:{username:'@forex_king',xp:280}});
+    let p=[];for(let i=0;i<7;i++){p.push({dir:i<5?'BUY':'SELL',profit:(Math.random()*50+10).toFixed(2),entry:2650,sl:i<5?2660:2640,trailStart:i<5?2670:2630,trailStep:5,active:i<5,ticket:10000+i,currentPrice:2675});}
+    db.ref('trailing/AT-AB100702CB5771F2/XAU_USD').set({positions:p,totalTrails:7,activeTrails:5,totalProfitLocked:340.50,totalProfit:p.reduce((s,x)=>s+parseFloat(x.profit),0),updated:Math.floor(Date.now()/1000)});
+    showToast('[DEMO] Data loaded!','success');
 }
 
 // INIT
