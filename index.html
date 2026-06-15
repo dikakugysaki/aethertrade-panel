@@ -49,6 +49,26 @@
         .trail-inactive{background:rgba(107,114,128,0.1);border-left:3px solid #6b7280}
         .aff-tier-node{transition:all 0.5s cubic-bezier(0.4,0,0.2,1)}
         .line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        @keyframes confetti{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(-300px) rotate(720deg);opacity:0}}
+        @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+        @keyframes glow{0%,100%{box-shadow:0 0 10px rgba(245,158,11,0.3)}50%{box-shadow:0 0 35px rgba(245,158,11,0.9)}}
+        @keyframes bounceIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
+        @keyframes slideUp{0%{transform:translateY(100%);opacity:0}100%{transform:translateY(0);opacity:1}}
+        @keyframes pulse-gold{0%,100%{box-shadow:0 0 10px rgba(245,158,11,0.4)}50%{box-shadow:0 0 30px rgba(245,158,11,0.9),0 0 60px rgba(245,158,11,0.4)}}
+        @keyframes raceMove{0%{left:0}100%{left:calc(100% - 30px)}}
+        @keyframes lootOpen{0%{transform:scale(1) rotate(0)}50%{transform:scale(1.3) rotate(10deg)}100%{transform:scale(1) rotate(0)}}
+        .animate-confetti{animation:confetti 2.5s ease-out forwards}
+        .animate-shake{animation:shake 0.6s ease-in-out}
+        .animate-glow{animation:glow 1.5s ease-in-out infinite}
+        .animate-bounceIn{animation:bounceIn 0.5s ease-out}
+        .animate-slideUp{animation:slideUp 0.4s ease-out}
+        .animate-pulse-gold{animation:pulse-gold 2s ease-in-out infinite}
+        .animate-loot-open{animation:lootOpen 0.5s ease-in-out}
+        #colosseumContainer{position:fixed;right:0;top:0;width:310px;height:100vh;z-index:45;transition:transform 0.3s ease;overflow-y:auto;overflow-x:hidden}
+        #colosseumContainer.collapsed{transform:translateX(300px)}
+        #colosseumToggle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:46;transition:right 0.3s ease;writing-mode:vertical-rl;text-orientation:mixed}
+        #colosseumToggle.shifted{right:310px}
+        .crash-overlay{position:fixed;inset:0;background:rgba(239,68,68,0.15);z-index:44;pointer-events:none;animation:shake 0.5s ease-in-out}
         @media(max-width:1024px){.sidebar{transform:translateX(-100%);transition:transform 0.3s ease;position:fixed;z-index:50;height:100vh}.sidebar.open{transform:translateX(0)}.sidebar-overlay{display:none}.sidebar-overlay.open{display:block;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:40}}
     </style>
 </head>
@@ -560,6 +580,137 @@
     </div>
 </div>
 
+<!--  -->
+<!--  TRUE COLOSSEUM — LIVE STREAMING ARENA v2.0                   -->
+<!--  -->
+<div id="colosseumContainer" class="glass border-l border-white/5 p-3 space-y-2.5 collapsed">
+    
+    <!-- Arena Header -->
+    <div class="flex items-center justify-between mb-1 sticky top-0 bg-surface-950/90 backdrop-blur-sm z-10 py-2">
+        <div class="flex items-center gap-2">
+            <span class="text-xl"></span>
+            <span class="font-bold text-sm bg-gradient-to-r from-accent-400 to-primary-400 bg-clip-text text-transparent">TRUE COLOSSEUM</span>
+        </div>
+        <div class="flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-profit animate-pulse" id="arenaLiveDot"></span>
+            <button onclick="toggleColosseum()" class="glass rounded-lg px-2 py-1 text-[10px]"></button>
+        </div>
+    </div>
+
+    <!--  HYPE METER -->
+    <div class="glass-light rounded-xl p-3">
+        <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] text-neutral"> HYPE METER</span>
+            <span class="text-[10px] font-bold text-accent-400" id="hypePercent">0%</span>
+        </div>
+        <div class="w-full h-2.5 bg-white/5 rounded-full overflow-hidden">
+            <div id="hypeBar" class="h-full bg-gradient-to-r from-blue-400 via-accent-400 to-loss rounded-full transition-all duration-700" style="width:0%"></div>
+        </div>
+        <div class="flex items-center justify-between mt-1">
+            <p class="text-[10px] text-neutral" id="hypeStatus">Waiting...</p>
+            <p class="text-[10px] text-neutral" id="hypeViewers"> 0</p>
+        </div>
+    </div>
+
+    <!--  CANDLE BATTLE ROYALE -->
+    <div class="glass-light rounded-xl p-3" id="battleRoyale">
+        <h4 class="text-xs font-bold mb-2 flex items-center justify-between">
+            <span> CANDLE BATTLE</span>
+            <span class="text-[10px] text-accent-400" id="battleTimer">--:--</span>
+        </h4>
+        <div class="flex items-center gap-2 mb-2">
+            <div class="flex-1 text-center">
+                <span class="text-2xl"></span>
+                <p class="text-profit font-bold text-lg" id="battleBuyCount">0</p>
+                <p class="text-[10px] text-neutral">BUY ARMY</p>
+            </div>
+            <div class="text-center">
+                <span class="text-xl font-black text-neutral"></span>
+                <p class="text-[10px] text-neutral" id="battleTotal">0 votes</p>
+            </div>
+            <div class="flex-1 text-center">
+                <span class="text-2xl"></span>
+                <p class="text-loss font-bold text-lg" id="battleSellCount">0</p>
+                <p class="text-[10px] text-neutral">SELL ARMY</p>
+            </div>
+        </div>
+        <div class="w-full h-3 bg-white/5 rounded-full overflow-hidden flex">
+            <div id="battleBuyBar" class="h-full bg-profit transition-all duration-500" style="width:50%"></div>
+            <div id="battleSellBar" class="h-full bg-loss transition-all duration-500" style="width:50%"></div>
+        </div>
+        <p class="text-[10px] text-center mt-2" id="battleWinner"> Waiting for battle...</p>
+    </div>
+
+    <!--  PRICE RACE -->
+    <div class="glass-light rounded-xl p-3">
+        <h4 class="text-xs font-bold mb-2 flex items-center justify-between">
+            <span> PRICE RACE</span>
+            <span class="text-[10px] text-neutral" id="racePrice">--</span>
+        </h4>
+        <div class="relative h-8 bg-white/5 rounded-full overflow-hidden mb-2">
+            <div class="absolute top-0 left-0 w-8 h-8 rounded-full bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center text-xs font-bold transition-all duration-1000 shadow-lg" id="raceCar" style="left:0%"></div>
+            <div class="absolute top-2 left-1/4 w-0.5 h-4 bg-white/20" title="25%"></div>
+            <div class="absolute top-2 left-1/2 w-0.5 h-4 bg-white/20" title="50%"></div>
+            <div class="absolute top-2 left-3/4 w-0.5 h-4 bg-white/20" title="75%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] text-neutral">
+            <span id="raceLow">$0</span><span id="raceHigh">$0</span>
+        </div>
+        <p class="text-[10px] text-accent-400 mt-1 text-center" id="raceLeader"></p>
+    </div>
+
+    <!--  LOOT BOX -->
+    <div class="glass-light rounded-xl p-3 text-center">
+        <h4 class="text-xs font-bold mb-2"> LOOT BOX</h4>
+        <div class="text-5xl mb-2 cursor-pointer animate-loot-open" id="lootBox" onclick="openLootBox()"></div>
+        <p class="text-[10px] text-neutral" id="lootTimer">Next in: --</p>
+        <p class="text-xs text-accent-400 mt-1 font-bold" id="lootResult"></p>
+    </div>
+
+    <!--  STREAK FIRE -->
+    <div class="glass-light rounded-xl p-3 text-center" id="streakPanel">
+        <h4 class="text-xs font-bold mb-2"> WIN STREAK</h4>
+        <p class="text-4xl" id="streakFire"></p>
+        <p class="text-2xl font-black" id="streakCount">0</p>
+        <p class="text-[10px] text-neutral">consecutive correct</p>
+        <div class="w-full h-2 bg-white/5 rounded-full mt-2 overflow-hidden">
+            <div id="streakBar" class="h-full bg-gradient-to-r from-yellow-500 via-accent-400 to-profit transition-all" style="width:0%"></div>
+        </div>
+        <p class="text-[10px] text-accent-400 mt-1" id="streakMultiplier">1x XP</p>
+    </div>
+
+    <!--  CROWN HOLDER -->
+    <div class="glass-light rounded-xl p-3 text-center animate-pulse-gold" id="crownPanel" style="display:none">
+        <h4 class="text-xs font-bold mb-1"> CROWN HOLDER</h4>
+        <p class="text-2xl"></p>
+        <p class="font-bold text-accent-400" id="crownHolder">--</p>
+        <p class="text-[10px] text-neutral">Reigning champion</p>
+    </div>
+
+    <!--  RANKINGS -->
+    <div class="glass-light rounded-xl p-3">
+        <h4 class="text-xs font-bold mb-2"> RANKINGS</h4>
+        <div class="space-y-1" id="colosseumRankings">
+            <p class="text-[10px] text-neutral text-center">Loading...</p>
+        </div>
+    </div>
+
+    <!--  CRASH ALERT -->
+    <div id="crashAlert" class="hidden glass rounded-xl p-3 bg-loss/10 border-2 border-loss text-center">
+        <p class="text-3xl"></p>
+        <p class="font-bold text-loss">CRASH DETECTED!</p>
+        <p class="text-xs text-neutral" id="crashDetail">--</p>
+    </div>
+
+    <!-- Confetti Container -->
+    <div id="colosseumConfetti" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+</div>
+
+<!-- Colosseum Toggle Button -->
+<button onclick="toggleColosseum()" id="colosseumToggle" class="glass rounded-l-xl px-2 py-4 text-xs z-46 shifted" style="position:fixed;right:310px;top:50%;transform:translateY(-50%);">
+    <br>COLO<br>SSEUM
+</button>
+
 </main>
 </div>
 
@@ -1001,8 +1152,241 @@ document.addEventListener('click',function(e){const dropdown=document.getElement
 // ==========================================
 function loadLicensePage(){const key=State.user.licenseKey;if(!key)return;db.ref('licenses/'+key).on('value',snap=>{const d=snap.val();if(d){const el=document.getElementById('licenseDetails');const status=d.is_active?'&#9989; Active':'&#10060; Inactive';const statusColor=d.is_active?'text-profit':'text-loss';const exp=new Date(d.expires).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});el.innerHTML='<div class="space-y-2"><div class="flex justify-between"><span>License</span><span class="font-mono">'+key+'</span></div><div class="flex justify-between"><span>Package</span><span class="text-accent-400 font-bold">'+((d.package||'pro').toUpperCase())+'</span></div><div class="flex justify-between"><span>Status</span><span class="'+statusColor+' font-bold">'+status+'</span></div><div class="flex justify-between"><span>Expires</span><span>'+exp+'</span></div><div class="flex justify-between"><span>AutoTrade</span><span>'+(d.autotrade_enabled?'&#9989; Enabled':'&#10060; Disabled')+'</span></div></div>';}});db.ref('invoices/'+key).on('value',snap=>{const d=snap.val();const el=document.getElementById('invoiceList');if(d){el.innerHTML='<div class="glass rounded-xl p-4"><p class="font-bold">Invoice #'+key+'</p><div class="text-xs text-neutral space-y-1 mt-2"><p>Package: '+d.package.toUpperCase()+'</p><p>Durasi: '+d.months+' Bulan</p><p>Jumlah: <span class="text-accent-400 font-bold">Rp '+(d.amount||0).toLocaleString()+'</span></p><p>Status: <span class="text-profit font-bold">'+(d.status||'paid')+'</span></p><p>Expires: '+new Date(d.expires).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+'</p></div></div>';}});}
 
+// ==========================================
+//  TRADING COLOSSEUM — ARENA SYSTEM
+// ==========================================
+function toggleColosseum(){
+    const container=document.getElementById('colosseumContainer');
+    const toggle=document.getElementById('colosseumToggle');
+    if(container.classList.contains('collapsed')){
+        container.classList.remove('collapsed');
+        toggle.classList.add('shifted');
+        toggle.style.right='310px';
+    }else{
+        container.classList.add('collapsed');
+        toggle.classList.remove('shifted');
+        toggle.style.right='0';
+    }
+}
+
+// Update Profit Duel dari Firebase
+function updateArenaDuel(){
+    let prevBuy=0,prevSell=0;
+    db.ref('live_votes/current').on('value',snap=>{
+        const d=snap.val()||{buy:0,sell:0,buyPercent:50,sellPercent:50};
+        if(d.buy>prevBuy||d.sell>prevSell)playSound('vote');
+        prevBuy=d.buy;prevSell=d.sell;
+        document.getElementById('battleBuyCount').textContent=d.buy||0;
+        document.getElementById('battleSellCount').textContent=d.sell||0;
+        document.getElementById('battleBuyBar').style.width=(d.buyPercent||50)+'%';
+        document.getElementById('battleSellBar').style.width=(d.sellPercent||50)+'%';
+        const total=(d.buy||0)+(d.sell||0);
+        document.getElementById('battleTotal').textContent=total+' votes';
+        if(total>0){
+            const winner=(d.buy||0)>=(d.sell||0)?' BUY ARMY DOMINATES!':' SELL ARMY DOMINATES!';
+            document.getElementById('battleWinner').innerHTML='<span class="text-accent-400">'+winner+'</span>';
+            updateHypeMeter(Math.min(100,total*5));
+        }
+    });
+}
+
+// Update Hype Meter
+function updateHypeMeter(level){
+    document.getElementById('hypePercent').textContent=level+'%';
+    document.getElementById('hypeBar').style.width=level+'%';
+    let status='';
+    if(level>=80){status=' ON FIRE! CROWD GOES WILD!';spawnConfetti();}
+    else if(level>=50)status=' Heating up...';
+    else if(level>=20)status=' People are watching...';
+    else status=' Waiting for action...';
+    document.getElementById('hypeStatus').textContent=status;
+}
+
+// Confetti
+function spawnConfetti(){
+    playSound('hype');
+    const container=document.getElementById('colosseumConfetti');
+    const colors=['#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899'];
+    for(let i=0;i<20;i++){
+        const confetti=document.createElement('div');
+        confetti.className='absolute animate-confetti';
+        confetti.style.left=Math.random()*100+'%';
+        confetti.style.top='100%';
+        confetti.style.width='6px';
+        confetti.style.height='6px';
+        confetti.style.background=colors[Math.floor(Math.random()*colors.length)];
+        confetti.style.borderRadius='50%';
+        confetti.style.animationDelay=Math.random()*0.5+'s';
+        confetti.style.animationDuration=(1+Math.random()*2)+'s';
+        container.appendChild(confetti);
+        setTimeout(()=>confetti.remove(),3000);
+    }
+}
+
+// Battle Timer
+function updateBattleTimer(){
+    const now=new Date();
+    const mins=now.getMinutes(),secs=now.getSeconds();
+    const currentCandle=Math.floor(mins/15)*15;
+    const nextCandle=(currentCandle+15)%60;
+    let minsToClose=nextCandle-mins;
+    if(minsToClose<=0)minsToClose+=15;
+    const totalSecs=minsToClose*60-secs;
+    const mm=Math.floor(totalSecs/60);
+    const ss=totalSecs%60;
+    document.getElementById('battleTimer').textContent=String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+}
+
+// Price Race
+function updatePriceRace(){
+    const pairPath='XAU_USD';
+    db.ref('signals/'+CONFIG.adminLicense+'/'+pairPath).once('value').then(snap=>{
+        const signals=snap.val();
+        if(signals&&signals[1]){
+            const s=signals[1];
+            const entry=s.entry||2650;
+            const low=entry-50;
+            const high=entry+50;
+            document.getElementById('raceLow').textContent='$'+low.toFixed(0);
+            document.getElementById('raceHigh').textContent='$'+high.toFixed(0);
+            const priceEl=document.getElementById('tickerXAU');
+            const price=parseFloat(priceEl?priceEl.textContent.replace('$',''):'0')||entry;
+            const pct=Math.min(100,Math.max(0,((price-low)/(high-low))*100));
+            document.getElementById('raceCar').style.left=pct+'%';
+            document.getElementById('racePrice').textContent='$'+price.toFixed(2);
+        }
+    });
+}
+
+// Loot Box
+let lootCountdown=1800;
+function updateLootBox(){
+    lootCountdown--;
+    if(lootCountdown<=0)lootCountdown=1800;
+    const mins=Math.floor(lootCountdown/60);
+    const secs=lootCountdown%60;
+    document.getElementById('lootTimer').textContent='Next in: '+mins+'m '+secs+'s';
+}
+function openLootBox(){
+    playSound('loot');
+    const prizes=[' Free Trial 1 Day',' Badge',' Shoutout',' VIP Access',' 2x XP',' Try Again'];
+    const random=Math.floor(Math.random()*prizes.length);
+    document.getElementById('lootBox').classList.add('animate-loot-open');
+    setTimeout(()=>{
+        document.getElementById('lootBox').classList.remove('animate-loot-open');
+        document.getElementById('lootResult').textContent=' '+prizes[random]+'!';
+    },600);
+}
+
+// Streak
+function updateArenaStreak(){
+    db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{
+        const d=snap.val()||{};
+        const positions=d.positions||[];
+        const winCount=positions.filter(p=>(p.profit||0)>0).length;
+        const fireEmojis=['','','','','','','','',''];
+        const idx=Math.min(winCount,fireEmojis.length-1);
+        document.getElementById('streakFire').textContent=fireEmojis[idx];
+        document.getElementById('streakCount').textContent=winCount;
+        document.getElementById('streakBar').style.width=Math.min(winCount*10,100)+'%';
+        const multiplier=winCount>=10?'5x XP':winCount>=7?'3x XP':winCount>=5?'2x XP':'1x XP';
+        document.getElementById('streakMultiplier').textContent=multiplier;
+        if(winCount>=5)playSound('streak');
+    });
+}
+
+// Crown
+function updateCrownHolder(){
+    db.ref('live_votes/rankings').orderByChild('xp').limitToLast(1).on('value',snap=>{
+        const data=snap.val();
+        if(data){
+            const entry=Object.entries(data)[0];
+            document.getElementById('crownHolder').textContent=entry[1].username||'Anonymous';
+            document.getElementById('crownPanel').style.display='block';
+        }
+    });
+}
+
+// Rankings
+function updateColosseumRankings(){
+    db.ref('live_votes/rankings').orderByChild('xp').limitToLast(5).on('value',snap=>{
+        const data=snap.val();
+        const container=document.getElementById('colosseumRankings');
+        if(data){
+            const entries=Object.entries(data).sort((a,b)=>(b[1].xp||0)-(a[1].xp||0));
+            const medals={0:'',1:'',2:'',3:'4.',4:'5.'};
+            let html='';
+            entries.forEach(([key,val],idx)=>{
+                const level=Math.floor((val.xp||0)/100)+1;
+                html+='<div class="flex items-center gap-1 text-[10px]"><span>'+medals[idx]+'</span><span class="flex-1 truncate">'+(val.username||key)+'</span><span class="text-accent-400">Lv.'+level+'</span></div>';
+            });
+            container.innerHTML=html||'<p class="text-[10px] text-neutral text-center">No rankings yet</p>';
+        }
+    });
+}
+
+// Crash Alert
+function checkCrashAlert(){
+    db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{
+        const d=snap.val()||{};
+        const positions=d.positions||[];
+        const totalPL=positions.reduce((sum,p)=>sum+(p.profit||0),0);
+        if(totalPL<-500){
+            playSound('crash');
+            const alert=document.getElementById('crashAlert');
+            alert.classList.remove('hidden');
+            document.getElementById('crashDetail').textContent='Total P/L dropped to $'+totalPL.toFixed(2);
+            setTimeout(()=>alert.classList.add('hidden'),5000);
+        }
+    });
+}
+
+// ==========================================
+//  SOUND EFFECTS — Web Audio API
+// ==========================================
+function playTone(freq,type,duration,volume){
+    try{
+        const ctx=new(window.AudioContext||window.webkitAudioContext)();
+        const osc=ctx.createOscillator();
+        const gain=ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value=freq;
+        osc.type=type||'sine';
+        gain.gain.value=volume||0.1;
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+duration);
+        osc.stop(ctx.currentTime+duration);
+    }catch(e){}
+}
+
+function playSound(type){
+    switch(type){
+        case 'vote':playTone(880,'sine',0.1,0.15);break;
+        case 'win':playTone(523,'sine',0.15,0.1);setTimeout(()=>playTone(659,'sine',0.15,0.1),100);setTimeout(()=>playTone(784,'sine',0.15,0.2),200);break;
+        case 'lose':playTone(200,'sawtooth',0.15,0.3);break;
+        case 'hype':playTone(1047,'square',0.15,0.08);setTimeout(()=>playTone(1319,'square',0.15,0.08),80);setTimeout(()=>playTone(1568,'square',0.15,0.15),160);break;
+        case 'loot':playTone(600,'sine',0.1,0.1);setTimeout(()=>playTone(800,'sine',0.1,0.1),100);setTimeout(()=>playTone(1000,'sine',0.1,0.15),200);setTimeout(()=>playTone(1200,'sine',0.1,0.2),300);break;
+        case 'crash':playTone(100,'sawtooth',0.3,0.5);break;
+        case 'streak':playTone(523,'triangle',0.12,0.12);setTimeout(()=>playTone(659,'triangle',0.12,0.12),120);setTimeout(()=>playTone(784,'triangle',0.12,0.12),240);setTimeout(()=>playTone(1047,'triangle',0.12,0.25),360);break;
+        case 'crown':playTone(784,'sine',0.1,0.15);setTimeout(()=>playTone(988,'sine',0.1,0.15),150);setTimeout(()=>playTone(1175,'sine',0.1,0.3),300);break;
+    }
+}
+
+// Init Colosseum
+function initColosseum(){
+    updateArenaDuel();
+    updateArenaStreak();
+    updateColosseumRankings();
+    updateCrownHolder();
+    checkCrashAlert();
+    setInterval(updateBattleTimer,1000);
+    setInterval(updateLootBox,1000);
+    setInterval(updatePriceRace,3000);
+}
+
 // INIT
-document.addEventListener('DOMContentLoaded',function(){navigate('market');loadMarketData();setTimeout(initChart,800);setTimeout(checkAdminAccess,2000);setTimeout(initNotifications,3000);});
+document.addEventListener('DOMContentLoaded',function(){navigate('market');loadMarketData();setTimeout(initChart,800);setTimeout(checkAdminAccess,2000);setTimeout(initNotifications,3000);setTimeout(initColosseum,4000);});
 </script>
 </body>
 </html>   
