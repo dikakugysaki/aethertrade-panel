@@ -1133,10 +1133,6 @@ function formatDate(ts){return new Date(ts).toLocaleDateString('id-ID',{day:'num
 function updateText(id,text){const el=document.getElementById(id);if(el)el.textContent=text;}
 
 // PAYMENTS
-function selectPackage(pkg,el){State.payment.package=pkg;document.querySelectorAll('.pkg-card').forEach(e=>e.style.borderColor='rgba(255,255,255,0.05)');if(el)el.style.borderColor='#f59e0b';State.payment.months=1;document.getElementById('paymentDetails').classList.remove('hidden');document.getElementById('payTotal').textContent='Rp '+CONFIG.packages[pkg].pricePerMonth.toLocaleString()}
-function showManualPayment(){const amount=CONFIG.packages[State.payment.package].pricePerMonth*State.payment.months;document.getElementById('manualPayAmount').textContent='Rp '+amount.toLocaleString();document.getElementById('manualPayModal').classList.remove('hidden')}
-function confirmManualPayment(){if(!State.payment.package)return showToast('Pilih package!','error');const key='AT-'+Math.random().toString(36).substring(2,8).toUpperCase();const note=prompt('Catatan (username Telegram):','')||'';const fileInput=document.getElementById('proofFile');if(fileInput&&fileInput.files[0]){const file=fileInput.files[0];if(file.size>5*1024*1024){showToast('File terlalu besar! Max 5MB','error');return;}showToast('[i] Mengirim bukti ke Telegram...','info');const reader=new FileReader();reader.onload=function(e){const base64=e.target.result;sendPaymentToTelegram(key,note,base64,file.name);};reader.readAsDataURL(file);}else{sendPaymentToTelegram(key,note,null,null);}}
-function sendPaymentToTelegram(key,note,photoBase64,filename){const amount=CONFIG.packages[State.payment.package].pricePerMonth*State.payment.months;const isMax=State.payment.package==='max';const packageName=State.payment.package.toUpperCase();const username=State.user.username||'User';const caption='[BELL] *NEW PAYMENT - VERIFICATION NEEDED*\n\n[ID] *License:* `'+key+'`\n[USER] *User:* '+username+'\n[PACKAGE] *Package:* '+packageName+'\n[CLOCK] *Duration:* '+State.payment.months+' Bulan\n[MONEY] *Amount:* Rp '+amount.toLocaleString()+'\n[NOTE] *Note:* '+(note||'Tidak ada')+'\n[DATE] *Date:* '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})+'\n\n[WARN] _Verifikasi di panel admin_';const data={key:key,owner:username,package:State.payment.package,plan:State.payment.package,months:State.payment.months,amount:amount,is_active:false,autotrade_enabled:isMax,max_pairs:isMax?10:5,expires:new Date(Date.now()+State.payment.months*30*86400000).toISOString(),created:new Date().toISOString(),payment_method:'manual_transfer',payment_status:'pending_verification',note:note,proof_filename:filename||'',proof_telegram_sent:true};const telegramAPI='https://api.telegram.org/bot'+CONFIG.telegramBotToken;function simpanData(){db.ref('licenses/'+key).set(data).then(()=>{db.ref('payments/'+key).set({...data,timestamp:Date.now()});db.ref('admin_notifications/payments').push({key:key,owner:username,package:State.payment.package,amount:amount,status:'pending',timestamp:Date.now()});document.getElementById('manualPayModal').classList.add('hidden');document.getElementById('paymentDetails').classList.add('hidden');State.user.licenseKey=key;localStorage.setItem('at_license',key);}).catch(()=>showToast('[X] Gagal menyimpan data!','error'));}if(photoBase64&&filename){const arr=photoBase64.split(',');const mime=arr[0].match(/:(.*?);/)[1];const bstr=atob(arr[1]);let n=bstr.length;const u8arr=new Uint8Array(n);while(n--){u8arr[n]=bstr.charCodeAt(n);}const blob=new Blob([u8arr],{type:mime});const formData=new FormData();formData.append('chat_id',CONFIG.telegramChatId);formData.append('photo',blob,filename);formData.append('caption',caption);formData.append('parse_mode','Markdown');fetch(telegramAPI+'/sendPhoto',{method:'POST',body:formData}).then(r=>r.json()).then(res=>{if(res.ok){simpanData();showToast('[OK] Pembayaran dikirim! Bukti terkirim ke Telegram Admin.','success');}else{fetch(telegramAPI+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:CONFIG.telegramChatId,text:caption+'\n\n[WARN] _Gambar gagal terkirim._',parse_mode:'Markdown'})});simpanData();showToast('[!] Data tersimpan. Gambar gagal dikirim.','warning');}}).catch(()=>{fetch(telegramAPI+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:CONFIG.telegramChatId,text:caption+'\n\n[WARN] _Kirim via Telegram gagal._',parse_mode:'Markdown'})});simpanData();showToast('[!] Data tersimpan. Telegram error.','warning');});}else{fetch(telegramAPI+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:CONFIG.telegramChatId,text:caption+'\n\n[WARN] *TANPA BUKTI TRANSFER!*',parse_mode:'Markdown'})}).then(()=>{simpanData();showToast('[OK] Pembayaran dikirim (tanpa bukti).','success');}).catch(()=>{simpanData();showToast('[!] Data tersimpan. Notifikasi Telegram gagal.','warning');});}}
 
 function registerLicense(){
     const key = document.getElementById('regKey').value.trim().toUpperCase();
@@ -1259,6 +1255,9 @@ function updateAffiliateTier(affId, totalRefs) {
     db.ref('affiliates/' + affId + '/rank').set(newRank);
 }
 
+function showAffiliateRegister(){if(!State.user.licenseKey){showToast(' Anda harus punya license aktif untuk join affiliate!','error');return}document.getElementById('affiliateRegisterModal').classList.remove('hidden')}
+function registerAffiliate(){const u=document.getElementById('affRegisterUsername').value.trim();if(!u){showToast(' Masukkan username Telegram!','error');return}const affId='AFF-'+State.user.licenseKey.substring(3,9);db.ref('affiliates/'+affId).set({username:u,license_key:State.user.licenseKey,total_commission:0,pending_commission:0,paid_commission:0,total_referrals:0,link_clicks:0,conversions:0,refs_this_month:0,rank:'STAR',created_at:Date.now(),last_updated:Date.now()}).then(()=>{document.getElementById('affiliateRegisterModal').classList.add('hidden');localStorage.setItem('at_username',u);State.user.username=u;loadAffiliate();showToast(' Selamat! Anda sudah menjadi affiliate! Link siap dibagikan.','success')})}
+
 // ==========================================
 //  PAYMENT SYSTEM v3.0 — UPLOAD BUKTI + DURASI
 // ==========================================
@@ -1360,30 +1359,7 @@ function previewProofFile(input) {
     reader.readAsDataURL(file);
 }
 
-function submitPayment() {
-    if (!selectedPackage) {
-        showToast(' Pilih package dulu!', 'error');
-        return;
-    }
-    
-    if (!proofFileData) {
-        showToast(' Upload bukti transfer dulu!', 'error');
-        return;
-    }
-    
-    // Show confirmation modal
-    const pricePerMonth = CONFIG.packages[selectedPackage].pricePerMonth;
-    const discountRates = { 1: 0, 3: 0.10, 6: 0.15, 12: 0.25 };
-    const discount = discountRates[selectedDuration] || 0;
-    const total = Math.round(pricePerMonth * selectedDuration * (1 - discount));
-    
-    document.getElementById('confirmPackage').textContent = CONFIG.packages[selectedPackage].name.toUpperCase();
-    document.getElementById('confirmDuration').textContent = selectedDuration + ' Bulan';
-    document.getElementById('confirmTotal').textContent = 'Rp ' + total.toLocaleString();
-    document.getElementById('confirmKey').textContent = generatedLicenseKey;
-    
-    document.getElementById('confirmPayModal').classList.remove('hidden');
-}
+function submitPayment(){if(!selectedPackage){showToast(' Pilih package dulu!','error');return}if(!proofFileData){showToast(' Upload bukti transfer dulu!','error');return}const ppm=CONFIG.packages[selectedPackage].pricePerMonth;const dr={1:0,3:0.10,6:0.15,12:0.25};const d=dr[selectedDuration]||0;const t=Math.round(ppm*selectedDuration*(1-d));document.getElementById('cfmPkg').textContent=CONFIG.packages[selectedPackage].name.toUpperCase();document.getElementById('cfmDur').textContent=selectedDuration+' Bulan';document.getElementById('cfmTotal').textContent='Rp '+t.toLocaleString();document.getElementById('cfmKey').textContent=generatedLicenseKey;document.getElementById('confirmPayModal').classList.remove('hidden')}
 
 function confirmPayment() {
     document.getElementById('confirmPayModal').classList.add('hidden');
