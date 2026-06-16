@@ -1521,35 +1521,7 @@ let lastSLPrice = 0;
 let lastTTStatus = false;
 let lastSignalTime = 0;
 
-function monitorTradingEvents() {
-    db.ref('trailing/' + CONFIG.adminLicense + '/XAU_USD').on('value', snap => {
-        const d = snap.val() || {};
-        const positions = d.positions || [];
-        if (positions.length === 0) return;
-        
-        const currentPrice = parseFloat(document.getElementById('headerPrice')?.textContent?.replace('$', '') || '0');
-        
-        positions.forEach(pos => {
-            const sl = parseFloat(pos.sl) || 0;
-            if (sl > 0 && lastSLPrice !== sl) {
-                if ((pos.dir === 'BUY' && currentPrice <= sl) || 
-                    (pos.dir === 'SELL' && currentPrice >= sl)) {
-                    if (lastSLPrice !== sl) {
-                        triggerSLEvent(sl, pos);
-                        lastSLPrice = sl;
-                    }
-                }
-            }
-            
-            const tt = parseFloat(pos.trailStart) || 0;
-            if (tt > 0 && pos.active && !lastTTStatus) {
-                triggerTTEvent(tt, pos);
-                lastTTStatus = true;
-            }
-            if (!pos.active) lastTTStatus = false;
-        });
-    });
-}
+function monitorTradingEvents(){db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{const d=snap.val()||{};const positions=d.positions||[];if(positions.length===0)return;positions.forEach(pos=>{const tt=parseFloat(pos.trailStart)||0;if(tt>0&&pos.active&&!lastTTStatus){triggerTTEvent(tt,pos);lastTTStatus=true}if(!pos.active)lastTTStatus=false})})}
 
 function triggerSLEvent(slPrice, position) {
     const overlay = document.getElementById('slHitOverlay');
