@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AetherTrade — Broadcast Empire v3.0</title>
+    <meta name="theme-color" content="#050505">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://s3.tradingview.com/tv.js"></script>
+    <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','sans-serif']},colors:{primary:{400:'#fb923c',500:'#f97316',600:'#ea580c'},accent:{400:'#fbbf24',500:'#f59e0b',600:'#d97706'},surface:{50:'#fafafa',100:'#f5f5f5',200:'#e5e5e5',700:'#1f1f1f',800:'#171717',900:'#0a0a0a',950:'#050505'},profit:'#10b981',loss:'#ef4444',neutral:'#6b7280'}}}}</script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:#050505;overflow:hidden;width:100vw;height:100vh}
+        @keyframes neonPulse{0%,100%{text-shadow:0 0 10px #f59e0b,0 0 20px #f59e0b}50%{text-shadow:0 0 30px #f59e0b,0 0 60px #f97316,0 0 80px #f59e0b}}
+        @keyframes warClash{0%{transform:translateX(0)}40%{transform:translateX(-10px)}60%{transform:translateX(10px)}100%{transform:translateX(0)}}
+        @keyframes fireTornado{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.3)}100%{transform:rotate(360deg) scale(1)}}
+        @keyframes particleFloat{0%{transform:translateY(0) translateX(0);opacity:1}100%{transform:translateY(-200px) translateX(var(--x));opacity:0}}
+        @keyframes confetti{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(-400px) rotate(720deg);opacity:0}}
+        @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+        @keyframes glow{0%,100%{box-shadow:0 0 10px rgba(245,158,11,0.3)}50%{box-shadow:0 0 40px rgba(245,158,11,0.9)}}
+        @keyframes slideUp{0%{transform:translateY(100%);opacity:0}100%{transform:translateY(0);opacity:1}}
+        @keyframes pulse-ring{0%{transform:scale(0.8);opacity:1}100%{transform:scale(2);opacity:0}}
+        @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+        @keyframes scanLine{0%{top:-100%}100%{top:100%}}
+        .animate-neon{animation:neonPulse 2s ease-in-out infinite}
+        .animate-war{animation:warClash 0.3s ease-in-out}
+        .animate-tornado{animation:fireTornado 0.8s ease-in-out}
+        .animate-glow{animation:glow 1.5s ease-in-out infinite}
+        .animate-slideUp{animation:slideUp 0.4s ease-out}
+        .fire-particle{position:absolute;pointer-events:none;animation:particleFloat 1.5s ease-out forwards}
+        .confetti-particle{position:absolute;pointer-events:none;animation:confetti 3s ease-out forwards}
+        .scan-line{position:absolute;left:0;width:100%;height:2px;background:rgba(245,158,11,0.15);animation:scanLine 4s linear infinite;pointer-events:none}
+        .pulse-dot{width:10px;height:10px;border-radius:50%;background:#10b981;position:relative;display:inline-block}
+        .pulse-dot::after{content:'';position:absolute;inset:0;border-radius:50%;background:#10b981;animation:pulse-ring 1.5s ease-out infinite}
+        ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:#0a0a0a}::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+        .ticker-wrap{overflow:hidden}.ticker-content{animation:ticker 40s linear infinite;white-space:nowrap;display:inline-block}
+        .glass{background:rgba(23,23,23,0.8);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.05)}
+        .glass-light{background:rgba(255,255,255,0.02);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.06)}
+        #crashOverlay{position:fixed;inset:0;background:rgba(239,68,68,0.3);z-index:100;display:none;pointer-events:none;animation:shake 0.5s ease-in-out}
+        #confettiLayer{position:fixed;inset:0;z-index:99;pointer-events:none;overflow:hidden}
+    </style>
+</head>
+<body class="bg-surface-950 text-white font-sans">
+
+<!-- ================================================================ -->
+<!-- CRASH OVERLAY                                                      -->
+<!-- ================================================================ -->
+<div id="crashOverlay">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+        <div style="font-size:120px">💥</div>
+        <div style="font-size:60px;font-weight:900;color:#ef4444">CRASH!</div>
+        <div style="font-size:30px;color:white" id="crashAmount">-$0</div>
+    </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- CONFETTI LAYER                                                     -->
+<!-- ================================================================ -->
+<div id="confettiLayer"></div>
+
+<!-- ================================================================ -->
+<!-- MAIN BROADCAST LAYOUT                                              -->
+<!-- ================================================================ -->
+<div style="display:flex;width:100vw;height:100vh">
+
+<!-- ================================================================ -->
+<!-- LEFT: CHART + SIGNALS                                               -->
+<!-- ================================================================ -->
+<div style="flex:1;display:flex;flex-direction:column;min-width:0">
+
+    <!-- HEADER -->
+    <div class="glass-light" style="padding:8px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.05)">
+        <div style="display:flex;align-items:center;gap:16px">
+            <span style="display:flex;align-items:center;gap:6px">
+                <span class="pulse-dot"></span>
+                <span style="font-weight:700;color:#ef4444;font-size:14px">🔴 LIVE</span>
+            </span>
+            <span style="font-weight:700;font-size:14px" id="headerPair">XAUUSD</span>
+            <span style="font-weight:700;font-size:18px" id="headerPrice" class="text-profit">$0.00</span>
+            <span style="font-size:12px;color:#6b7280" id="headerChange">+0.00%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;font-size:12px">
+            <span>👁 <b id="headerViewers">0</b></span>
+            <span>⚡ <b class="text-profit">EA ACTIVE</b></span>
+            <span>🎙️ <b class="text-accent-400" id="ttsStatus">AI ON</b></span>
+            <span>⏱ <b class="text-accent-400" id="headerTimer">--:--</b></span>
+            <button onclick="toggleTTS()" class="glass" style="padding:4px 10px;border-radius:8px;font-size:10px">🔊</button>
+            <button onclick="toggleScene()" class="glass" style="padding:4px 10px;border-radius:8px;font-size:10px">🎬</button>
+        </div>
+    </div>
+
+    <!-- CHART -->
+    <div style="flex:1;position:relative;min-height:0">
+        <div id="tv_chart" style="width:100%;height:100%"></div>
+        <!-- Signal Overlay -->
+        <div id="signalOverlay" style="position:absolute;top:20px;right:20px;z-index:10;display:none">
+            <div class="glass" style="padding:16px;border-radius:16px;text-align:center;min-width:160px">
+                <div style="font-size:40px" id="signalIcon">📉</div>
+                <div style="font-size:24px;font-weight:900" id="signalDir">SELL</div>
+                <div style="font-size:14px;color:#6b7280">Entry: <b class="text-white" id="signalEntry">$0</b></div>
+                <div style="font-size:14px;color:#6b7280">SL: <b class="text-loss" id="signalSL">$0</b></div>
+                <div style="font-size:14px;color:#6b7280">TT: <b class="text-yellow-400" id="signalTT">$0</b></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="glass-light" style="padding:8px 16px;display:flex;align-items:center;justify-content:space-between;font-size:11px;border-top:1px solid rgba(255,255,255,0.05)">
+        <span>📊 <b id="btmPositions">0</b> POSITIONS</span>
+        <span>💰 P/L: <b id="btmPL" class="text-profit">$0</b></span>
+        <span>📈 WR: <b id="btmWR">0%</b></span>
+        <span>🎯 NEXT: <b class="text-accent-400" id="btmTimer">--:--</b></span>
+        <span>🏟️ CROWD: <b id="btmCrowd">IDLE</b></span>
+    </div>
+
+</div>
+
+<!-- ================================================================ -->
+<!-- RIGHT: ARENA PANEL                                                  -->
+<!-- ================================================================ -->
+<div style="width:380px;display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,0.08);overflow-y:auto;overflow-x:hidden;background:rgba(5,5,5,0.9)">
+
+    <!-- ARENA HEADER -->
+    <div class="glass-light" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.05)">
+        <span style="font-weight:700;font-size:14px" class="animate-neon">🏛️ COLOSSEUM ARENA</span>
+        <span style="font-size:10px;color:#10b981">⚡ LIVE</span>
+    </div>
+
+    <!-- ⚔️ BATTLE ARENA 2.0 — WAR OF THE TRADERS -->
+    <div class="glass-light" style="margin:8px;padding:14px;border-radius:12px;position:relative;overflow:hidden;border:1px solid rgba(245,158,11,0.2)">
+        <div class="scan-line"></div>
+        <div id="warParticles" style="position:absolute;inset:0;pointer-events:none"></div>
+        <div id="shockwave" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:0;height:0;border-radius:50%;background:rgba(245,158,11,0.3);pointer-events:none;transition:all 0.6s ease-out"></div>
+        
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-weight:800;font-size:13px;background:linear-gradient(90deg,#f59e0b,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent">⚔️ WAR OF THE TRADERS</span>
+            <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:10px;color:#f59e0b">⏱</span>
+                <span style="font-size:12px;font-weight:700;color:#f59e0b;font-family:monospace" id="warTimer">--:--</span>
+            </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+            <div style="flex:1;text-align:center;background:rgba(16,185,129,0.08);border-radius:12px;padding:10px 8px;border:1px solid rgba(16,185,129,0.2)">
+                <div style="font-size:10px;color:#10b981;font-weight:700;margin-bottom:4px">🐂 BUY ARMY</div>
+                <div style="font-size:12px;color:#6b7280;margin-bottom:4px" id="warBuyTroops">⚔️⚔️⚔️⚔️⚔️</div>
+                <div style="font-size:30px;font-weight:900;color:#10b981" id="warBuyCount">0</div>
+                <div style="font-size:10px;color:#6b7280">traders</div>
+                <div style="font-size:12px;color:#10b981;font-weight:700;margin-top:4px" id="warBuyPL">$0</div>
+            </div>
+            <div style="text-align:center;min-width:40px">
+                <div style="font-size:28px;font-weight:900;color:#f59e0b;animation:glow 1.5s ease-in-out infinite">⚡</div>
+                <div style="font-size:9px;color:#6b7280">VS</div>
+                <div style="font-size:11px;font-weight:700;color:#f59e0b" id="warTotal">0</div>
+            </div>
+            <div style="flex:1;text-align:center;background:rgba(239,68,68,0.08);border-radius:12px;padding:10px 8px;border:1px solid rgba(239,68,68,0.2)">
+                <div style="font-size:10px;color:#ef4444;font-weight:700;margin-bottom:4px">🐻 SELL ARMY</div>
+                <div style="font-size:12px;color:#6b7280;margin-bottom:4px" id="warSellTroops">⚔️⚔️</div>
+                <div style="font-size:30px;font-weight:900;color:#ef4444" id="warSellCount">0</div>
+                <div style="font-size:10px;color:#6b7280">traders</div>
+                <div style="font-size:12px;color:#ef4444;font-weight:700;margin-top:4px" id="warSellPL">$0</div>
+            </div>
+        </div>
+
+        <div style="position:relative;width:100%;height:8px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden;margin-bottom:8px">
+            <div id="warBuyBar" style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#10b981,#34d399,#6ee7b7);transition:width 0.6s cubic-bezier(0.4,0,0.2,1);width:50%;border-radius:10px 0 0 10px">
+                <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);animation:shimmer 2s infinite"></div>
+            </div>
+            <div style="position:absolute;left:50%;top:0;width:2px;height:100%;background:#f59e0b;transform:translateX(-50%);z-index:2;box-shadow:0 0 10px #f59e0b"></div>
+            <div id="warSellBar" style="position:absolute;right:0;top:0;height:100%;background:linear-gradient(90deg,#f87171,#ef4444,#dc2626);transition:width 0.6s cubic-bezier(0.4,0,0.2,1);width:50%;border-radius:0 10px 10px 0">
+                <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);animation:shimmer 2s infinite"></div>
+            </div>
+        </div>
+
+        <div style="text-align:center;margin-bottom:8px">
+            <div style="font-size:12px;font-weight:800;letter-spacing:1px" id="warVictor">⏳ AWAITING BATTLE...</div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:8px;font-size:9px;color:#6b7280">
+            <span>🗺️</span>
+            <div style="flex:1;height:4px;background:linear-gradient(90deg,#10b981 0%,#10b981 50%,#ef4444 50%,#ef4444 100%);border-radius:2px;position:relative">
+                <div style="position:absolute;top:-3px;left:50%;width:6px;height:10px;background:#f59e0b;border-radius:2px;transform:translateX(-50%);box-shadow:0 0 8px #f59e0b"></div>
+            </div>
+            <span>🏴</span>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.02);border-radius:8px;padding:6px 8px;margin-bottom:8px;text-align:center">
+            <div style="font-size:9px;color:#6b7280;margin-bottom:3px">🏟️ STADIUM CROWD</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+                <span style="font-size:14px" id="crowdBuy">👥👥👥</span>
+                <span style="font-size:11px;color:#f59e0b;font-weight:700">📣 "<span id="crowdChant">BUY! BUY!</span>"</span>
+                <span style="font-size:14px" id="crowdSell">👤👤</span>
+            </div>
+            <div style="width:100%;height:3px;background:rgba(255,255,255,0.05);border-radius:10px;margin-top:4px;overflow:hidden">
+                <div id="crowdHypeBar" style="height:100%;background:linear-gradient(90deg,#3b82f6,#f59e0b,#ef4444);transition:width 0.5s;width:0%"></div>
+            </div>
+            <div style="font-size:8px;color:#6b7280;margin-top:2px">HYPE: <span id="crowdHypePct">0%</span></div>
+        </div>
+
+        <div style="font-size:9px;color:#6b7280;max-height:40px;overflow-y:auto;margin-bottom:8px" id="battleLog">
+            <div>📋 Battle log ready...</div>
+        </div>
+
+        <div style="display:flex;gap:6px">
+            <button onclick="adminVote('buy')" style="flex:1;padding:8px;border-radius:10px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#10b981;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(16,185,129,0.4)'" onmouseout="this.style.background='rgba(16,185,129,0.2)'">🐂 +BUY</button>
+            <button onclick="adminVote('sell')" style="flex:1;padding:8px;border-radius:10px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#ef4444;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(239,68,68,0.4)'" onmouseout="this.style.background='rgba(239,68,68,0.2)'">🐻 +SELL</button>
+            <button onclick="resetVotes()" style="padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#6b7280;font-size:10px;cursor:pointer;transition:all 0.2s">↺ Reset</button>
+        </div>
+    </div>
+
+    <!-- 🔥 STREAK FIRE -->
+    <div class="glass-light" style="margin:8px;padding:14px;border-radius:12px;text-align:center;position:relative;overflow:hidden">
+        <div id="fireParticles" style="position:absolute;inset:0;pointer-events:none"></div>
+        <div style="font-size:11px;font-weight:700;margin-bottom:4px">🔥 STREAK FIRE</div>
+        <div style="font-size:50px;animation:fireTornado 1s ease-in-out infinite" id="streakIcon">🔥</div>
+        <div style="font-size:32px;font-weight:900;color:#f59e0b" id="streakNumber">0</div>
+        <div style="font-size:10px;color:#6b7280">CONSECUTIVE WINS</div>
+        <div style="width:100%;height:4px;background:rgba(255,255,255,0.05);border-radius:10px;margin-top:8px;overflow:hidden">
+            <div id="streakProgress" style="height:100%;background:linear-gradient(90deg,#f59e0b,#f97316);transition:width 0.5s;width:0%"></div>
+        </div>
+        <div style="font-size:10px;color:#f59e0b;margin-top:4px" id="streakMultiplier">1x MULTIPLIER</div>
+    </div>
+
+    <!-- 🏎️ PRICE RACE -->
+    <div class="glass-light" style="margin:8px;padding:14px;border-radius:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-weight:700;font-size:11px">🏎️ PRICE RACE</span>
+            <span style="font-size:11px;color:#f59e0b;font-family:monospace" id="racePriceLive">$0</span>
+        </div>
+        <div style="position:relative;height:28px;background:rgba(255,255,255,0.05);border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.08)">
+            <div style="position:absolute;top:0;left:25%;width:1px;height:100%;background:rgba(16,185,129,0.3)"></div>
+            <div style="position:absolute;top:0;left:50%;width:1px;height:100%;background:rgba(255,255,255,0.1)"></div>
+            <div style="position:absolute;top:0;left:75%;width:1px;height:100%;background:rgba(239,68,68,0.3)"></div>
+            <div style="position:absolute;top:4px;transition:left 0.7s;left:45%" id="raceCarPos">
+                <span style="font-size:20px">🏎️</span>
+            </div>
+            <div style="position:absolute;top:4px;right:8px"><span style="font-size:10px">🏁</span></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:#6b7280;margin-top:4px">
+            <span id="raceLow">$0</span><span id="raceHigh">$0</span>
+        </div>
+    </div>
+
+    <!-- 👻 GHOST vs YOU + 🏆 RANKINGS -->
+    <div style="display:flex;gap:8px;margin:8px">
+        <div class="glass-light" style="flex:1;padding:12px;border-radius:12px;text-align:center">
+            <div style="font-size:10px;font-weight:700;margin-bottom:4px">👻 GHOST vs YOU</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:10px">
+                <div style="flex:1"><div style="color:#6b7280">👻</div><div class="text-profit" id="ghostWR">--</div><div class="text-profit" id="ghostPL">--</div></div>
+                <span>VS</span>
+                <div style="flex:1"><div style="color:#6b7280">👤</div><div class="text-accent-400" id="youWR">--</div><div class="text-accent-400" id="youPL">--</div></div>
+            </div>
+            <div style="font-size:9px;color:#6b7280;margin-top:6px" id="ghostComment"></div>
+        </div>
+        <div class="glass-light" style="flex:1;padding:12px;border-radius:12px">
+            <div style="font-size:10px;font-weight:700;margin-bottom:4px">🏆 TOP 5</div>
+            <div style="font-size:9px;color:#6b7280;line-height:1.6" id="apexRankings">Loading...</div>
+        </div>
+    </div>
+
+    <!-- 🎁 LOOT BOX -->
+    <div class="glass-light" style="margin:8px;padding:14px;border-radius:12px;text-align:center;position:relative;overflow:hidden">
+        <div id="lootGlow" style="position:absolute;inset:0;pointer-events:none;transition:box-shadow 0.5s"></div>
+        <div style="font-size:10px;font-weight:700;margin-bottom:4px">🎁 MYSTERY BOX</div>
+        <div style="font-size:50px;cursor:pointer;transition:transform 0.3s" id="lootBoxIcon" onclick="openLootBox()">📦</div>
+        <div style="font-size:9px;color:#6b7280" id="lootTimer">Next: --</div>
+        <div style="font-size:11px;color:#f59e0b;font-weight:700;margin-top:4px" id="lootPrize"></div>
+    </div>
+
+    <!-- 💬 LIVE CHAT (RAPI) -->
+    <div class="glass-light" style="margin:8px;padding:10px;border-radius:12px;display:flex;flex-direction:column">
+        <div style="font-size:10px;font-weight:700;margin-bottom:6px">💬 LIVE CHAT</div>
+        <div id="liveChat" style="font-size:10px;color:#6b7280;line-height:1.6;max-height:100px;overflow-y:auto;margin-bottom:6px">
+            <div>Waiting for comments...</div>
+        </div>
+        <div style="display:flex;gap:6px">
+            <input type="text" id="hostChatInput" placeholder="Ketik sebagai Host..." 
+                   style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;font-size:10px;color:white;outline:none"
+                   onkeypress="if(event.key==='Enter')sendHostMessage()">
+            <button onclick="sendHostMessage()" 
+                    style="background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#10b981;border-radius:8px;padding:8px 12px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">Kirim</button>
+        </div>
+    </div>
+
+</div>
+
+</div>
+
+<script>
+// ==========================================
+// CONFIG
+// ==========================================
+const CONFIG={
+    firebaseURL:"https://aethertrade-signals-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    adminLicense:"AT-AB100702CB5771F2",
+    aiAPIKey:"sk-n03H7ceb0UoUtx2qBmXs7Q",
+    aiModel:"deepseek/deepseek-chat",
+    aiEndpoint:"https://api.maiarouter.ai/v1/chat/completions"
+};
+firebase.initializeApp({databaseURL:CONFIG.firebaseURL});
+const db=firebase.database();
+
+// ==========================================
+// GLOBAL STATE
+// ==========================================
+let currentPair='XAUUSD',currentInterval='15',tvWidget=null;
+let adminBuyVotes=0,adminSellVotes=0;
+let ttsEnabled=true;
+let currentScene='normal';
+let streakCount=0,lootCD=1800;
+
+// ==========================================
+// TRADINGVIEW CHART
+// ==========================================
+function initChart(){
+    tvWidget=new TradingView.widget({
+        container_id:"tv_chart",
+        symbol:"OANDA:"+currentPair,
+        interval:currentInterval,
+        theme:"dark",
+        style:"1",
+        locale:"en",
+        toolbar_bg:"#0a0a0a",
+        hide_top_toolbar:false,
+        save_image:false,
+        height:"100%",
+        width:"100%",
+        autosize:true,
+        studies:["MASimple@tv-basicstudies","RSI@tv-basicstudies","MACD@tv-basicstudies"]
+    });
+}
+
+// ==========================================
+// TTS — TEXT TO SPEECH (GRATIS)
+// ==========================================
+function speak(text){
+    if(!ttsEnabled)return;
+    try{
+        const u=new SpeechSynthesisUtterance(text);
+        u.lang='id-ID';u.rate=1.0;u.pitch=1.0;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
+    }catch(e){}
+}
+function toggleTTS(){
+    ttsEnabled=!ttsEnabled;
+    document.getElementById('ttsStatus').textContent=ttsEnabled?'AI ON':'AI OFF';
+    document.getElementById('ttsStatus').className=ttsEnabled?'text-accent-400':'text-neutral';
+}
+
+// ==========================================
+// 🤖 AI AUTO-REPLY SYSTEM
+// ==========================================
+let aiReplyQueue=[];
+let isAiProcessing=false;
+
+async function aiReplyToComment(username,comment){
+    // Skip kalau komentar kosong atau spam
+    if(!comment||comment.length<5)return;
+    
+    // Tambah ke queue
+    aiReplyQueue.push({username,comment,time:Date.now()});
+    
+    // Proses queue
+    if(!isAiProcessing)processAiQueue();
+}
+
+async function processAiQueue(){
+    if(aiReplyQueue.length===0){isAiProcessing=false;return;}
+    isAiProcessing=true;
+    
+    const item=aiReplyQueue.shift();
+    const {username,comment}=item;
+    
+    try{
+        const response=await fetch(CONFIG.aiEndpoint,{
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+                'Authorization':'Bearer '+CONFIG.aiAPIKey
+            },
+            body:JSON.stringify({
+                model:CONFIG.aiModel,
+                messages:[
+                    {
+                        role:'system',
+                        content:'Kamu adalah host trading live yang ramah, lucu, dan informatif. Jawab pertanyaan penonton dengan singkat (maksimal 1-2 kalimat). Gunakan bahasa Indonesia santai. Jangan gunakan emoji. Jangan menyuruh orang beli/jual. Sebut nama penonton di awal jawaban. Jawab dengan gaya anak muda trader.'
+                    },
+                    {
+                        role:'user',
+                        content:'Penonton bernama '+username+' bilang: "'+comment+'". Sebagai host trading live XAUUSD yang sedang di harga $4,348, berikan jawaban singkat dan ramah dalam 1-2 kalimat saja.'
+                    }
+                ],
+                max_tokens:80,
+                temperature:0.8
+            })
+        });
+        
+        const data=await response.json();
+        const reply=data.choices[0].message.content;
+        
+        // Tampilkan di live chat
+        addChatMessage('🤖 AI Host',reply,'ai');
+        
+        // Bacakan dengan TTS
+        speak(username+', '+reply);
+        
+        // Simpan ke Firebase biar muncul di panel penonton
+        db.ref('broadcast_chat').push({
+            username:'🤖 AI Host',
+            comment:reply,
+            replyTo:'@'+username,
+            timestamp:Date.now()
+        });
+        
+    }catch(e){
+        console.error('AI Reply error:',e);
+    }
+    
+    // Process next
+    setTimeout(()=>processAiQueue(),2000);
+}
+
+// ==========================================
+// 💬 LIVE CHAT SYSTEM
+// ==========================================
+function addChatMessage(username,comment,type){
+    const chatContainer=document.getElementById('liveChat');
+    const bubble=document.createElement('div');
+    bubble.style.cssText='padding:4px 8px;margin:2px 0;border-radius:8px;font-size:10px;animation:slideUp 0.3s ease-out';
+    
+    if(type==='ai'){
+        bubble.style.background='rgba(245,158,11,0.15)';
+        bubble.style.borderLeft='2px solid #f59e0b';
+        bubble.innerHTML='<b style="color:#f59e0b">🤖 AI Host</b>: '+comment;
+    }else if(type==='admin'){
+        bubble.style.background='rgba(16,185,129,0.15)';
+        bubble.style.borderLeft='2px solid #10b981';
+        bubble.innerHTML='<b style="color:#10b981">📢 Host</b>: '+comment;
+    }else{
+        bubble.style.background='rgba(255,255,255,0.03)';
+        bubble.innerHTML='<b>@'+username+'</b>: '+comment;
+        // Auto-reply untuk komentar user
+        aiReplyToComment(username,comment);
+    }
+    
+    chatContainer.appendChild(bubble);
+    chatContainer.scrollTop=chatContainer.scrollHeight;
+    
+    // Batasi 50 pesan
+    while(chatContainer.children.length>50){
+        chatContainer.removeChild(chatContainer.firstChild);
+    }
+}
+
+// ==========================================
+// SIMULASI KOMENTAR MASUK (UNTUK TES)
+// ==========================================
+function simulateComment(){
+    const users=['trader_pro','gold_hunter','forex_king','newbie_trader','cuan_terus'];
+    const comments=[
+        'Bang, XAUUSD bakal naik gak?',
+        'SL nya dimana bang?',
+        'BUY sekarang aman gak?',
+        'Wah SELL nih kayaknya',
+        'Profit berapa hari ini bang?',
+        'EA nya keren banget!',
+        'Mau tanya dong, cara daftar gimana?',
+        'Hold atau close bang?'
+    ];
+    const user=users[Math.floor(Math.random()*users.length)];
+    const comment=comments[Math.floor(Math.random()*comments.length)];
+    addChatMessage(user,comment,'user');
+    
+    // Simpan ke Firebase
+    db.ref('broadcast_chat').push({
+        username:user,
+        comment:comment,
+        timestamp:Date.now()
+    });
+}
+
+// ==========================================
+// LISTEN FIREBASE CHAT
+// ==========================================
+function listenFirebaseChat(){
+    db.ref('broadcast_chat').limitToLast(20).on('child_added',snap=>{
+        const d=snap.val();
+        if(d.username!=='🤖 AI Host'){
+            addChatMessage(d.username,d.comment,'user');
+        }
+    });
+}
+
+// ==========================================
+// HOST MANUAL CHAT
+// ==========================================
+function sendHostMessage(){
+    const input=document.getElementById('hostChatInput');
+    const msg=input.value.trim();
+    if(!msg)return;
+    addChatMessage('Host',msg,'admin');
+    db.ref('broadcast_chat').push({
+        username:'📢 Host',
+        comment:msg,
+        timestamp:Date.now()
+    });
+    input.value='';
+}
+
+// ==========================================
+// SCENE MANAGER
+// ==========================================
+function toggleScene(){
+    const scenes=['normal','battle','alert','victory','crash','chat'];
+    const idx=scenes.indexOf(currentScene);
+    currentScene=scenes[(idx+1)%scenes.length];
+    document.getElementById('btmCrowd').textContent=currentScene.toUpperCase();
+    speak('Mode '+currentScene+' diaktifkan');
+}
+
+// ==========================================
+// ⚔️ BATTLE ZONE
+// ==========================================
+function adminVote(type){
+    if(type==='buy')adminBuyVotes++;
+    else adminSellVotes++;
+    updateBattleDisplay();
+    playTone('sine',880,0.1,0.12);
+    spawnWarParticles();
+    speak('Vote masuk! '+(type==='buy'?'BUY':'SELL')+' sekarang '+adminBuyVotes+' vs '+adminSellVotes);
+}
+function resetVotes(){adminBuyVotes=0;adminSellVotes=0;updateBattleDisplay();}
+function updateBattleDisplay(){
+    const total=adminBuyVotes+adminSellVotes||1;
+    const buyPct=Math.round((adminBuyVotes/total)*100);
+    const sellPct=100-buyPct;
+    
+    // Update counts
+    document.getElementById('warBuyCount').textContent=adminBuyVotes;
+    document.getElementById('warSellCount').textContent=adminSellVotes;
+    document.getElementById('warBuyBar').style.width=buyPct+'%';
+    document.getElementById('warSellBar').style.width=sellPct+'%';
+    document.getElementById('warTotal').textContent=total;
+    
+    // Update troops visual
+    const buyTroops='⚔️'.repeat(Math.min(adminBuyVotes,15))||'—';
+    const sellTroops='⚔️'.repeat(Math.min(adminSellVotes,15))||'—';
+    document.getElementById('warBuyTroops').textContent=buyTroops;
+    document.getElementById('warSellTroops').textContent=sellTroops;
+    
+    // Update crowd
+    const buyCrowd='👥'.repeat(Math.min(Math.ceil(adminBuyVotes/3),10))||'—';
+    const sellCrowd='👤'.repeat(Math.min(Math.ceil(adminSellVotes/3),10))||'—';
+    document.getElementById('crowdBuy').textContent=buyCrowd;
+    document.getElementById('crowdSell').textContent=sellCrowd;
+    
+    // Crowd chant
+    if(adminBuyVotes>adminSellVotes+10){
+        document.getElementById('crowdChant').textContent='BUY! BUY! BUY!';
+    }else if(adminSellVotes>adminBuyVotes+10){
+        document.getElementById('crowdChant').textContent='SELL! SELL!';
+    }else{
+        document.getElementById('crowdChant').textContent='FIGHT! FIGHT!';
+    }
+    
+    // Hype meter
+    const hype=Math.min(100,total*3);
+    document.getElementById('crowdHypeBar').style.width=hype+'%';
+    document.getElementById('crowdHypePct').textContent=hype+'%';
+    
+    // Victor
+    if(total>1){
+        const diff=Math.abs(adminBuyVotes-adminSellVotes);
+        let victorText='';
+        if(adminBuyVotes>adminSellVotes){
+            victorText=diff>10?'🏆🐂 BUY ARMY CONQUERS THE BATTLEFIELD!':'🐂 BUY ARMY LEADING!';
+        }else if(adminSellVotes>adminBuyVotes){
+            victorText=diff>10?'🏆🐻 SELL ARMY CONQUERS THE BATTLEFIELD!':'🐻 SELL ARMY LEADING!';
+        }else{
+            victorText='⚡ BATTLE IS EVEN!';
+        }
+        document.getElementById('warVictor').innerHTML='<span class="text-accent-400">'+victorText+'</span>';
+        
+        // Shockwave effect
+        if(diff>=5)triggerShockwave();
+    }
+    
+    // Battle log
+    const log=document.getElementById('battleLog');
+    const now=new Date().toLocaleTimeString();
+    if(log.children.length>10)log.removeChild(log.lastChild);
+    const entry=document.createElement('div');
+    entry.textContent=now+' | BUY:'+adminBuyVotes+' SELL:'+adminSellVotes;
+    entry.style.cssText='padding:1px 0;border-bottom:1px solid rgba(255,255,255,0.03)';
+    log.insertBefore(entry,log.firstChild);
+    
+    // Update dari trailing
+    db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{
+        const d=snap.val()||{};const pos=d.positions||[];
+        let bpl=0,spl=0;
+        pos.forEach(p=>{if(p.dir==='BUY')bpl+=(p.profit||0);else spl+=(p.profit||0);});
+        document.getElementById('warBuyPL').textContent='$'+bpl.toFixed(0);
+        document.getElementById('warSellPL').textContent='$'+spl.toFixed(0);
+    });
+}
+
+function triggerShockwave(){
+    const sw=document.getElementById('shockwave');
+    sw.style.width='200px';sw.style.height='200px';
+    sw.style.opacity='1';
+    setTimeout(()=>{sw.style.width='0';sw.style.height='0';sw.style.opacity='0';},600);
+    playTone('sine',200,0.15,0.2);
+}
+
+function addBattleLog(msg){
+    const log=document.getElementById('battleLog');
+    const entry=document.createElement('div');
+    entry.textContent=msg;
+    entry.style.cssText='padding:1px 0;border-bottom:1px solid rgba(255,255,255,0.03)';
+    log.insertBefore(entry,log.firstChild);
+    if(log.children.length>15)log.removeChild(log.lastChild);
+}
+function spawnWarParticles(){
+    const c=document.getElementById('warParticles');
+    for(let i=0;i<6;i++){
+        const p=document.createElement('div');
+        p.className='fire-particle';
+        p.style.left=Math.random()*100+'%';p.style.top='50%';
+        p.style.setProperty('--x',(Math.random()-0.5)*100+'px');
+        p.style.background=Math.random()>0.5?'#10b981':'#ef4444';
+        p.style.width='4px';p.style.height='4px';p.style.borderRadius='50%';
+        c.appendChild(p);setTimeout(()=>p.remove(),1500);
+    }
+}
+
+// ==========================================
+// 🔥 STREAK
+// ==========================================
+function updateStreak(){
+    db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{
+        const d=snap.val()||{};const pos=d.positions||[];
+        const wins=pos.filter(p=>(p.profit||0)>0).length;
+        streakCount=wins;
+        const icons=['','🔥','🔥🔥','🔥🔥🔥','🔥🔥🔥🔥','🔥🔥🔥🔥🔥','💥💥','💥💥💥','🌟'];
+        document.getElementById('streakIcon').textContent=icons[Math.min(wins,icons.length-1)];
+        document.getElementById('streakNumber').textContent=wins;
+        document.getElementById('streakProgress').style.width=Math.min(wins*10,100)+'%';
+        document.getElementById('streakMultiplier').textContent=(wins>=10?'5x':wins>=7?'3x':wins>=5?'2x':'1x')+' MULTIPLIER';
+        if(wins>=5&&wins>streakCount-1){spawnFireParticles();playTone('triangle',523,0.12,0.25);speak(wins+' kemenangan berturut-turut!');}
+    });
+}
+function spawnFireParticles(){
+    const c=document.getElementById('fireParticles');
+    for(let i=0;i<10;i++){
+        const p=document.createElement('div');
+        p.className='fire-particle';p.style.left=Math.random()*100+'%';p.style.top='60%';
+        p.style.setProperty('--x',(Math.random()-0.5)*80+'px');
+        p.style.background=Math.random()>0.5?'#f59e0b':'#f97316';
+        p.style.width='6px';p.style.height='6px';p.style.borderRadius='50%';
+        c.appendChild(p);setTimeout(()=>p.remove(),1500);
+    }
+}
+
+// ==========================================
+// 🏎️ PRICE RACE
+// ==========================================
+function updatePriceRace(){
+    const px=document.getElementById('tickerXAU');
+    const price=parseFloat(px?px.textContent.replace('$',''):'0')||2650;
+    document.getElementById('racePriceLive').textContent='$'+price.toFixed(2);
+    const low=price-30,high=price+30;
+    document.getElementById('raceLow').textContent='$'+low.toFixed(0);
+    document.getElementById('raceHigh').textContent='$'+high.toFixed(0);
+    const pct=Math.min(95,Math.max(5,((price-low)/(high-low))*100));
+    document.getElementById('raceCarPos').style.left=pct+'%';
+}
+
+// ==========================================
+// 👻 GHOST + RANKINGS
+// ==========================================
+function updateGhostAndRankings(){
+    db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{
+        const d=snap.val()||{};const pos=d.positions||[];
+        const total=pos.length;const wins=pos.filter(p=>(p.profit||0)>0).length;
+        const wr=total>0?Math.round((wins/total)*100):0;
+        const pl=pos.reduce((s,p)=>s+(p.profit||0),0);
+        document.getElementById('ghostWR').textContent=wr+'%';
+        document.getElementById('ghostPL').textContent=(pl>=0?'+':'')+'$'+pl.toFixed(0);
+        document.getElementById('youWR').textContent=Math.max(0,wr-7)+'%';
+        document.getElementById('youPL').textContent=(pl>=0?'+':'')+'$'+(pl*0.8).toFixed(0);
+        document.getElementById('ghostComment').textContent=wr>=70?'👻 "Aku terlalu kuat!"':wr>=50?'👻 "Lumayan profit!"':'👻 "Sabar, pasar lagi sulit"';
+    });
+    db.ref('live_votes/rankings').orderByChild('xp').limitToLast(5).on('value',snap=>{
+        const data=snap.val();const c=document.getElementById('apexRankings');
+        if(data){
+            const entries=Object.entries(data).sort((a,b)=>(b[1].xp||0)-(a[1].xp||0));
+            const medals={0:'🥇',1:'🥈',2:'🥉',3:'4.',4:'5.'};
+            let h='';
+            entries.forEach(([k,v],i)=>{
+                h+=medals[i]+' '+(v.username||k)+' Lv.'+(Math.floor((v.xp||0)/100)+1)+'<br>';
+            });
+            c.innerHTML=h||'No rankings';
+        }
+    });
+}
+
+// ==========================================
+// 🎁 LOOT BOX
+// ==========================================
+function openLootBox(){
+    playTone('sine',600,0.1,0.2);
+    const prizes=['🎁 Free Trial','🏅 Badge','📢 Shoutout','💎 VIP','🎯 2x XP','😢 Nothing'];
+    const r=Math.floor(Math.random()*prizes.length);
+    document.getElementById('lootBoxIcon').style.transform='scale(1.3) rotate(15deg)';
+    document.getElementById('lootGlow').style.boxShadow='0 0 40px #f59e0b';
+    setTimeout(()=>{
+        document.getElementById('lootBoxIcon').style.transform='scale(1) rotate(0)';
+        document.getElementById('lootGlow').style.boxShadow='none';
+        document.getElementById('lootPrize').textContent='🎉 '+prizes[r]+'!';
+        if(prizes[r]!=='😢 Nothing')spawnConfetti();
+        speak('Box dibuka! Hadiah: '+prizes[r]);
+    },600);
+}
+
+// ==========================================
+// 🎉 CONFETTI
+// ==========================================
+function spawnConfetti(){
+    const c=document.getElementById('confettiLayer');
+    const colors=['#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899'];
+    for(let i=0;i<40;i++){
+        const p=document.createElement('div');
+        p.className='confetti-particle';
+        p.style.left=Math.random()*100+'%';p.style.top='-20px';
+        p.style.setProperty('--x',(Math.random()-0.5)*200+'px');
+        p.style.background=colors[Math.floor(Math.random()*colors.length)];
+        p.style.width=(4+Math.random()*10)+'px';
+        p.style.height=(4+Math.random()*10)+'px';
+        p.style.borderRadius=Math.random()>0.5?'50%':'2px';
+        p.style.animationDelay=Math.random()*0.5+'s';
+        c.appendChild(p);setTimeout(()=>p.remove(),3000);
+    }
+    playTone('square',1047,0.15,0.15);
+}
+
+// ==========================================
+// 💥 CRASH
+// ==========================================
+function checkCrash(){
+    db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{
+        const d=snap.val()||{};const pos=d.positions||[];
+        const pl=pos.reduce((s,p)=>s+(p.profit||0),0);
+        if(pl<-500){
+            document.getElementById('crashOverlay').style.display='block';
+            document.getElementById('crashAmount').textContent='-$'+Math.abs(pl).toFixed(0);
+            playTone('sawtooth',80,0.3,0.5);
+            speak('WASPADA! Kerugian mencapai '+Math.abs(pl).toFixed(0)+' dollar!');
+            setTimeout(()=>document.getElementById('crashOverlay').style.display='none',5000);
+        }
+    });
+}
+
+// ==========================================
+// 🔊 AUDIO
+// ==========================================
+function playTone(f,v,d,vol){
+    try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=v;o.type=f;g.gain.value=vol||0.1;o.start();g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+d);o.stop(ctx.currentTime+d);}catch(e){}
+}
+
+// ==========================================
+// ⏱ TIMERS
+// ==========================================
+function updateAllTimers(){
+    const n=new Date();const m=n.getMinutes(),s=n.getSeconds();
+    const cc=Math.floor(m/15)*15;const nc=(cc+15)%60;
+    let mtc=nc-m;if(mtc<=0)mtc+=15;
+    const ts=mtc*60-s;const mm=Math.floor(ts/60);const ss=ts%60;
+    const timeStr=String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+    document.getElementById('warTimer').textContent=timeStr;
+    document.getElementById('headerTimer').textContent=timeStr;
+    document.getElementById('btmTimer').textContent=timeStr;
+    // Loot box
+    lootCD--;if(lootCD<=0)lootCD=1800;
+    document.getElementById('lootTimer').textContent='Next: '+Math.floor(lootCD/60)+'m '+lootCD%60+'s';
+}
+
+// ==========================================
+// HEADER UPDATES
+// ==========================================
+function updateHeaderStats(){
+    db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{
+        const d=snap.val()||{};const pos=d.positions||[];
+        document.getElementById('btmPositions').textContent=pos.length;
+        const pl=pos.reduce((s,p)=>s+(p.profit||0),0);
+        document.getElementById('btmPL').textContent=(pl>=0?'+':'')+'$'+pl.toFixed(2);
+        document.getElementById('btmPL').className=pl>=0?'text-profit':'text-loss';
+        const wins=pos.filter(p=>(p.profit||0)>0).length;
+        document.getElementById('btmWR').textContent=pos.length>0?Math.round((wins/pos.length)*100)+'%':'0%';
+    });
+    // Harga dari ticker panel utama (fallback)
+    setInterval(()=>{
+        document.getElementById('headerPrice').textContent='$4348.18';
+        document.getElementById('headerChange').textContent='+0.32%';
+        document.getElementById('headerChange').className='text-profit';
+    },5000);
+}
+
+// ==========================================
+// SIGNAL OVERLAY
+// ==========================================
+function checkSignals(){
+    db.ref('signals/'+CONFIG.adminLicense+'/XAU_USD/1').on('value',snap=>{
+        const s=snap.val();
+        if(s&&s.dir){
+            document.getElementById('signalOverlay').style.display='block';
+            document.getElementById('signalIcon').textContent=s.dir==='BUY'?'📈':'📉';
+            document.getElementById('signalDir').textContent=s.dir;
+            document.getElementById('signalEntry').textContent='$'+s.entry;
+            document.getElementById('signalSL').textContent='$'+s.sl;
+            document.getElementById('signalTT').textContent='$'+(s.trailStart||0);
+            speak('Sinyal '+s.dir+' terdeteksi di '+s.entry);
+            setTimeout(()=>document.getElementById('signalOverlay').style.display='none',8000);
+        }
+    });
+}
+
+// ==========================================
+// INIT
+// ==========================================
+function init(){
+    initChart();
+    updateBattleDisplay();
+    updateStreak();
+    updateGhostAndRankings();
+    updateHeaderStats();
+    checkSignals();
+    checkCrash();
+    listenFirebaseChat(); // ← TAMBAHKAN
+    setInterval(updateAllTimers,1000);
+    setInterval(updatePriceRace,2000);
+    setInterval(updateBattleDisplay,3000);
+    setInterval(updateStreak,5000);
+    setInterval(updateGhostAndRankings,10000);
+    setInterval(simulateComment,15000); // ← TAMBAHKAN (simulasi komentar tiap 15 detik)
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+    init();
+    document.getElementById('headerViewers').textContent=Math.floor(Math.random()*50+20);
+    speak('AetherTrade Broadcast System siap! Selamat datang di live streaming trading.');
+});
+</script>
+</body>
+</html>
