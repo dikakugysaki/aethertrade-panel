@@ -43,6 +43,16 @@
         #crashOverlay{position:fixed;inset:0;background:rgba(239,68,68,0.3);z-index:100;display:none;pointer-events:none;animation:shake 0.5s ease-in-out}
         #confettiLayer{position:fixed;inset:0;z-index:99;pointer-events:none;overflow:hidden}
         @keyframes arrowGlow{0%,100%{filter:drop-shadow(0 0 10px var(--arrow-glow))}50%{filter:drop-shadow(0 0 25px var(--arrow-glow))}}
+        @keyframes sonarPulse{0%{transform:translate(-50%,-50%) scale(0.5);opacity:1}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
+        @keyframes glowPulse{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+        @keyframes dashFlow{0%{background-position:0 0}100%{background-position:30px 0}}
+        @keyframes zoneGlow{0%,100%{opacity:0.7}50%{opacity:1}}
+        @keyframes countdownRing{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+        @keyframes stampIn{0%{transform:translate(-50%,-50%) rotate(-15deg) scale(3);opacity:0}60%{transform:translate(-50%,-50%) rotate(-15deg) scale(0.9);opacity:0.3}100%{transform:translate(-50%,-50%) rotate(-15deg) scale(1);opacity:0.15}}
+        @keyframes particleDrift{0%{transform:translate(0,0);opacity:1}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
+        @keyframes flashRed{0%{background:rgba(239,68,68,0.4)}100%{background:transparent}}
+        @keyframes flashGold{0%{background:rgba(245,158,11,0.3)}100%{background:transparent}}
+        @keyframes flashGreen{0%{background:rgba(16,185,129,0.3)}100%{background:transparent}}
     </style>
 </head>
 <body class="bg-surface-950 text-white font-sans">
@@ -99,56 +109,107 @@
         <div id="tv_chart" style="width:100%;height:100%"></div>
         
         <!-- ═══════════════════════════════════════════════════════════════ -->
-        <!-- CHART COMMAND CENTER — PROFESSIONAL OVERLAYS                  -->
+        <!-- CHART CINEMATIC OVERLAY — BROADCAST QUALITY v2.0              -->
         <!-- ═══════════════════════════════════════════════════════════════ -->
         <div id="chartMarkers" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:10">
             
-            <!-- Entry Arrow -->
-            <div id="entryArrow" style="position:absolute;display:none;transition:top 0.8s cubic-bezier(0.4,0,0.2,1);z-index:20">
-                <div style="display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 0 15px var(--arrow-color))">
-                    <div id="entryArrowHead" style="width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:24px solid var(--arrow-color);animation:arrowGlow 1.5s ease-in-out infinite"></div>
-                    <div id="entryArrowBody" style="width:3px;height:40px;background:var(--arrow-color);box-shadow:0 0 10px var(--arrow-color)"></div>
-                    <div id="entryArrowLabel" style="background:rgba(0,0,0,0.85);border:1px solid var(--arrow-color);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:800;color:white;white-space:nowrap;margin-top:4px;box-shadow:0 0 20px var(--arrow-glow)">
+            <!-- Sonar Rings -->
+            <div id="sonarRing" style="position:absolute;display:none;width:40px;height:40px;border-radius:50%;border:3px solid var(--signal-color);transform:translate(-50%,-50%);animation:sonarPulse 2s ease-out infinite;z-index:25"></div>
+            <div id="sonarRing2" style="position:absolute;display:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--signal-color);transform:translate(-50%,-50%);animation:sonarPulse 2s ease-out 0.6s infinite;z-index:25"></div>
+            
+            <!-- Entry Arrow Glowing -->
+            <div id="entryArrow" style="position:absolute;display:none;z-index:20;transform:translateX(-50%)">
+                <div style="display:flex;flex-direction:column;align-items:center">
+                    <div style="position:absolute;width:60px;height:60px;background:radial-gradient(circle,var(--signal-glow) 0%,transparent 70%);border-radius:50%;top:-20px;animation:glowPulse 1.5s ease-in-out infinite"></div>
+                    <div style="position:relative;z-index:2">
+                        <div id="entryArrowHead" style="width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:28px solid var(--signal-color);filter:drop-shadow(0 0 12px var(--signal-glow))"></div>
+                        <div id="entryArrowBody" style="width:4px;height:50px;background:var(--signal-color);margin:0 auto;box-shadow:0 0 15px var(--signal-glow)"></div>
+                    </div>
+                    <div id="entryArrowLabel" style="background:rgba(0,0,0,0.9);border:2px solid var(--signal-color);border-radius:10px;padding:8px 16px;font-size:13px;font-weight:800;color:white;white-space:nowrap;margin-top:6px;box-shadow:0 0 25px var(--signal-glow),inset 0 0 15px rgba(255,255,255,0.03);letter-spacing:1px">
                         <span id="arrowDir">BUY</span> &middot; <span id="arrowPrice">$0</span>
                     </div>
                 </div>
             </div>
 
             <!-- SL Line -->
-            <div id="slLinePro" style="position:absolute;display:none;left:0;right:0;z-index:15;transition:top 0.8s cubic-bezier(0.4,0,0.2,1)">
-                <div style="position:relative;width:100%;height:0;border-top:2px dashed rgba(239,68,68,0.7)">
-                    <div style="position:absolute;right:12px;top:-12px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.5);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;color:#ef4444;backdrop-filter:blur(8px)">
-                        🛑 SL: <span id="slPrice">$0</span>
+            <div id="slLinePro" style="position:absolute;display:none;left:0;right:0;z-index:15">
+                <div style="position:relative;width:100%;height:0">
+                    <div style="position:absolute;left:0;right:0;height:4px;background:rgba(239,68,68,0.15);filter:blur(8px);top:-2px"></div>
+                    <div style="position:absolute;left:0;right:0;height:0;border-top:2px dashed rgba(239,68,68,0.8);animation:dashFlow 1s linear infinite"></div>
+                    <div style="position:absolute;right:16px;top:-14px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.6);border-radius:8px;padding:5px 12px;font-size:10px;font-weight:700;color:#fca5a5;backdrop-filter:blur(12px);box-shadow:0 0 15px rgba(239,68,68,0.3)">
+                        🛑 STOP LOSS: <span id="slPrice">$0</span>
                     </div>
                 </div>
             </div>
 
-            <!-- TP Line -->
-            <div id="tpLinePro" style="position:absolute;display:none;left:0;right:0;z-index:15;transition:top 0.8s cubic-bezier(0.4,0,0.2,1)">
-                <div style="position:relative;width:100%;height:0;border-top:2px dashed rgba(16,185,129,0.7)">
-                    <div style="position:absolute;right:12px;top:-12px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.5);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;color:#10b981;backdrop-filter:blur(8px)">
-                        🎯 TP: <span id="tpPrice">$0</span>
+            <!-- TT Trigger Zone -->
+            <div id="tpLinePro" style="position:absolute;display:none;left:0;right:0;z-index:15">
+                <div style="position:relative;width:100%;height:0">
+                    <div id="ttTriggerZone" style="position:absolute;left:0;right:0;background:linear-gradient(180deg,rgba(245,158,11,0.1) 0%,rgba(245,158,11,0.05) 100%);display:none;z-index:3"></div>
+                    <div style="position:absolute;left:0;right:0;height:4px;background:rgba(245,158,11,0.2);filter:blur(8px);top:-2px"></div>
+                    <div style="position:absolute;left:0;right:0;height:0;border-top:2px dashed rgba(245,158,11,0.9);animation:dashFlow 1s linear infinite"></div>
+                    <div style="position:absolute;right:16px;top:-14px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.6);border-radius:8px;padding:5px 12px;font-size:10px;font-weight:700;color:#fcd34d;backdrop-filter:blur(12px);box-shadow:0 0 15px rgba(245,158,11,0.3)">
+                        🟡 TT TRIGGER: <span id="tpPrice">$0</span>
+                    </div>
+                    <div style="position:absolute;left:16px;top:-14px;background:rgba(0,0,0,0.7);border-radius:6px;padding:4px 10px;font-size:9px;color:#fcd34d" id="ttStatus">⏳ Waiting...</div>
+                </div>
+            </div>
+
+            <!-- TT Line (Trailing aktual) -->
+            <div id="ttLinePro" style="position:absolute;display:none;left:0;right:0;z-index:15">
+                <div style="position:relative;width:100%;height:0">
+                    <div style="position:absolute;left:0;right:0;height:4px;background:rgba(245,158,11,0.15);filter:blur(8px);top:-2px"></div>
+                    <div style="position:absolute;left:0;right:0;height:0;border-top:2px dashed rgba(245,158,11,0.8);animation:dashFlow 1s linear infinite"></div>
+                    <div style="position:absolute;right:16px;top:-14px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.6);border-radius:8px;padding:5px 12px;font-size:10px;font-weight:700;color:#fcd34d;backdrop-filter:blur(12px);box-shadow:0 0 15px rgba(245,158,11,0.3)">
+                        🟡 TRAILING: <span id="ttPrice">$0</span>
                     </div>
                 </div>
             </div>
 
-            <!-- TT Line -->
-            <div id="ttLinePro" style="position:absolute;display:none;left:0;right:0;z-index:15;transition:top 0.8s cubic-bezier(0.4,0,0.2,1)">
-                <div style="position:relative;width:100%;height:0;border-top:2px dashed rgba(245,158,11,0.7)">
-                    <div style="position:absolute;right:12px;top:-12px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.5);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;color:#f59e0b;backdrop-filter:blur(8px)">
-                        🟡 TT: <span id="ttPrice">$0</span>
-                    </div>
+            <!-- P/L Zone dengan Gradient Animasi -->
+            <div id="profitZone" style="position:absolute;display:none;left:0;right:0;z-index:4;pointer-events:none">
+                <div style="width:100%;height:100%;background:linear-gradient(180deg,rgba(16,185,129,0.12) 0%,rgba(16,185,129,0.03) 60%,transparent 100%);animation:zoneGlow 3s ease-in-out infinite"></div>
+            </div>
+            <div id="lossZone" style="position:absolute;display:none;left:0;right:0;z-index:4;pointer-events:none">
+                <div style="width:100%;height:100%;background:linear-gradient(0deg,rgba(239,68,68,0.12) 0%,rgba(239,68,68,0.03) 60%,transparent 100%);animation:zoneGlow 3s ease-in-out infinite"></div>
+            </div>
+
+            <!-- Particle Trail -->
+            <div id="particleTrail" style="position:absolute;inset:0;pointer-events:none;z-index:12"></div>
+
+            <!-- Signal Stamp -->
+            <div id="signalStamp" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-15deg);display:none;z-index:30;pointer-events:none">
+                <div style="font-size:80px;font-weight:900;opacity:0.15;letter-spacing:8px;text-shadow:0 0 60px currentColor" id="stampText">BUY</div>
+            </div>
+
+            <!-- SL HIT Overlay -->
+            <div id="slHitOverlay" style="position:absolute;inset:0;display:none;z-index:40;pointer-events:none;animation:flashRed 0.5s ease-out">
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+                    <div style="font-size:100px;animation:shake 0.5s ease-in-out">💀</div>
+                    <div style="font-size:36px;font-weight:900;color:#ef4444;text-shadow:0 0 40px #ef4444">SL HIT!</div>
+                    <div style="font-size:16px;color:white;margin-top:8px" id="slHitPrice">$0</div>
                 </div>
             </div>
 
-            <!-- P/L Zone -->
-            <div id="profitZone" style="position:absolute;display:none;left:0;right:0;background:linear-gradient(180deg,rgba(16,185,129,0.08) 0%,rgba(16,185,129,0.02) 100%);pointer-events:none;z-index:5"></div>
-            <div id="lossZone" style="position:absolute;display:none;left:0;right:0;background:linear-gradient(0deg,rgba(239,68,68,0.08) 0%,rgba(239,68,68,0.02) 100%);pointer-events:none;z-index:5"></div>
+            <!-- TT Active Overlay -->
+            <div id="ttActiveOverlay" style="position:absolute;inset:0;display:none;z-index:40;pointer-events:none;animation:flashGold 0.5s ease-out">
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+                    <div style="font-size:100px">🛡️</div>
+                    <div style="font-size:36px;font-weight:900;color:#f59e0b;text-shadow:0 0 40px #f59e0b">TRAIL ACTIVE!</div>
+                    <div style="font-size:16px;color:white;margin-top:8px" id="ttActivePrice">$0</div>
+                </div>
+            </div>
 
             <!-- Countdown Overlay -->
-            <div id="countdownOverlay" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;text-align:center;z-index:25">
-                <div style="font-size:60px;font-weight:900;color:white;text-shadow:0 0 40px rgba(245,158,11,0.8);font-family:monospace" id="countdownTimer">04:32</div>
-                <div style="font-size:12px;color:#f59e0b;letter-spacing:3px;margin-top:4px">CANDLE CLOSE</div>
+            <div id="countdownOverlay" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;text-align:center;z-index:28">
+                <div style="position:relative">
+                    <div style="width:120px;height:120px;border-radius:50%;border:3px solid rgba(245,158,11,0.4);display:flex;align-items:center;justify-content:center;animation:countdownRing 1s linear infinite">
+                        <div>
+                            <div style="font-size:48px;font-weight:900;color:white;text-shadow:0 0 30px rgba(245,158,11,0.8);font-family:monospace;line-height:1" id="countdownTimer">04:32</div>
+                            <div style="font-size:10px;color:#f59e0b;letter-spacing:3px;margin-top:2px">CLOSE</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -160,7 +221,7 @@
                 <div style="font-size:24px;font-weight:900" id="signalDir">SELL</div>
                 <div style="font-size:14px;color:#6b7280">Entry: <b class="text-white" id="signalEntry">$0</b></div>
                 <div style="font-size:14px;color:#6b7280">SL: <b class="text-loss" id="signalSL">$0</b></div>
-                <div style="font-size:14px;color:#6b7280">TT: <b class="text-yellow-400" id="signalTT">$0</b></div>
+                <div style="font-size:14px;color:#6b7280">TT Trigger: <b class="text-yellow-400" id="signalTT">$0</b></div>
             </div>
         </div>
     </div>
@@ -410,8 +471,83 @@ function speak(text) {
     }
 }
 
+// ==========================================
+// TTS — EDGE TTS (NATURAL + GRATIS)
+// ==========================================
+const TTS_CONFIG = {
+    voice: 'id-ID-GadisNeural',  // Suara perempuan natural
+    // voice: 'id-ID-ArdiNeural',  // Alternatif: suara laki-laki
+    rate: '+10%',                 // Kecepatan
+    pitch: '+0Hz'                 // Nada
+};
+
+async function speakWithEdgeTTS(text) {
+    if (!text || text.trim().length < 2) return;
+    
+    try {
+        const response = await fetch(`https://api-edge-tts.vercel.app/api/tts?text=${encodeURIComponent(text)}&voice=${TTS_CONFIG.voice}&rate=${TTS_CONFIG.rate}&pitch=${TTS_CONFIG.pitch}`, {
+            method: 'GET'
+        });
+        
+        if (!response.ok) throw new Error('TTS API error');
+        
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        
+        audio.onended = function() {
+            URL.revokeObjectURL(audioUrl);
+            setTimeout(() => processTTSQueue(), 200);
+        };
+        
+        audio.onerror = function() {
+            URL.revokeObjectURL(audioUrl);
+            setTimeout(() => processTTSQueue(), 500);
+        };
+        
+        // Stop any current TTS
+        if (window.currentTTSAudio) {
+            window.currentTTSAudio.pause();
+            window.currentTTSAudio = null;
+        }
+        window.currentTTSAudio = audio;
+        
+        await audio.play();
+        
+    } catch (e) {
+        console.error('Edge TTS error:', e);
+        // Fallback ke Web Speech API
+        fallbackWebTTS(text);
+    }
+}
+
+function fallbackWebTTS(text) {
+    try {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'id-ID';
+        u.rate = 1.05;
+        u.pitch = 1.0;
+        u.volume = 0.9;
+        
+        u.onend = function() {
+            setTimeout(() => processTTSQueue(), 300);
+        };
+        
+        u.onerror = function(e) {
+            console.warn('Web TTS error:', e);
+            setTimeout(() => processTTSQueue(), 500);
+        };
+        
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
+        
+    } catch (e) {
+        console.error('Fallback TTS error:', e);
+        setTimeout(() => processTTSQueue(), 500);
+    }
+}
+
 function processTTSQueue() {
-    // Ambil dari antrian
     if (ttsQueue.length === 0) {
         ttsIsSpeaking = false;
         return;
@@ -420,34 +556,8 @@ function processTTSQueue() {
     ttsIsSpeaking = true;
     const text = ttsQueue.shift();
     
-    try {
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'id-ID';
-        u.rate = 1.05;      // Sedikit lebih cepat biar gak numpuk
-        u.pitch = 1.0;
-        u.volume = 0.9;
-        
-        // Event: setelah selesai bicara, proses berikutnya
-        u.onend = function() {
-            setTimeout(() => processTTSQueue(), 300); // Jeda 300ms antar pesan
-        };
-        
-        // Event: kalau error, skip ke berikutnya
-        u.onerror = function(e) {
-            console.warn('TTS error:', e);
-            setTimeout(() => processTTSQueue(), 500);
-        };
-        
-        // Stop yang sedang bicara (kalau ada)
-        window.speechSynthesis.cancel();
-        
-        // Mulai bicara
-        window.speechSynthesis.speak(u);
-        
-    } catch (e) {
-        console.error('TTS exception:', e);
-        setTimeout(() => processTTSQueue(), 500);
-    }
+    // Coba Edge TTS dulu, fallback ke Web Speech kalau gagal
+    speakWithEdgeTTS(text);
 }
 
 function toggleTTS() {
@@ -463,26 +573,108 @@ function toggleTTS() {
     }
 }
 // ==========================================
-// 🤖 AI AUTO-REPLY SYSTEM
+// 🤖 AI SMART PICKER — Pilih Random + Jawab
 // ==========================================
-let aiReplyQueue=[];
-let isAiProcessing=false;
+let aiCommentPool = [];       // Kolam komentar
+let aiLastReplyTime = 0;
+let aiIsActive = true;
+let aiMinDelay = 5000;        // Jeda minimal 5 detik
+let aiMaxDelay = 10000;       // Jeda maksimal 10 detik
 
-async function aiReplyToComment(username, comment) {
+function aiReplyToComment(username, comment) {
     if (!comment || comment.length < 5) return;
+    if (username === '🤖 AI Host' || username === '📢 Host') return;
     
-    aiReplyQueue.push({ username, comment, time: Date.now() });
-    if (!isAiProcessing) processAiQueue();
+    // Cek duplikat di pool
+    const exists = aiCommentPool.find(c => c.username === username && c.comment === comment);
+    if (exists) return;
+    
+    // Masukkan ke pool (maks 20)
+    aiCommentPool.push({ username, comment, time: Date.now() });
+    
+    // Buang yang paling lama kalau > 20
+    while (aiCommentPool.length > 20) {
+        aiCommentPool.shift();
+    }
+    
+    // Update counter di UI
+    updatePoolCounter();
 }
 
-async function processAiQueue() {
-    if (aiReplyQueue.length === 0) { isAiProcessing = false; return; }
-    isAiProcessing = true;
+async function aiSmartPicker() {
+    if (!aiIsActive) {
+        setTimeout(() => aiSmartPicker(), 2000);
+        return;
+    }
     
-    const item = aiReplyQueue.shift();
-    const { username, comment } = item;
+    // Kalau pool kosong, tunggu
+    if (aiCommentPool.length === 0) {
+        setTimeout(() => aiSmartPicker(), 2000);
+        return;
+    }
+    
+    // 🔥 PILIH 1 SECARA RANDOM
+    const randomIndex = Math.floor(Math.random() * aiCommentPool.length);
+    const picked = aiCommentPool.splice(randomIndex, 1)[0]; // Ambil & hapus dari pool
+    const { username, comment } = picked;
+    
+    updatePoolCounter();
+    
+    // ⏱ Jeda natural antar jawaban (5-10 detik)
+    const delay = aiMinDelay + Math.floor(Math.random() * (aiMaxDelay - aiMinDelay));
+    const now = Date.now();
+    const timeSinceLastReply = now - aiLastReplyTime;
+    
+    if (timeSinceLastReply < delay) {
+        // Kembalikan ke pool dulu, tunggu
+        aiCommentPool.push(picked);
+        updatePoolCounter();
+        setTimeout(() => aiSmartPicker(), delay - timeSinceLastReply);
+        return;
+    }
     
     try {
+        // 🔥 AMBIL DATA REAL-TIME
+        const [trailSnap, signalSnap, voteSnap] = await Promise.all([
+            db.ref('trailing/' + CONFIG.adminLicense + '/XAU_USD').once('value'),
+            db.ref('signals/' + CONFIG.adminLicense + '/XAU_USD/1').once('value'),
+            db.ref('live_votes/current').once('value')
+        ]);
+        
+        const trailData = trailSnap.val() || {};
+        const signalData = signalSnap.val() || {};
+        const voteData = voteSnap.val() || {};
+        
+        const positions = trailData.positions || [];
+        const totalPos = positions.length;
+        const activePos = positions.filter(p => p.active).length;
+        const totalPL = positions.reduce((s, p) => s + (p.profit || 0), 0).toFixed(2);
+        const wins = positions.filter(p => (p.profit || 0) > 0).length;
+        const winRate = totalPos > 0 ? Math.round((wins / totalPos) * 100) : 0;
+        const currentSignal = signalData.dir || 'Tidak ada sinyal';
+        const signalEntry = signalData.entry || 'N/A';
+        const signalSL = signalData.sl || 'N/A';
+        const buyVotes = voteData.buy || 0;
+        const sellVotes = voteData.sell || 0;
+        const battleStatus = buyVotes > sellVotes ? 'BUY unggul' : sellVotes > buyVotes ? 'SELL unggul' : 'seimbang';
+        
+        const poolRemaining = aiCommentPool.length;
+        
+        const systemPrompt = `Kamu host trading live yang SARKASTIK, LUCU, dan menghibur.
+📊 DATA REAL-TIME:
+- Posisi: ${totalPos} (${activePos} aktif) | Profit: $${totalPL} | WR: ${winRate}%
+- Sinyal: ${currentSignal} di $${signalEntry} (SL: $${signalSL})
+- Battle: ${buyVotes} BUY vs ${sellVotes} SELL (${battleStatus})
+- ${poolRemaining} pertanyaan lain menunggu di antrian
+
+ATURAN:
+1. Jawab SINGKAT 15-20 kata
+2. Sarkastik tapi ramah
+3. Sebut nama penonton di awal
+4. JANGAN suruh beli/jual
+5. JANGAN pakai emoji di teks
+6. Sesekali sebut "ada ${poolRemaining} pertanyaan lagi nih" kalau banyak`;
+
         const response = await fetch(CONFIG.aiEndpoint, {
             method: 'POST',
             headers: {
@@ -492,38 +684,27 @@ async function processAiQueue() {
             body: JSON.stringify({
                 model: CONFIG.aiModel,
                 messages: [
-                    {
-                        role: 'system',
-                        content: 'Kamu host trading live. Jawab SINGKAT maksimal 15 kata. Gunakan bahasa Indonesia santai. Jangan pakai emoji. Sebut nama penonton.'
-                    },
-                    {
-                        role: 'user',
-                        content: `${username} bilang: "${comment}". Jawab singkat maksimal 15 kata.`
-                    }
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: `@${username} tanya: "${comment}". Jawab singkat, sarkastik, maksimal 20 kata.` }
                 ],
-                max_tokens: 50,  // Batasi biar pendek
-                temperature: 0.8
+                max_tokens: 60,
+                temperature: 0.75
             })
         });
         
         const data = await response.json();
         let reply = data.choices[0].message.content;
         
-        // 🔥 POTONG kalau kepanjangan (maks 100 karakter)
-        if (reply.length > 100) {
-            reply = reply.substring(0, 97) + '...';
-        }
+        if (reply.length > 120) reply = reply.substring(0, 117) + '...';
         
-        addChatMessage('🤖 AI Host', reply, 'ai');
+        // Tampilkan di chat
+        addChatMessage('🤖 AI Host', `🎯 @${username}: ${reply}`, 'ai');
         
-        // Hanya speak nama + pesan singkat
+        // TTS bacakan
         const shortText = `${username}, ${reply}`;
-        if (shortText.length > 120) {
-            speak(shortText.substring(0, 117) + '...');
-        } else {
-            speak(shortText);
-        }
+        speak(shortText.length > 120 ? shortText.substring(0, 117) + '...' : shortText);
         
+        // Simpan ke Firebase
         db.ref('broadcast_chat').push({
             username: '🤖 AI Host',
             comment: reply,
@@ -531,12 +712,35 @@ async function processAiQueue() {
             timestamp: Date.now()
         });
         
+        aiLastReplyTime = Date.now();
+        
     } catch (e) {
         console.error('AI Reply error:', e);
     }
     
-    // Jeda 3 detik antar reply biar gak spam TTS
-    setTimeout(() => processAiQueue(), 3000);
+    // Jadwalkan pick berikutnya dengan jeda random
+    const nextDelay = 3000 + Math.floor(Math.random() * 7000); // 3-10 detik
+    setTimeout(() => aiSmartPicker(), nextDelay);
+}
+
+// Counter di UI (opsional — tampilkan jumlah komentar di pool)
+function updatePoolCounter() {
+    const counter = document.getElementById('poolCounter');
+    if (counter) {
+        counter.textContent = aiCommentPool.length;
+        counter.style.display = aiCommentPool.length > 0 ? 'inline' : 'none';
+    }
+}
+
+// Toggle AI on/off
+function toggleAI() {
+    aiIsActive = !aiIsActive;
+    document.getElementById('ttsStatus').textContent = aiIsActive ? 'AI ON' : 'AI OFF';
+    document.getElementById('ttsStatus').className = aiIsActive ? 'text-accent-400' : 'text-neutral';
+    
+    if (aiIsActive && aiCommentPool.length > 0) {
+        aiSmartPicker();
+    }
 }
 
 // ==========================================
@@ -943,6 +1147,7 @@ function checkSignals() {
     db.ref('signals/' + CONFIG.adminLicense + '/XAU_USD/1').on('value', snap => {
         const s = snap.val();
         if (s && s.dir) {
+            // Signal Overlay
             document.getElementById('signalOverlay').style.display = 'block';
             document.getElementById('signalIcon').textContent = s.dir === 'BUY' ? '📈' : '📉';
             document.getElementById('signalDir').textContent = s.dir;
@@ -950,9 +1155,16 @@ function checkSignals() {
             document.getElementById('signalSL').textContent = '$' + s.sl;
             document.getElementById('signalTT').textContent = '$' + (s.trailStart || 0);
             
+            // Chart Cinematic
             drawEntryOnChart(s);
+            
+            // TTS
             speak('Sinyal ' + s.dir + ' di $' + s.entry);
             
+            // Trigger Entry Event (sound + AI + battle highlight)
+            triggerEntryEvent(s);
+            
+            // Hide overlay after 8 seconds
             setTimeout(() => {
                 document.getElementById('signalOverlay').style.display = 'none';
             }, 8000);
@@ -965,7 +1177,6 @@ function drawEntryOnChart(signal) {
     
     const entry = parseFloat(signal.entry) || 2650;
     const sl = parseFloat(signal.sl) || 0;
-    const tp = parseFloat(signal.tp) || 0;
     const tt = parseFloat(signal.trailStart) || 0;
     const dir = signal.dir || 'BUY';
     
@@ -973,26 +1184,32 @@ function drawEntryOnChart(signal) {
     chartPriceHigh = entry + range * 0.6;
     chartPriceLow = entry - range * 0.4;
     
-    const arrowColor = dir === 'BUY' ? '#10b981' : '#ef4444';
-    const arrowGlow = dir === 'BUY' ? 'rgba(16,185,129,0.8)' : 'rgba(239,68,68,0.8)';
-    
-    // Entry Arrow
-    const arrow = document.getElementById('entryArrow');
-    document.getElementById('entryArrowHead');
-    document.getElementById('entryArrowBody');
-    
-    arrow.style.setProperty('--arrow-color', arrowColor);
-    arrow.style.setProperty('--arrow-glow', arrowGlow);
-    arrow.style.display = 'block';
-    document.getElementById('arrowDir').textContent = dir;
-    document.getElementById('arrowPrice').textContent = '$' + entry;
-    document.getElementById('arrowDir').style.color = arrowColor;
+    const signalColor = dir === 'BUY' ? '#10b981' : '#ef4444';
+    const signalGlow = dir === 'BUY' ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.6)';
     
     const entryPct = ((chartPriceHigh - entry) / range) * 100;
-    arrow.style.top = Math.min(90, Math.max(5, entryPct)) + '%';
-    arrow.style.left = '30px';
     
-    // SL Line
+    // 🔥 SONAR RING
+    const sonar = document.getElementById('sonarRing');
+    const sonar2 = document.getElementById('sonarRing2');
+    sonar.style.setProperty('--signal-color', signalColor);
+    sonar2.style.setProperty('--signal-color', signalColor);
+    sonar.style.display = 'block'; sonar2.style.display = 'block';
+    sonar.style.left = '60px'; sonar.style.top = entryPct + '%';
+    sonar2.style.left = '60px'; sonar2.style.top = entryPct + '%';
+    
+    // 🔥 ENTRY ARROW
+    const arrow = document.getElementById('entryArrow');
+    arrow.style.setProperty('--signal-color', signalColor);
+    arrow.style.setProperty('--signal-glow', signalGlow);
+    arrow.style.display = 'block';
+    document.getElementById('arrowDir').textContent = dir;
+    document.getElementById('arrowDir').style.color = signalColor;
+    document.getElementById('arrowPrice').textContent = '$' + entry;
+    arrow.style.left = '50px';
+    arrow.style.top = Math.min(88, Math.max(8, entryPct - 8)) + '%';
+    
+    // 🔥 SL LINE
     if (sl > 0) {
         const slPct = ((chartPriceHigh - sl) / range) * 100;
         document.getElementById('slLinePro').style.display = 'block';
@@ -1000,37 +1217,99 @@ function drawEntryOnChart(signal) {
         document.getElementById('slPrice').textContent = '$' + sl;
     }
     
-    // TP Line
-    if (tp > 0) {
-        const tpPct = ((chartPriceHigh - tp) / range) * 100;
-        document.getElementById('tpLinePro').style.display = 'block';
-        document.getElementById('tpLinePro').style.top = Math.min(95, Math.max(2, tpPct)) + '%';
-        document.getElementById('tpPrice').textContent = '$' + tp;
-    }
-    
-    // TT Line
+    // 🔥 TT TRIGGER ZONE
     if (tt > 0) {
         const ttPct = ((chartPriceHigh - tt) / range) * 100;
+        const tpLineEl = document.getElementById('tpLinePro');
+        const ttZone = document.getElementById('ttTriggerZone');
+        const ttStatus = document.getElementById('ttStatus');
+        
+        tpLineEl.style.display = 'block';
+        tpLineEl.style.top = Math.min(95, Math.max(2, ttPct)) + '%';
+        document.getElementById('tpPrice').textContent = '$' + tt;
+        ttZone.style.display = 'block';
+        
+        const currentPrice = parseFloat(document.getElementById('headerPrice')?.textContent?.replace('$','') || entry);
+        const distToTT = Math.abs(entry - tt);
+        const distFromEntry = Math.abs(currentPrice - entry);
+        
+        if (dir === 'BUY') {
+            ttZone.style.top = (entryPct > ttPct) ? ttPct + '%' : entryPct + '%';
+            ttZone.style.height = Math.abs(entryPct - ttPct) + '%';
+            if (currentPrice >= tt) {
+                ttStatus.textContent = '✅ TRAIL ACTIVE!'; ttStatus.style.color = '#10b981';
+            } else {
+                ttStatus.textContent = '⏳ ' + Math.round((distFromEntry / distToTT) * 100) + '% to trigger';
+                ttStatus.style.color = '#fcd34d';
+            }
+        } else {
+            ttZone.style.top = (entryPct < ttPct) ? entryPct + '%' : ttPct + '%';
+            ttZone.style.height = Math.abs(entryPct - ttPct) + '%';
+            if (currentPrice <= tt) {
+                ttStatus.textContent = '✅ TRAIL ACTIVE!'; ttStatus.style.color = '#10b981';
+            } else {
+                ttStatus.textContent = '⏳ ' + Math.round((distFromEntry / distToTT) * 100) + '% to trigger';
+                ttStatus.style.color = '#fcd34d';
+            }
+        }
+        
+        // Juga tampilkan trailing line
         document.getElementById('ttLinePro').style.display = 'block';
         document.getElementById('ttLinePro').style.top = Math.min(95, Math.max(2, ttPct)) + '%';
         document.getElementById('ttPrice').textContent = '$' + tt;
     }
     
-    // P/L Zone
+    // 🔥 P/L ZONE
     if (dir === 'BUY') {
         document.getElementById('profitZone').style.display = 'block';
         document.getElementById('profitZone').style.top = '0';
-        document.getElementById('profitZone').style.bottom = (100 - entryPct) + '%';
+        document.getElementById('profitZone').style.height = (100 - entryPct) + '%';
         document.getElementById('lossZone').style.display = 'block';
         document.getElementById('lossZone').style.top = entryPct + '%';
-        document.getElementById('lossZone').style.bottom = '0';
+        document.getElementById('lossZone').style.height = (100 - entryPct) + '%';
     } else {
         document.getElementById('lossZone').style.display = 'block';
         document.getElementById('lossZone').style.top = '0';
-        document.getElementById('lossZone').style.bottom = (100 - entryPct) + '%';
+        document.getElementById('lossZone').style.height = entryPct + '%';
         document.getElementById('profitZone').style.display = 'block';
         document.getElementById('profitZone').style.top = entryPct + '%';
-        document.getElementById('profitZone').style.bottom = '0';
+        document.getElementById('profitZone').style.height = (100 - entryPct) + '%';
+    }
+    
+    // 🔥 SIGNAL STAMP
+    const stamp = document.getElementById('signalStamp');
+    const stampText = document.getElementById('stampText');
+    stampText.textContent = dir;
+    stampText.style.color = signalColor;
+    stamp.style.display = 'block';
+    stamp.style.animation = 'none';
+    stamp.offsetHeight;
+    stamp.style.animation = 'stampIn 1.5s ease-out forwards';
+    setTimeout(() => { stamp.style.display = 'none'; }, 3000);
+    
+    // 🔥 PARTICLE TRAIL
+    spawnChartParticles(entryPct, signalColor);
+}
+
+function spawnChartParticles(entryPct, color) {
+    const container = document.getElementById('particleTrail');
+    for (let i = 0; i < 15; i++) {
+        const p = document.createElement('div');
+        p.style.cssText = `
+            position:absolute;
+            left:50px;
+            top:${entryPct}%;
+            width:3px;height:3px;
+            background:${color};
+            border-radius:50%;
+            pointer-events:none;
+            box-shadow:0 0 6px ${color};
+            animation:particleDrift ${1.5 + Math.random() * 2}s ease-out forwards;
+        `;
+        p.style.setProperty('--dx', (Math.random() - 0.5) * 200 + 'px');
+        p.style.setProperty('--dy', (Math.random() - 0.5) * 100 + 'px');
+        container.appendChild(p);
+        setTimeout(() => p.remove(), 3500);
     }
 }
 
@@ -1059,6 +1338,102 @@ function updateCountdownOverlay() {
 window.addEventListener('resize', updateChartDimensions);
 
 // ==========================================
+// TRADING EVENT CINEMATIC SYSTEM
+// ==========================================
+let lastSLPrice = 0;
+let lastTTStatus = false;
+let lastSignalTime = 0;
+
+function monitorTradingEvents() {
+    db.ref('trailing/' + CONFIG.adminLicense + '/XAU_USD').on('value', snap => {
+        const d = snap.val() || {};
+        const positions = d.positions || [];
+        if (positions.length === 0) return;
+        
+        const currentPrice = parseFloat(document.getElementById('headerPrice')?.textContent?.replace('$', '') || '0');
+        
+        positions.forEach(pos => {
+            const sl = parseFloat(pos.sl) || 0;
+            if (sl > 0 && lastSLPrice !== sl) {
+                if ((pos.dir === 'BUY' && currentPrice <= sl) || 
+                    (pos.dir === 'SELL' && currentPrice >= sl)) {
+                    if (lastSLPrice !== sl) {
+                        triggerSLEvent(sl, pos);
+                        lastSLPrice = sl;
+                    }
+                }
+            }
+            
+            const tt = parseFloat(pos.trailStart) || 0;
+            if (tt > 0 && pos.active && !lastTTStatus) {
+                triggerTTEvent(tt, pos);
+                lastTTStatus = true;
+            }
+            if (!pos.active) lastTTStatus = false;
+        });
+    });
+}
+
+function triggerSLEvent(slPrice, position) {
+    const overlay = document.getElementById('slHitOverlay');
+    document.getElementById('slHitPrice').textContent = '$' + slPrice;
+    overlay.style.display = 'block';
+    setTimeout(() => overlay.style.display = 'none', 2500);
+    
+    playTone('sawtooth', 120, 0.15, 0.3);
+    setTimeout(() => playTone('sawtooth', 100, 0.15, 0.3), 300);
+    setTimeout(() => playTone('sawtooth', 80, 0.15, 0.4), 600);
+    
+    const msg = `SL tersentuh di $${slPrice}! Kita tunggu sinyal berikutnya. Tetap tenang!`;
+    speak(msg);
+    addChatMessage('🤖 AI Host', '💀 ' + msg, 'ai');
+    document.getElementById('crowdChant').textContent = 'OOOH...';
+    setTimeout(() => { document.getElementById('crowdChant').textContent = 'FIGHT! FIGHT!'; }, 3000);
+}
+
+function triggerTTEvent(ttPrice, position) {
+    const overlay = document.getElementById('ttActiveOverlay');
+    document.getElementById('ttActivePrice').textContent = '$' + ttPrice;
+    overlay.style.display = 'block';
+    setTimeout(() => overlay.style.display = 'none', 2500);
+    
+    playTone('triangle', 800, 0.1, 0.12);
+    setTimeout(() => playTone('triangle', 1000, 0.1, 0.15), 120);
+    setTimeout(() => playTone('triangle', 1200, 0.1, 0.2), 240);
+    
+    const profitEstimate = Math.abs(position.entry - ttPrice).toFixed(2);
+    const msg = `Trailing AKTIF! Profit $${profitEstimate} diamankan!`;
+    speak(msg);
+    addChatMessage('🤖 AI Host', '🛡️ ' + msg, 'ai');
+    spawnConfetti();
+    
+    document.getElementById('crowdChant').textContent = 'NICE! NICE!';
+    document.getElementById('crowdHypeBar').style.width = '100%';
+    document.getElementById('crowdHypePct').textContent = '100%';
+    setTimeout(() => {
+        document.getElementById('crowdChant').textContent = 'BUY! BUY!';
+        document.getElementById('crowdHypeBar').style.width = '60%';
+        document.getElementById('crowdHypePct').textContent = '60%';
+    }, 3000);
+}
+
+function triggerEntryEvent(signal) {
+    const now = Date.now();
+    if (now - lastSignalTime < 10000) return;
+    lastSignalTime = now;
+    
+    playTone('sine', 880, 0.1, 0.1);
+    setTimeout(() => playTone('sine', 1100, 0.1, 0.1), 100);
+    setTimeout(() => playTone('sine', 1320, 0.1, 0.15), 200);
+    
+    const slDist = Math.abs(signal.entry - signal.sl).toFixed(2);
+    const msg = `Sinyal ${signal.dir} di $${signal.entry}! SL $${signal.sl}, jarak $${slDist}. Siapa berani?`;
+    speak(msg);
+    document.getElementById('warVictor').innerHTML = '<span class="text-accent-400">📡 NEW SIGNAL: ' + signal.dir + '!</span>';
+    setTimeout(() => updateBattleDisplay(), 5000);
+}
+
+// ==========================================
 // INIT
 // ==========================================
 function init(){
@@ -1075,10 +1450,13 @@ function init(){
     setInterval(updateBattleDisplay,3000);
     setInterval(updateStreak,5000);
     setInterval(updateGhostAndRankings,10000);
-    setInterval(simulateComment,15000); // ← TAMBAHKAN (simulasi komentar tiap 15 detik)
     setInterval(updateCountdownOverlay, 1000);
     updateChartDimensions();
     setInterval(updateChartDimensions, 3000);
+    // Start AI Smart Picker (ganti simulateComment)
+    aiSmartPicker();
+    monitorTradingEvents();
+    
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
