@@ -453,188 +453,124 @@ function initChart(){
 }
 
 // ==========================================
-// TTS — TEXT TO SPEECH WITH QUEUE (NO OVERLAP)
+// 🔥 TTS + AI — DUAL SYSTEM (FAST + SMART)
 // ==========================================
 let ttsQueue = [];
 let ttsIsSpeaking = false;
+let aiCommentPool = [];
+let aiLastReplyTime = 0;
+let aiIsActive = true;
+let lastSpokeComment = '';  // Hindari baca komentar yang sama 2x
 
+// ==========================================
+// 🎤 TTS — BACA SEMUA KOMENTAR (INSTANT)
+// ==========================================
 function speak(text) {
     if (!ttsEnabled) return;
     if (!text || text.trim().length < 2) return;
+    if (text === lastSpokeComment) return;  // Skip duplikat
     
-    // Masukkan ke antrian
-    ttsQueue.push(text);
+    lastSpokeComment = text;
     
-    // Mulai proses kalau belum ada yang speaking
-    if (!ttsIsSpeaking) {
-        processTTSQueue();
-    }
-}
-
-// ==========================================
-// TTS — EDGE TTS (NATURAL + GRATIS)
-// ==========================================
-const TTS_CONFIG = {
-    voice: 'id-ID-GadisNeural',  // Suara perempuan natural
-    // voice: 'id-ID-ArdiNeural',  // Alternatif: suara laki-laki
-    rate: '+10%',                 // Kecepatan
-    pitch: '+0Hz'                 // Nada
-};
-
-async function speakWithEdgeTTS(text) {
-    if (!text || text.trim().length < 2) return;
+    // 🔥 Cancel & langsung speak
+    window.speechSynthesis.cancel();
+    ttsQueue = [];
     
-    try {
-        const response = await fetch(`https://api-edge-tts.vercel.app/api/tts?text=${encodeURIComponent(text)}&voice=${TTS_CONFIG.voice}&rate=${TTS_CONFIG.rate}&pitch=${TTS_CONFIG.pitch}`, {
-            method: 'GET'
-        });
-        
-        if (!response.ok) throw new Error('TTS API error');
-        
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        
-        audio.onended = function() {
-            URL.revokeObjectURL(audioUrl);
-            setTimeout(() => processTTSQueue(), 200);
-        };
-        
-        audio.onerror = function() {
-            URL.revokeObjectURL(audioUrl);
-            setTimeout(() => processTTSQueue(), 500);
-        };
-        
-        // Stop any current TTS
-        if (window.currentTTSAudio) {
-            window.currentTTSAudio.pause();
-            window.currentTTSAudio = null;
-        }
-        window.currentTTSAudio = audio;
-        
-        await audio.play();
-        
-    } catch (e) {
-        console.error('Edge TTS error:', e);
-        // Fallback ke Web Speech API
-        fallbackWebTTS(text);
-    }
-}
-
-function fallbackWebTTS(text) {
     try {
         const u = new SpeechSynthesisUtterance(text);
         u.lang = 'id-ID';
-        u.rate = 1.05;
+        u.rate = 1.15;
         u.pitch = 1.0;
-        u.volume = 0.9;
+        u.volume = 0.85;
         
-        u.onend = function() {
-            setTimeout(() => processTTSQueue(), 300);
-        };
+        const voices = window.speechSynthesis.getVoices();
+        const idVoice = voices.find(v => v.lang === 'id-ID');
+        if (idVoice) u.voice = idVoice;
         
-        u.onerror = function(e) {
-            console.warn('Web TTS error:', e);
-            setTimeout(() => processTTSQueue(), 500);
-        };
+        u.onend = () => { ttsIsSpeaking = false; };
+        u.onerror = () => { ttsIsSpeaking = false; };
         
-        window.speechSynthesis.cancel();
         window.speechSynthesis.speak(u);
+        ttsIsSpeaking = true;
         
     } catch (e) {
-        console.error('Fallback TTS error:', e);
-        setTimeout(() => processTTSQueue(), 500);
+        ttsIsSpeaking = false;
     }
 }
 
-function processTTSQueue() {
-    if (ttsQueue.length === 0) {
-        ttsIsSpeaking = false;
-        return;
+function preloadVoices() {
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length === 0) {
+        window.speechSynthesis.onvoiceschanged = () => {
+            console.log('✅ Voices loaded:', window.speechSynthesis.getVoices().length);
+        };
     }
-    
-    ttsIsSpeaking = true;
-    const text = ttsQueue.shift();
-    
-    // Coba Edge TTS dulu, fallback ke Web Speech kalau gagal
-    speakWithEdgeTTS(text);
 }
 
 function toggleTTS() {
     ttsEnabled = !ttsEnabled;
     document.getElementById('ttsStatus').textContent = ttsEnabled ? 'AI ON' : 'AI OFF';
     document.getElementById('ttsStatus').className = ttsEnabled ? 'text-accent-400' : 'text-neutral';
-    
-    // Kalau dimatikan, bersihkan queue
     if (!ttsEnabled) {
-        ttsQueue = [];
         window.speechSynthesis.cancel();
         ttsIsSpeaking = false;
     }
 }
-// ==========================================
-// 🤖 AI SMART PICKER — Pilih Random + Jawab
-// ==========================================
-let aiCommentPool = [];       // Kolam komentar
-let aiLastReplyTime = 0;
-let aiIsActive = true;
-let aiMinDelay = 5000;        // Jeda minimal 5 detik
-let aiMaxDelay = 10000;       // Jeda maksimal 10 detik
 
-function aiReplyToComment(username, comment) {
-    if (!comment || comment.length < 5) return;
-    if (username === '🤖 AI Host' || username === '📢 Host') return;
+// ==========================================
+// 💬 KOMENTAR BARU → LANGSUNG BACA + MASUK POOL
+// ==========================================
+function onNewComment(username, comment) {
+    // 🔥 1. Langsung baca komentarnya (tanpa nunggu AI)
+    const shortText = username + ' bilang: ' + comment.substring(0, 80);
     
-    // Cek duplikat di pool
-    const exists = aiCommentPool.find(c => c.username === username && c.comment === comment);
-    if (exists) return;
+    // Delay kecil biar ga numpuk
+    const delay = ttsIsSpeaking ? 2000 : 300;
     
-    // Masukkan ke pool (maks 20)
-    aiCommentPool.push({ username, comment, time: Date.now() });
+    setTimeout(() => {
+        speak(shortText);
+    }, delay);
     
-    // Buang yang paling lama kalau > 20
-    while (aiCommentPool.length > 20) {
-        aiCommentPool.shift();
+    // 🔥 2. Masukkan ke pool untuk AI (kalau komentar berupa pertanyaan)
+    if (isQuestion(comment) && comment.length > 10) {
+        aiCommentPool.push({ username, comment, time: Date.now() });
+        if (aiCommentPool.length > 15) aiCommentPool.shift();
+        updatePoolCounter();
     }
     
-    // Update counter di UI
-    updatePoolCounter();
+    // 🔥 3. Trigger AI picker (jeda 4 detik dari last reply)
+    const now = Date.now();
+    if (now - aiLastReplyTime > 4000 && aiCommentPool.length > 0) {
+        aiLastReplyTime = now;
+        setTimeout(() => aiSmartReply(), 500);
+    }
 }
 
-async function aiSmartPicker() {
-    if (!aiIsActive) {
-        setTimeout(() => aiSmartPicker(), 2000);
-        return;
-    }
+// ==========================================
+// 🧠 DETEKSI PERTANYAAN (BUTUH AI JAWAB)
+// ==========================================
+function isQuestion(comment) {
+    const questionWords = ['?', 'gimana', 'kapan', 'kenapa', 'apa', 'bagaimana', 
+                           'dimana', 'siapa', 'kok', 'dong', 'bang', 'kak', 'bro',
+                           'naik', 'turun', 'buy', 'sell', 'hold', 'close', 'entry'];
+    const lower = comment.toLowerCase();
+    return questionWords.some(w => lower.includes(w));
+}
+
+// ==========================================
+// 🤖 AI JAWAB — CEPAT (MAX 3 DETIK)
+// ==========================================
+async function aiSmartReply() {
+    if (!aiIsActive || aiCommentPool.length === 0) return;
     
-    // Kalau pool kosong, tunggu
-    if (aiCommentPool.length === 0) {
-        setTimeout(() => aiSmartPicker(), 2000);
-        return;
-    }
-    
-    // 🔥 PILIH 1 SECARA RANDOM
-    const randomIndex = Math.floor(Math.random() * aiCommentPool.length);
-    const picked = aiCommentPool.splice(randomIndex, 1)[0]; // Ambil & hapus dari pool
-    const { username, comment } = picked;
-    
+    // 🔥 Ambil 1 dari pool
+    const picked = aiCommentPool.shift();
     updatePoolCounter();
     
-    // ⏱ Jeda natural antar jawaban (5-10 detik)
-    const delay = aiMinDelay + Math.floor(Math.random() * (aiMaxDelay - aiMinDelay));
-    const now = Date.now();
-    const timeSinceLastReply = now - aiLastReplyTime;
-    
-    if (timeSinceLastReply < delay) {
-        // Kembalikan ke pool dulu, tunggu
-        aiCommentPool.push(picked);
-        updatePoolCounter();
-        setTimeout(() => aiSmartPicker(), delay - timeSinceLastReply);
-        return;
-    }
+    const { username, comment } = picked;
     
     try {
-        // 🔥 AMBIL DATA REAL-TIME
+        // 🔥 Ambil data real-time CEPAT (pakai once)
         const [trailSnap, signalSnap, voteSnap] = await Promise.all([
             db.ref('trailing/' + CONFIG.adminLicense + '/XAU_USD').once('value'),
             db.ref('signals/' + CONFIG.adminLicense + '/XAU_USD/1').once('value'),
@@ -646,35 +582,16 @@ async function aiSmartPicker() {
         const voteData = voteSnap.val() || {};
         
         const positions = trailData.positions || [];
-        const totalPos = positions.length;
-        const activePos = positions.filter(p => p.active).length;
-        const totalPL = positions.reduce((s, p) => s + (p.profit || 0), 0).toFixed(2);
-        const wins = positions.filter(p => (p.profit || 0) > 0).length;
-        const winRate = totalPos > 0 ? Math.round((wins / totalPos) * 100) : 0;
-        const currentSignal = signalData.dir || 'Tidak ada sinyal';
-        const signalEntry = signalData.entry || 'N/A';
-        const signalSL = signalData.sl || 'N/A';
+        const totalPL = positions.reduce((s, p) => s + (p.profit || 0), 0).toFixed(0);
+        const currentSignal = signalData.dir || 'tidak ada';
         const buyVotes = voteData.buy || 0;
         const sellVotes = voteData.sell || 0;
-        const battleStatus = buyVotes > sellVotes ? 'BUY unggul' : sellVotes > buyVotes ? 'SELL unggul' : 'seimbang';
         
-        const poolRemaining = aiCommentPool.length;
+        const systemPrompt = `Kamu host trading LIVE. Data real-time:
+- Profit: $${totalPL} | Sinyal: ${currentSignal}
+- Battle: ${buyVotes} BUY vs ${sellVotes} SELL
+Jawab SINGKAT 10-15 kata. Sarkastik tapi helpful. JANGAN suruh buy/sell.`;
         
-        const systemPrompt = `Kamu host trading live yang SARKASTIK, LUCU, dan menghibur.
-📊 DATA REAL-TIME:
-- Posisi: ${totalPos} (${activePos} aktif) | Profit: $${totalPL} | WR: ${winRate}%
-- Sinyal: ${currentSignal} di $${signalEntry} (SL: $${signalSL})
-- Battle: ${buyVotes} BUY vs ${sellVotes} SELL (${battleStatus})
-- ${poolRemaining} pertanyaan lain menunggu di antrian
-
-ATURAN:
-1. Jawab SINGKAT 15-20 kata
-2. Sarkastik tapi ramah
-3. Sebut nama penonton di awal
-4. JANGAN suruh beli/jual
-5. JANGAN pakai emoji di teks
-6. Sesekali sebut "ada ${poolRemaining} pertanyaan lagi nih" kalau banyak`;
-
         const response = await fetch(CONFIG.aiEndpoint, {
             method: 'POST',
             headers: {
@@ -685,26 +602,21 @@ ATURAN:
                 model: CONFIG.aiModel,
                 messages: [
                     { role: 'system', content: systemPrompt },
-                    { role: 'user', content: `@${username} tanya: "${comment}". Jawab singkat, sarkastik, maksimal 20 kata.` }
+                    { role: 'user', content: `@${username}: "${comment}". Jawab singkat.` }
                 ],
-                max_tokens: 60,
-                temperature: 0.75
+                max_tokens: 40,
+                temperature: 0.8
             })
         });
         
         const data = await response.json();
         let reply = data.choices[0].message.content;
+        if (reply.length > 100) reply = reply.substring(0, 97) + '...';
         
-        if (reply.length > 120) reply = reply.substring(0, 117) + '...';
+        // 🔥 Tampilkan & bacakan
+        addChatMessage('🤖 AI Host', reply, 'ai');
+        speak(reply);
         
-        // Tampilkan di chat
-        addChatMessage('🤖 AI Host', `🎯 @${username}: ${reply}`, 'ai');
-        
-        // TTS bacakan
-        const shortText = `${username}, ${reply}`;
-        speak(shortText.length > 120 ? shortText.substring(0, 117) + '...' : shortText);
-        
-        // Simpan ke Firebase
         db.ref('broadcast_chat').push({
             username: '🤖 AI Host',
             comment: reply,
@@ -715,15 +627,15 @@ ATURAN:
         aiLastReplyTime = Date.now();
         
     } catch (e) {
-        console.error('AI Reply error:', e);
+        console.error('AI reply error:', e);
     }
     
-    // Jadwalkan pick berikutnya dengan jeda random
-    const nextDelay = 3000 + Math.floor(Math.random() * 7000); // 3-10 detik
-    setTimeout(() => aiSmartPicker(), nextDelay);
+    // 🔥 Lanjut ke pertanyaan berikutnya setelah jeda
+    if (aiCommentPool.length > 0) {
+        setTimeout(() => aiSmartReply(), 3000 + Math.random() * 4000);
+    }
 }
 
-// Counter di UI (opsional — tampilkan jumlah komentar di pool)
 function updatePoolCounter() {
     const counter = document.getElementById('poolCounter');
     if (counter) {
@@ -732,87 +644,53 @@ function updatePoolCounter() {
     }
 }
 
-// Toggle AI on/off
-function toggleAI() {
-    aiIsActive = !aiIsActive;
-    document.getElementById('ttsStatus').textContent = aiIsActive ? 'AI ON' : 'AI OFF';
-    document.getElementById('ttsStatus').className = aiIsActive ? 'text-accent-400' : 'text-neutral';
-    
-    if (aiIsActive && aiCommentPool.length > 0) {
-        aiSmartPicker();
-    }
-}
-
 // ==========================================
-// 💬 LIVE CHAT SYSTEM
+// 💬 ADD CHAT + AUTO-TTS + AUTO-POOL
 // ==========================================
-function addChatMessage(username,comment,type){
-    const chatContainer=document.getElementById('liveChat');
-    const bubble=document.createElement('div');
-    bubble.style.cssText='padding:4px 8px;margin:2px 0;border-radius:8px;font-size:10px;animation:slideUp 0.3s ease-out';
+function addChatMessage(username, comment, type) {
+    const chatContainer = document.getElementById('liveChat');
+    const bubble = document.createElement('div');
+    bubble.style.cssText = 'padding:4px 8px;margin:2px 0;border-radius:8px;font-size:10px;animation:slideUp 0.3s ease-out';
     
-    if(type==='ai'){
-        bubble.style.background='rgba(245,158,11,0.15)';
-        bubble.style.borderLeft='2px solid #f59e0b';
-        bubble.innerHTML='<b style="color:#f59e0b">🤖 AI Host</b>: '+comment;
-    }else if(type==='admin'){
-        bubble.style.background='rgba(16,185,129,0.15)';
-        bubble.style.borderLeft='2px solid #10b981';
-        bubble.innerHTML='<b style="color:#10b981">📢 Host</b>: '+comment;
-    }else{
-        bubble.style.background='rgba(255,255,255,0.03)';
-        bubble.innerHTML='<b>@'+username+'</b>: '+comment;
-        // Auto-reply untuk komentar user
-        aiReplyToComment(username,comment);
+    if (type === 'ai') {
+        bubble.style.background = 'rgba(245,158,11,0.15)';
+        bubble.style.borderLeft = '2px solid #f59e0b';
+        bubble.innerHTML = '<b style="color:#f59e0b">🤖 AI</b>: ' + comment;
+    } else if (type === 'admin') {
+        bubble.style.background = 'rgba(16,185,129,0.15)';
+        bubble.style.borderLeft = '2px solid #10b981';
+        bubble.innerHTML = '<b style="color:#10b981">📢 Host</b>: ' + comment;
+    } else {
+        bubble.style.background = 'rgba(255,255,255,0.03)';
+        bubble.innerHTML = '<b>@' + username + '</b>: ' + comment;
+        
+        // 🔥 KOMENTAR USER → LANGSUNG BACA + MASUK POOL
+        if (type === 'user' && username !== '🤖 AI Host') {
+            onNewComment(username, comment);
+        }
     }
     
     chatContainer.appendChild(bubble);
-    chatContainer.scrollTop=chatContainer.scrollHeight;
+    chatContainer.scrollTop = chatContainer.scrollHeight;
     
-    // Batasi 50 pesan
-    while(chatContainer.children.length>50){
+    while (chatContainer.children.length > 50) {
         chatContainer.removeChild(chatContainer.firstChild);
     }
 }
 
 // ==========================================
-// SIMULASI KOMENTAR MASUK (UNTUK TES)
-// ==========================================
-function simulateComment(){
-    const users=['trader_pro','gold_hunter','forex_king','newbie_trader','cuan_terus'];
-    const comments=[
-        'Bang, XAUUSD bakal naik gak?',
-        'SL nya dimana bang?',
-        'BUY sekarang aman gak?',
-        'Wah SELL nih kayaknya',
-        'Profit berapa hari ini bang?',
-        'EA nya keren banget!',
-        'Mau tanya dong, cara daftar gimana?',
-        'Hold atau close bang?'
-    ];
-    const user=users[Math.floor(Math.random()*users.length)];
-    const comment=comments[Math.floor(Math.random()*comments.length)];
-    addChatMessage(user,comment,'user');
-    
-    // Simpan ke Firebase
-    db.ref('broadcast_chat').push({
-        username:user,
-        comment:comment,
-        timestamp:Date.now()
-    });
-}
-
-// ==========================================
 // LISTEN FIREBASE CHAT
 // ==========================================
-function listenFirebaseChat(){
-    db.ref('broadcast_chat').limitToLast(20).on('child_added',snap=>{
-        const d=snap.val();
-        if(d.username!=='🤖 AI Host'){
-            addChatMessage(d.username,d.comment,'user');
+function listenFirebaseChat() {
+    db.ref('broadcast_chat').limitToLast(20).on('child_added', snap => {
+        const d = snap.val();
+        if (d.username !== '🤖 AI Host' && d.username !== '📢 Host') {
+            addChatMessage(d.username, d.comment, 'user');
         }
     });
 }
+
+
 
 // ==========================================
 // HOST MANUAL CHAT
@@ -1438,13 +1316,14 @@ function triggerEntryEvent(signal) {
 // ==========================================
 function init(){
     initChart();
+    preloadVoices();  // ← tambahkan
     updateBattleDisplay();
     updateStreak();
     updateGhostAndRankings();
     updateHeaderStats();
     checkSignals();
     checkCrash();
-    listenFirebaseChat(); // ← TAMBAHKAN
+    listenFirebaseChat();
     setInterval(updateAllTimers,1000);
     setInterval(updatePriceRace,2000);
     setInterval(updateBattleDisplay,3000);
@@ -1453,10 +1332,7 @@ function init(){
     setInterval(updateCountdownOverlay, 1000);
     updateChartDimensions();
     setInterval(updateChartDimensions, 3000);
-    // Start AI Smart Picker (ganti simulateComment)
-    aiSmartPicker();
     monitorTradingEvents();
-    
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
