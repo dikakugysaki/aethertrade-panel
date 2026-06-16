@@ -52,6 +52,17 @@
         @keyframes particleDrift{0%{transform:translate(0,0);opacity:1}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
         @keyframes flashRed{0%{background:rgba(239,68,68,0.4)}100%{background:transparent}}
         @keyframes flashGold{0%{background:rgba(245,158,11,0.3)}100%{background:transparent}}
+        @keyframes gladiatorSpawn{0%{transform:scale(0) rotate(-180deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+        @keyframes gladiatorDeath{0%{transform:translateX(0);opacity:1}50%{transform:translateX(-20px);opacity:0.5}100%{transform:translateX(100px);opacity:0}}
+        @keyframes gladiatorVictory{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+        @keyframes hpPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+        @keyframes stadiumCheer{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+        @keyframes rainDrop{0%{transform:translateY(-100px);opacity:1}100%{transform:translateY(400px);opacity:0}}
+        .gladiator-card{animation:gladiatorSpawn 0.5s ease-out}
+        .gladiator-dying{animation:gladiatorDeath 0.8s ease-in forwards}
+        .gladiator-winning{animation:gladiatorVictory 0.5s ease-in-out}
+        .hp-critical{animation:hpPulse 0.5s ease-in-out infinite}
+        .stadium-cheer{animation:stadiumCheer 0.2s ease-in-out}
         @keyframes flashGreen{0%{background:rgba(16,185,129,0.3)}100%{background:transparent}}
     </style>
 </head>
@@ -238,95 +249,67 @@
 </div>
 
 <!-- ================================================================ -->
-<!-- RIGHT: ARENA PANEL                                                  -->
+<!-- RIGHT: ARENA PANEL — GLADIATOR DEATHMATCH                        -->
 <!-- ================================================================ -->
 <div style="width:380px;display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,0.08);overflow-y:auto;overflow-x:hidden;background:rgba(5,5,5,0.9)">
 
     <!-- ARENA HEADER -->
     <div class="glass-light" style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.05)">
-        <span style="font-weight:700;font-size:14px" class="animate-neon">🏛️ COLOSSEUM ARENA</span>
-        <span style="font-size:10px;color:#10b981">⚡ LIVE</span>
+        <span style="font-weight:700;font-size:13px;background:linear-gradient(90deg,#f59e0b,#ef4444,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent">🏛️ GLADIATOR DEATHMATCH</span>
+        <span style="font-size:10px;color:#10b981">⚔️ LIVE</span>
     </div>
 
-    <!-- ⚔️ BATTLE ARENA 2.0 — WAR OF THE TRADERS -->
-    <div class="glass-light" style="margin:8px;padding:14px;border-radius:12px;position:relative;overflow:hidden;border:1px solid rgba(245,158,11,0.2)">
-        <div class="scan-line"></div>
-        <div id="warParticles" style="position:absolute;inset:0;pointer-events:none"></div>
-        <div id="shockwave" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:0;height:0;border-radius:50%;background:rgba(245,158,11,0.3);pointer-events:none;transition:all 0.6s ease-out"></div>
-        
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <span style="font-weight:800;font-size:13px;background:linear-gradient(90deg,#f59e0b,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent">⚔️ WAR OF THE TRADERS</span>
-            <div style="display:flex;align-items:center;gap:6px">
-                <span style="font-size:10px;color:#f59e0b">⏱</span>
-                <span style="font-size:12px;font-weight:700;color:#f59e0b;font-family:monospace" id="warTimer">--:--</span>
-            </div>
+    <!-- 🏟️ STADIUM VIEW -->
+    <div id="stadiumView" class="glass-light" style="margin:8px;padding:10px;border-radius:12px;text-align:center;position:relative;overflow:hidden;border:1px solid rgba(168,85,247,0.2)">
+        <div style="font-size:9px;color:#a855f7;margin-bottom:4px">🏟️ THE COLOSSEUM</div>
+        <div id="stadiumCrowd" style="font-size:20px;letter-spacing:2px;transition:all 0.5s">🏛️🏛️🏛️🏛️🏛️🏛️🏛️🏛️</div>
+        <div id="stadiumMood" style="font-size:10px;color:#f59e0b;margin-top:4px">Menunggu gladiator...</div>
+        <div id="stadiumWeather" style="font-size:8px;color:#6b7280;margin-top:2px">☀️ Cerah</div>
+        <div style="width:100%;height:3px;background:rgba(255,255,255,0.05);border-radius:10px;margin-top:6px;overflow:hidden">
+            <div id="crowdHypeBar" style="height:100%;background:linear-gradient(90deg,#3b82f6,#f59e0b,#ef4444);transition:width 0.5s;width:50%"></div>
         </div>
+        <div style="font-size:8px;color:#6b7280;margin-top:2px">HYPE: <span id="crowdHypePct">50%</span></div>
+    </div>
 
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
-            <div style="flex:1;text-align:center;background:rgba(16,185,129,0.08);border-radius:12px;padding:10px 8px;border:1px solid rgba(16,185,129,0.2)">
-                <div style="font-size:10px;color:#10b981;font-weight:700;margin-bottom:4px">🐂 BUY ARMY</div>
-                <div style="font-size:12px;color:#6b7280;margin-bottom:4px" id="warBuyTroops">⚔️⚔️⚔️⚔️⚔️</div>
-                <div style="font-size:30px;font-weight:900;color:#10b981" id="warBuyCount">0</div>
-                <div style="font-size:10px;color:#6b7280">traders</div>
-                <div style="font-size:12px;color:#10b981;font-weight:700;margin-top:4px" id="warBuyPL">$0</div>
-            </div>
-            <div style="text-align:center;min-width:40px">
-                <div style="font-size:28px;font-weight:900;color:#f59e0b;animation:glow 1.5s ease-in-out infinite">⚡</div>
-                <div style="font-size:9px;color:#6b7280">VS</div>
-                <div style="font-size:11px;font-weight:700;color:#f59e0b" id="warTotal">0</div>
-            </div>
-            <div style="flex:1;text-align:center;background:rgba(239,68,68,0.08);border-radius:12px;padding:10px 8px;border:1px solid rgba(239,68,68,0.2)">
-                <div style="font-size:10px;color:#ef4444;font-weight:700;margin-bottom:4px">🐻 SELL ARMY</div>
-                <div style="font-size:12px;color:#6b7280;margin-bottom:4px" id="warSellTroops">⚔️⚔️</div>
-                <div style="font-size:30px;font-weight:900;color:#ef4444" id="warSellCount">0</div>
-                <div style="font-size:10px;color:#6b7280">traders</div>
-                <div style="font-size:12px;color:#ef4444;font-weight:700;margin-top:4px" id="warSellPL">$0</div>
-            </div>
+    <!-- ⚔️ GLADIATOR CARDS -->
+    <div id="gladiatorCards" style="margin:8px;max-height:300px;overflow-y:auto">
+        <div style="text-align:center;padding:20px;color:#6b7280;font-size:11px">
+            <div style="font-size:40px;margin-bottom:8px">🏛️</div>
+            <div>COLOSSEUM KOSONG</div>
+            <div style="font-size:9px;margin-top:4px">Menunggu EA membuka posisi baru...</div>
         </div>
+    </div>
 
-        <div style="position:relative;width:100%;height:8px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden;margin-bottom:8px">
-            <div id="warBuyBar" style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#10b981,#34d399,#6ee7b7);transition:width 0.6s cubic-bezier(0.4,0,0.2,1);width:50%;border-radius:10px 0 0 10px">
-                <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);animation:shimmer 2s infinite"></div>
-            </div>
-            <div style="position:absolute;left:50%;top:0;width:2px;height:100%;background:#f59e0b;transform:translateX(-50%);z-index:2;box-shadow:0 0 10px #f59e0b"></div>
-            <div id="warSellBar" style="position:absolute;right:0;top:0;height:100%;background:linear-gradient(90deg,#f87171,#ef4444,#dc2626);transition:width 0.6s cubic-bezier(0.4,0,0.2,1);width:50%;border-radius:0 10px 10px 0">
-                <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);animation:shimmer 2s infinite"></div>
-            </div>
+    <!-- 🏆 HALL OF FAME -->
+    <div class="glass-light" style="margin:8px;padding:10px;border-radius:12px">
+        <div style="font-size:10px;font-weight:700;margin-bottom:6px;color:#f59e0b">🏆 HALL OF FAME</div>
+        <div id="hallOfFame" style="font-size:9px;color:#6b7280;max-height:80px;overflow-y:auto;line-height:1.5">
+            <div>Belum ada gladiator yang pensiun...</div>
         </div>
+    </div>
 
-        <div style="text-align:center;margin-bottom:8px">
-            <div style="font-size:12px;font-weight:800;letter-spacing:1px" id="warVictor">⏳ AWAITING BATTLE...</div>
+    <!-- 📊 SEASON STATS -->
+    <div class="glass-light" style="margin:8px;padding:10px;border-radius:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:10px;font-weight:700">📊 SEASON 1</span>
+            <span style="font-size:9px;color:#6b7280" id="seasonDays">Day 1/7</span>
         </div>
-
-        <div style="display:flex;align-items:center;gap:4px;margin-bottom:8px;font-size:9px;color:#6b7280">
-            <span>🗺️</span>
-            <div style="flex:1;height:4px;background:linear-gradient(90deg,#10b981 0%,#10b981 50%,#ef4444 50%,#ef4444 100%);border-radius:2px;position:relative">
-                <div style="position:absolute;top:-3px;left:50%;width:6px;height:10px;background:#f59e0b;border-radius:2px;transform:translateX(-50%);box-shadow:0 0 8px #f59e0b"></div>
-            </div>
-            <span>🏴</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:9px;color:#6b7280">
+            <div>⚔️ Battles: <b style="color:white" id="seasonBattles">0</b></div>
+            <div>🏆 Wins: <b style="color:#10b981" id="seasonWins">0</b></div>
+            <div>💀 Losses: <b style="color:#ef4444" id="seasonLosses">0</b></div>
+            <div>💰 Profit: <b style="color:#f59e0b" id="seasonProfit">$0</b></div>
         </div>
+    </div>
 
-        <div style="background:rgba(255,255,255,0.02);border-radius:8px;padding:6px 8px;margin-bottom:8px;text-align:center">
-            <div style="font-size:9px;color:#6b7280;margin-bottom:3px">🏟️ STADIUM CROWD</div>
-            <div style="display:flex;align-items:center;justify-content:center;gap:8px">
-                <span style="font-size:14px" id="crowdBuy">👥👥👥</span>
-                <span style="font-size:11px;color:#f59e0b;font-weight:700">📣 "<span id="crowdChant">BUY! BUY!</span>"</span>
-                <span style="font-size:14px" id="crowdSell">👤👤</span>
-            </div>
-            <div style="width:100%;height:3px;background:rgba(255,255,255,0.05);border-radius:10px;margin-top:4px;overflow:hidden">
-                <div id="crowdHypeBar" style="height:100%;background:linear-gradient(90deg,#3b82f6,#f59e0b,#ef4444);transition:width 0.5s;width:0%"></div>
-            </div>
-            <div style="font-size:8px;color:#6b7280;margin-top:2px">HYPE: <span id="crowdHypePct">0%</span></div>
-        </div>
-
-        <div style="font-size:9px;color:#6b7280;max-height:40px;overflow-y:auto;margin-bottom:8px" id="battleLog">
-            <div>📋 Battle log ready...</div>
-        </div>
-
-        <div style="display:flex;gap:6px">
-            <button onclick="adminVote('buy')" style="flex:1;padding:8px;border-radius:10px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#10b981;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(16,185,129,0.4)'" onmouseout="this.style.background='rgba(16,185,129,0.2)'">🐂 +BUY</button>
-            <button onclick="adminVote('sell')" style="flex:1;padding:8px;border-radius:10px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#ef4444;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(239,68,68,0.4)'" onmouseout="this.style.background='rgba(239,68,68,0.2)'">🐻 +SELL</button>
-            <button onclick="resetVotes()" style="padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#6b7280;font-size:10px;cursor:pointer;transition:all 0.2s">↺ Reset</button>
+    <!-- 💬 QUICK COMMANDS -->
+    <div class="glass-light" style="margin:8px;padding:8px;border-radius:12px">
+        <div style="font-size:9px;color:#6b7280;margin-bottom:4px">⚡ QUICK COMMANDS</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+            <button onclick="cheerGladiator()" style="padding:4px 8px;border-radius:6px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.3);color:#10b981;font-size:8px;cursor:pointer">👏 CHEER</button>
+            <button onclick="booGladiator()" style="padding:4px 8px;border-radius:6px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.3);color:#ef4444;font-size:8px;cursor:pointer">👎 BOO</button>
+            <button onclick="predictWinner()" style="padding:4px 8px;border-radius:6px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;font-size:8px;cursor:pointer">🔮 PREDICT</button>
+            <button onclick="resetColosseum()" style="padding:4px 8px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#6b7280;font-size:8px;cursor:pointer">↺ RESET</button>
         </div>
     </div>
 
@@ -389,7 +372,7 @@
         <div style="font-size:11px;color:#f59e0b;font-weight:700;margin-top:4px" id="lootPrize"></div>
     </div>
 
-    <!-- 💬 LIVE CHAT (RAPI) -->
+    <!-- 💬 LIVE CHAT -->
     <div class="glass-light" style="margin:8px;padding:10px;border-radius:12px;display:flex;flex-direction:column">
         <div style="font-size:10px;font-weight:700;margin-bottom:6px">💬 LIVE CHAT</div>
         <div id="liveChat" style="font-size:10px;color:#6b7280;line-height:1.6;max-height:100px;overflow-y:auto;margin-bottom:6px">
@@ -722,117 +705,464 @@ function toggleScene(){
 // ==========================================
 // ⚔️ BATTLE ZONE
 // ==========================================
-function adminVote(type){
-    if(type==='buy')adminBuyVotes++;
-    else adminSellVotes++;
-    updateBattleDisplay();
-    playTone('sine',880,0.1,0.12);
-    spawnWarParticles();
-    speak('Vote masuk! '+(type==='buy'?'BUY':'SELL')+' sekarang '+adminBuyVotes+' vs '+adminSellVotes);
+// ==========================================
+// 🏛️ GLADIATOR DEATHMATCH — ULTIMATE SYSTEM
+// ==========================================
+let gladiators = [];
+let fallenGladiators = [];
+let seasonStats = { battles: 0, wins: 0, losses: 0, profit: 0 };
+let stadiumHype = 50;
+let stadiumMood = 'neutral';
+let commentatorActive = true;
+let lastCommentaryTime = 0;
+
+// ==========================================
+// 🎵 AUDIO SYSTEM — IMMERSIVE SOUNDS
+// ==========================================
+function playSound(type) {
+    const sounds = {
+        spawn: { freq: 400, type: 'square', dur: 0.15, vol: 0.08 },
+        hit: { freq: 200, type: 'sawtooth', dur: 0.1, vol: 0.06 },
+        death: { freq: 80, type: 'sawtooth', dur: 0.5, vol: 0.1 },
+        victory: { freq: 523, type: 'triangle', dur: 0.3, vol: 0.08 },
+        coin: { freq: 1200, type: 'sine', dur: 0.08, vol: 0.05 },
+        cheer: { freq: 600, type: 'square', dur: 0.15, vol: 0.04 },
+        boo: { freq: 150, type: 'sawtooth', dur: 0.3, vol: 0.05 },
+        horn: { freq: 800, type: 'triangle', dur: 0.5, vol: 0.07 }
+    };
+    const s = sounds[type] || sounds.spawn;
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = s.freq; o.type = s.type;
+        g.gain.value = s.vol;
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + s.dur);
+        o.stop(ctx.currentTime + s.dur);
+    } catch(e) {}
 }
-function resetVotes(){adminBuyVotes=0;adminSellVotes=0;updateBattleDisplay();}
-function updateBattleDisplay(){
-    const total=adminBuyVotes+adminSellVotes||1;
-    const buyPct=Math.round((adminBuyVotes/total)*100);
-    const sellPct=100-buyPct;
+
+// ==========================================
+// ⚔️ GLADIATOR SPAWN — Dipanggil saat sinyal baru
+// ==========================================
+function spawnGladiatorFromSignal(signal) {
+    if (!signal || !signal.dir) return;
     
-    // Update counts
-    document.getElementById('warBuyCount').textContent=adminBuyVotes;
-    document.getElementById('warSellCount').textContent=adminSellVotes;
-    document.getElementById('warBuyBar').style.width=buyPct+'%';
-    document.getElementById('warSellBar').style.width=sellPct+'%';
-    document.getElementById('warTotal').textContent=total;
+    const gladId = 'GLAD-' + Date.now().toString(36).toUpperCase();
+    const names = ['MAXIMUS', 'SPARTACUS', 'TITAN', 'PHANTOM', 'VIPER', 'SHADOW', 'BLADE', 'STORM', 'FROST', 'EMBER'];
+    const name = names[Math.floor(Math.random() * names.length)];
     
-    // Update troops visual
-    const buyTroops='⚔️'.repeat(Math.min(adminBuyVotes,15))||'—';
-    const sellTroops='⚔️'.repeat(Math.min(adminSellVotes,15))||'—';
-    document.getElementById('warBuyTroops').textContent=buyTroops;
-    document.getElementById('warSellTroops').textContent=sellTroops;
+    const gladiator = {
+        id: gladId,
+        name: name,
+        dir: signal.dir,
+        entry: parseFloat(signal.entry) || 2650,
+        sl: parseFloat(signal.sl) || 2640,
+        trailStart: parseFloat(signal.trailStart) || 0,
+        currentPrice: parseFloat(signal.entry) || 2650,
+        profit: 0,
+        hp: 100,
+        maxHp: Math.abs((parseFloat(signal.entry) || 2650) - (parseFloat(signal.sl) || 2640)),
+        status: 'alive', // alive, winning, dying, dead, champion
+        backers: 0,
+        spawnedAt: Date.now(),
+        title: 'ROOKIE',
+        color: signal.dir === 'BUY' ? '#10b981' : '#ef4444',
+        emblem: signal.dir === 'BUY' ? '🐂' : '🐻',
+        weapon: signal.dir === 'BUY' ? '⚔️ LONGSWORD' : '🗡️ DAGGER'
+    };
     
-    // Update crowd
-    const buyCrowd='👥'.repeat(Math.min(Math.ceil(adminBuyVotes/3),10))||'—';
-    const sellCrowd='👤'.repeat(Math.min(Math.ceil(adminSellVotes/3),10))||'—';
-    document.getElementById('crowdBuy').textContent=buyCrowd;
-    document.getElementById('crowdSell').textContent=sellCrowd;
+    gladiators.push(gladiator);
+    seasonStats.battles++;
     
-    // Crowd chant
-    if(adminBuyVotes>adminSellVotes+10){
-        document.getElementById('crowdChant').textContent='BUY! BUY! BUY!';
-    }else if(adminSellVotes>adminBuyVotes+10){
-        document.getElementById('crowdChant').textContent='SELL! SELL!';
-    }else{
-        document.getElementById('crowdChant').textContent='FIGHT! FIGHT!';
+    // Visual
+    renderGladiatorCards();
+    updateStadium();
+    playSound('spawn');
+    
+    // AI Commentary
+    commentatorSpeak(`${name} memasuki arena! ${gladiator.dir} di $${gladiator.entry.toFixed(2)} dengan ${gladiator.weapon}!`);
+    
+    // Chat
+    addChatMessage('🏛️ Arena', `⚔️ ${name} (${gladiator.dir}) lahir di $${gladiator.entry.toFixed(2)} | SL: $${gladiator.sl.toFixed(2)}`, 'ai');
+    
+    // Auto-update tiap 5 detik
+    updateGladiatorPrices();
+}
+
+// ==========================================
+// 💀 GLADIATOR KILL — Dipanggil saat posisi close/SL
+// ==========================================
+function killGladiator(gladId, reason, finalProfit) {
+    const glad = gladiators.find(g => g.id === gladId);
+    if (!glad || glad.status === 'dead') return;
+    
+    glad.status = 'dead';
+    glad.profit = finalProfit;
+    
+    if (finalProfit > 0) {
+        glad.title = finalProfit > 100 ? 'LEGENDARY' : finalProfit > 50 ? 'CHAMPION' : finalProfit > 20 ? 'WARRIOR' : 'SURVIVOR';
+        seasonStats.wins++;
+        seasonStats.profit += finalProfit;
+        playSound('victory');
+        commentatorSpeak(`${glad.name} MENANG! Profit $${finalProfit.toFixed(2)}! ${glad.title}!`);
+        spawnConfetti();
+        document.getElementById('stadiumCrowd').classList.add('stadium-cheer');
+        setTimeout(() => document.getElementById('stadiumCrowd').classList.remove('stadium-cheer'), 500);
+    } else {
+        glad.title = finalProfit > -10 ? 'WOUNDED' : 'FALLEN';
+        seasonStats.losses++;
+        seasonStats.profit += finalProfit;
+        playSound('death');
+        commentatorSpeak(`${glad.name} JATUH! ${reason}! Kerugian $${Math.abs(finalProfit).toFixed(2)}!`);
+        document.getElementById('stadiumMood').textContent = '😞 Penonton kecewa...';
     }
     
-    // Hype meter
-    const hype=Math.min(100,total*3);
-    document.getElementById('crowdHypeBar').style.width=hype+'%';
-    document.getElementById('crowdHypePct').textContent=hype+'%';
+    // Pindah ke Hall of Fame
+    fallenGladiators.push(glad);
+    if (fallenGladiators.length > 20) fallenGladiators.shift();
     
-    // Victor
-    if(total>1){
-        const diff=Math.abs(adminBuyVotes-adminSellVotes);
-        let victorText='';
-        if(adminBuyVotes>adminSellVotes){
-            victorText=diff>10?'🏆🐂 BUY ARMY CONQUERS THE BATTLEFIELD!':'🐂 BUY ARMY LEADING!';
-        }else if(adminSellVotes>adminBuyVotes){
-            victorText=diff>10?'🏆🐻 SELL ARMY CONQUERS THE BATTLEFIELD!':'🐻 SELL ARMY LEADING!';
-        }else{
-            victorText='⚡ BATTLE IS EVEN!';
-        }
-        document.getElementById('warVictor').innerHTML='<span class="text-accent-400">'+victorText+'</span>';
+    // Hapus dari arena
+    gladiators = gladiators.filter(g => g.id !== gladId);
+    
+    renderGladiatorCards();
+    renderHallOfFame();
+    updateStadium();
+    updateSeasonStats();
+}
+
+// ==========================================
+// 📊 UPDATE HARGA GLADIATOR (dari trailing)
+// ==========================================
+function updateGladiatorPrices() {
+    db.ref('trailing/' + CONFIG.adminLicense + '/XAU_USD').on('value', snap => {
+        const data = snap.val() || {};
+        const positions = data.positions || [];
         
-        // Shockwave effect
-        if(diff>=5)triggerShockwave();
-    }
-    
-    // Battle log
-    const log=document.getElementById('battleLog');
-    const now=new Date().toLocaleTimeString();
-    if(log.children.length>10)log.removeChild(log.lastChild);
-    const entry=document.createElement('div');
-    entry.textContent=now+' | BUY:'+adminBuyVotes+' SELL:'+adminSellVotes;
-    entry.style.cssText='padding:1px 0;border-bottom:1px solid rgba(255,255,255,0.03)';
-    log.insertBefore(entry,log.firstChild);
-    
-    // Update dari trailing
-    db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{
-        const d=snap.val()||{};const pos=d.positions||[];
-        let bpl=0,spl=0;
-        pos.forEach(p=>{if(p.dir==='BUY')bpl+=(p.profit||0);else spl+=(p.profit||0);});
-        document.getElementById('warBuyPL').textContent='$'+bpl.toFixed(0);
-        document.getElementById('warSellPL').textContent='$'+spl.toFixed(0);
+        positions.forEach(pos => {
+            // Cari gladiator yang cocok
+            const glad = gladiators.find(g => 
+                g.status === 'alive' && 
+                Math.abs(g.entry - pos.entry) < 1 && 
+                g.dir === pos.dir
+            );
+            
+            if (glad && pos.active) {
+                glad.currentPrice = pos.currentPrice || glad.currentPrice;
+                glad.profit = pos.profit || 0;
+                
+                // Update HP
+                const distToSL = Math.abs(glad.currentPrice - glad.sl);
+                const totalDist = Math.abs(glad.entry - glad.sl);
+                glad.hp = Math.max(0, Math.min(100, (distToSL / totalDist) * 100));
+                
+                // Update status
+                if (glad.profit > 0 && glad.hp > 50) {
+                    glad.status = 'winning';
+                } else if (glad.hp < 20) {
+                    glad.status = 'dying';
+                }
+                
+                // Auto-kill kalau SL tersentuh
+                if (glad.hp <= 5 && glad.status !== 'dead') {
+                    killGladiator(glad.id, 'SL tersentuh', glad.profit);
+                }
+            }
+            
+            // Deteksi posisi yang sudah close
+            if (glad && !pos.active && glad.status !== 'dead') {
+                killGladiator(glad.id, 'Posisi ditutup', pos.profit || 0);
+            }
+        });
+        
+        // Deteksi gladiator tanpa posisi
+        gladiators.forEach(g => {
+            if (g.status === 'alive' || g.status === 'winning' || g.status === 'dying') {
+                const exists = positions.find(p => 
+                    Math.abs(p.entry - g.entry) < 1 && p.dir === g.dir
+                );
+                if (!exists && Date.now() - g.spawnedAt > 60000) {
+                    killGladiator(g.id, 'Menghilang dari arena', g.profit);
+                }
+            }
+        });
+        
+        renderGladiatorCards();
+        updateStadium();
     });
 }
 
-function triggerShockwave(){
-    const sw=document.getElementById('shockwave');
-    sw.style.width='200px';sw.style.height='200px';
-    sw.style.opacity='1';
-    setTimeout(()=>{sw.style.width='0';sw.style.height='0';sw.style.opacity='0';},600);
-    playTone('sine',200,0.15,0.2);
+// ==========================================
+// 🎨 RENDER GLADIATOR CARDS
+// ==========================================
+function renderGladiatorCards() {
+    const container = document.getElementById('gladiatorCards');
+    
+    if (gladiators.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center;padding:20px;color:#6b7280;font-size:11px">
+                <div style="font-size:40px;margin-bottom:8px">🏛️</div>
+                <div>COLOSSEUM KOSONG</div>
+                <div style="font-size:9px;margin-top:4px">Menunggu EA membuka posisi baru...</div>
+            </div>`;
+        return;
+    }
+    
+    let html = '';
+    
+    gladiators.forEach(g => {
+        const hpColor = g.hp > 50 ? '#10b981' : g.hp > 25 ? '#f59e0b' : '#ef4444';
+        const hpClass = g.hp < 20 ? 'hp-critical' : '';
+        const statusIcon = g.status === 'winning' ? '👑' : g.status === 'dying' ? '🩸' : '⚔️';
+        const cardClass = g.status === 'dying' ? 'gladiator-dying' : g.status === 'winning' ? 'gladiator-winning' : 'gladiator-card';
+        const profitSign = g.profit >= 0 ? '+' : '';
+        const profitColor = g.profit >= 0 ? '#10b981' : '#ef4444';
+        const titleColor = g.profit > 50 ? '#f59e0b' : g.profit > 20 ? '#a855f7' : '#6b7280';
+        
+        html += `
+            <div class="${cardClass}" style="background:rgba(23,23,23,0.9);border:1px solid ${g.color}40;border-radius:12px;padding:10px;margin-bottom:6px;position:relative;overflow:hidden">
+                <!-- Glow effect -->
+                <div style="position:absolute;top:0;left:0;right:0;height:2px;background:${g.color};opacity:0.5"></div>
+                
+                <!-- Header -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                    <div style="display:flex;align-items:center;gap:6px">
+                        <span style="font-size:20px">${g.emblem}</span>
+                        <div>
+                            <div style="font-size:11px;font-weight:800;color:white">${g.name}</div>
+                            <div style="font-size:8px;color:${titleColor}">${g.title}</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="font-size:10px;font-weight:700;color:${g.color}">${g.dir}</div>
+                        <div style="font-size:8px;color:#6b7280">${g.weapon}</div>
+                    </div>
+                </div>
+                
+                <!-- HP Bar -->
+                <div style="margin-bottom:4px">
+                    <div style="display:flex;justify-content:space-between;font-size:7px;color:#6b7280;margin-bottom:2px">
+                        <span>HP</span><span>${Math.round(g.hp)}%</span>
+                    </div>
+                    <div style="width:100%;height:5px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden">
+                        <div class="${hpClass}" style="width:${g.hp}%;height:100%;background:${hpColor};border-radius:10px;transition:width 0.5s"></div>
+                    </div>
+                </div>
+                
+                <!-- Stats -->
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:7px;color:#6b7280;margin-bottom:4px">
+                    <div>Entry<div style="color:white;font-weight:700">$${g.entry.toFixed(2)}</div></div>
+                    <div>SL<div style="color:#ef4444;font-weight:700">$${g.sl.toFixed(2)}</div></div>
+                    <div>Now<div style="color:white;font-weight:700">$${g.currentPrice.toFixed(2)}</div></div>
+                </div>
+                
+                <!-- Profit & Status -->
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <span style="font-size:9px;font-weight:700;color:${profitColor}">${profitSign}$${Math.abs(g.profit).toFixed(2)}</span>
+                    <span style="font-size:8px">${statusIcon} ${g.status.toUpperCase()}</span>
+                    <span style="font-size:7px;color:#6b7280">👥 ${g.backers}</span>
+                </div>
+                
+                <!-- Support button -->
+                <button onclick="backGladiator('${g.id}')" style="width:100%;margin-top:4px;padding:3px;border-radius:4px;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.3);color:#a855f7;font-size:7px;cursor:pointer">⚔️ BACK THIS GLADIATOR</button>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight;
 }
 
-function addBattleLog(msg){
-    const log=document.getElementById('battleLog');
-    const entry=document.createElement('div');
-    entry.textContent=msg;
-    entry.style.cssText='padding:1px 0;border-bottom:1px solid rgba(255,255,255,0.03)';
-    log.insertBefore(entry,log.firstChild);
-    if(log.children.length>15)log.removeChild(log.lastChild);
-}
-function spawnWarParticles(){
-    const c=document.getElementById('warParticles');
-    for(let i=0;i<6;i++){
-        const p=document.createElement('div');
-        p.className='fire-particle';
-        p.style.left=Math.random()*100+'%';p.style.top='50%';
-        p.style.setProperty('--x',(Math.random()-0.5)*100+'px');
-        p.style.background=Math.random()>0.5?'#10b981':'#ef4444';
-        p.style.width='4px';p.style.height='4px';p.style.borderRadius='50%';
-        c.appendChild(p);setTimeout(()=>p.remove(),1500);
+// ==========================================
+// 🏆 RENDER HALL OF FAME
+// ==========================================
+function renderHallOfFame() {
+    const container = document.getElementById('hallOfFame');
+    
+    if (fallenGladiators.length === 0) {
+        container.innerHTML = '<div>Belum ada gladiator yang pensiun...</div>';
+        return;
     }
+    
+    const champions = fallenGladiators.filter(g => g.profit > 0).sort((a, b) => b.profit - a.profit);
+    const fallen = fallenGladiators.filter(g => g.profit <= 0);
+    
+    let html = '';
+    
+    if (champions.length > 0) {
+        html += '<div style="color:#f59e0b;margin-bottom:4px">👑 CHAMPIONS</div>';
+        champions.slice(0, 3).forEach(g => {
+            html += `<div style="margin-bottom:2px">🏆 ${g.name} — <span style="color:#10b981">+$${g.profit.toFixed(2)}</span> (${g.title})</div>`;
+        });
+    }
+    
+    if (fallen.length > 0) {
+        html += '<div style="color:#ef4444;margin-top:4px;margin-bottom:4px">💀 FALLEN</div>';
+        fallen.slice(0, 3).forEach(g => {
+            html += `<div style="margin-bottom:2px">🪦 ${g.name} — <span style="color:#ef4444">-$${Math.abs(g.profit).toFixed(2)}</span></div>`;
+        });
+    }
+    
+    container.innerHTML = html || '<div>Belum ada gladiator yang pensiun...</div>';
 }
+
+// ==========================================
+// 🏟️ UPDATE STADIUM
+// ==========================================
+function updateStadium() {
+    const aliveCount = gladiators.filter(g => g.status === 'alive' || g.status === 'winning').length;
+    const dyingCount = gladiators.filter(g => g.status === 'dying').length;
+    const winningCount = gladiators.filter(g => g.status === 'winning' && g.profit > 20).length;
+    
+    // Crowd size
+    const crowdIcons = ['🏛️', '🏟️', '👤', '👥', '👥👤', '👥👥', '👥👥👤', '👥👥👥', '👥👥👥👤', '👥👥👥👥'];
+    const crowdIdx = Math.min(aliveCount + dyingCount, crowdIcons.length - 1);
+    document.getElementById('stadiumCrowd').textContent = crowdIcons[crowdIdx].repeat(Math.min(aliveCount + 1, 6));
+    
+    // Mood
+    if (winningCount > 0) {
+        stadiumMood = 'excited';
+        document.getElementById('stadiumMood').textContent = '🎉 Penonton bersorak!';
+        document.getElementById('stadiumMood').style.color = '#f59e0b';
+    } else if (dyingCount > 0) {
+        stadiumMood = 'tense';
+        document.getElementById('stadiumMood').textContent = '😰 Penonton tegang...';
+        document.getElementById('stadiumMood').style.color = '#ef4444';
+    } else if (aliveCount > 0) {
+        stadiumMood = 'neutral';
+        document.getElementById('stadiumMood').textContent = '👀 Menonton pertarungan...';
+        document.getElementById('stadiumMood').style.color = '#6b7280';
+    } else {
+        stadiumMood = 'empty';
+        document.getElementById('stadiumMood').textContent = '😴 Arena sepi...';
+        document.getElementById('stadiumMood').style.color = '#6b7280';
+        document.getElementById('stadiumWeather').textContent = '🌧️ Hujan...';
+    }
+    
+    if (aliveCount > 0) {
+        document.getElementById('stadiumWeather').textContent = '☀️ Cerah';
+    }
+    
+    // Hype
+    stadiumHype = Math.min(100, aliveCount * 20 + winningCount * 10);
+    document.getElementById('crowdHypeBar').style.width = stadiumHype + '%';
+    document.getElementById('crowdHypePct').textContent = Math.round(stadiumHype) + '%';
+}
+
+// ==========================================
+// 📊 UPDATE SEASON STATS
+// ==========================================
+function updateSeasonStats() {
+    document.getElementById('seasonBattles').textContent = seasonStats.battles;
+    document.getElementById('seasonWins').textContent = seasonStats.wins;
+    document.getElementById('seasonLosses').textContent = seasonStats.losses;
+    document.getElementById('seasonProfit').textContent = (seasonStats.profit >= 0 ? '+' : '') + '$' + seasonStats.profit.toFixed(2);
+    document.getElementById('seasonProfit').style.color = seasonStats.profit >= 0 ? '#10b981' : '#ef4444';
+    
+    const dayOfWeek = new Date().getDay() || 7;
+    document.getElementById('seasonDays').textContent = 'Day ' + dayOfWeek + '/7';
+}
+
+// ==========================================
+// 🎙️ AI COMMENTATOR
+// ==========================================
+function commentatorSpeak(text) {
+    if (!commentatorActive) return;
+    if (Date.now() - lastCommentaryTime < 5000) return;
+    lastCommentaryTime = Date.now();
+    
+    speak(text);
+    addChatMessage('🎙️ Komentator', text, 'ai');
+}
+
+// ==========================================
+// 💬 INTERAKSI PENONTON
+// ==========================================
+function backGladiator(gladId) {
+    const glad = gladiators.find(g => g.id === gladId);
+    if (!glad) return;
+    
+    glad.backers++;
+    renderGladiatorCards();
+    playSound('cheer');
+    commentatorSpeak(`Seorang penonton mendukung ${glad.name}! Total ${glad.backers} backers!`);
+}
+
+function cheerGladiator() {
+    playSound('cheer');
+    stadiumHype = Math.min(100, stadiumHype + 10);
+    updateStadium();
+    commentatorSpeak('Penonton bersorak! Suasana memanas!');
+    document.getElementById('stadiumCrowd').classList.add('stadium-cheer');
+    setTimeout(() => document.getElementById('stadiumCrowd').classList.remove('stadium-cheer'), 500);
+}
+
+function booGladiator() {
+    playSound('boo');
+    stadiumHype = Math.max(0, stadiumHype - 5);
+    updateStadium();
+    commentatorSpeak('Penonton mencemooh! Gladiator di bawah tekanan!');
+}
+
+function predictWinner() {
+    const alive = gladiators.filter(g => g.status === 'alive' || g.status === 'winning');
+    if (alive.length === 0) {
+        commentatorSpeak('Tidak ada gladiator yang bisa diprediksi sekarang.');
+        return;
+    }
+    const predicted = alive[Math.floor(Math.random() * alive.length)];
+    commentatorSpeak(`Prediksi: ${predicted.name} akan menjadi champion berikutnya! Setuju?`);
+}
+
+function resetColosseum() {
+    gladiators = [];
+    fallenGladiators = [];
+    seasonStats = { battles: 0, wins: 0, losses: 0, profit: 0 };
+    renderGladiatorCards();
+    renderHallOfFame();
+    updateStadium();
+    updateSeasonStats();
+    commentatorSpeak('Colosseum direset. Arena siap untuk pertempuran baru!');
+}
+
+// ==========================================
+// 🔄 AUTO-UPDATE LOOP
+// ==========================================
+setInterval(updateGladiatorPrices, 5000);
+setInterval(updateStadium, 10000);
+setInterval(updateSeasonStats, 60000);
+
+// ==========================================
+// 🔗 PATCH — Auto-spawn dari sinyal
+// ==========================================
+const originalCheckSignals = checkSignals;
+checkSignals = function() {
+    db.ref('signals/' + CONFIG.adminLicense + '/XAU_USD/1').on('value', snap => {
+        const s = snap.val();
+        if (s && s.dir) {
+            // Original signal overlay
+            document.getElementById('signalOverlay').style.display = 'block';
+            document.getElementById('signalIcon').textContent = s.dir === 'BUY' ? '📈' : '📉';
+            document.getElementById('signalDir').textContent = s.dir;
+            document.getElementById('signalEntry').textContent = '$' + s.entry;
+            document.getElementById('signalSL').textContent = '$' + s.sl;
+            document.getElementById('signalTT').textContent = '$' + (s.trailStart || 0);
+            
+            drawEntryOnChart(s);
+            speak('Sinyal ' + s.dir + ' di $' + s.entry);
+            triggerEntryEvent(s);
+            
+            // 🔥 AUTO SPAWN GLADIATOR
+            spawnGladiatorFromSignal(s);
+            
+            setTimeout(() => {
+                document.getElementById('signalOverlay').style.display = 'none';
+            }, 8000);
+        }
+    });
+};
 
 // ==========================================
 // 🔥 STREAK
@@ -977,7 +1307,6 @@ function updateAllTimers(){
     let mtc=nc-m;if(mtc<=0)mtc+=15;
     const ts=mtc*60-s;const mm=Math.floor(ts/60);const ss=ts%60;
     const timeStr=String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
-    document.getElementById('warTimer').textContent=timeStr;
     document.getElementById('headerTimer').textContent=timeStr;
     document.getElementById('btmTimer').textContent=timeStr;
     // Loot box
@@ -1019,35 +1348,6 @@ let chartPriceLow = 2600;
 function updateChartDimensions() {
     const container = document.getElementById('tv_chart');
     if (container) chartHeight = container.offsetHeight;
-}
-
-function checkSignals() {
-    db.ref('signals/' + CONFIG.adminLicense + '/XAU_USD/1').on('value', snap => {
-        const s = snap.val();
-        if (s && s.dir) {
-            // Signal Overlay
-            document.getElementById('signalOverlay').style.display = 'block';
-            document.getElementById('signalIcon').textContent = s.dir === 'BUY' ? '📈' : '📉';
-            document.getElementById('signalDir').textContent = s.dir;
-            document.getElementById('signalEntry').textContent = '$' + s.entry;
-            document.getElementById('signalSL').textContent = '$' + s.sl;
-            document.getElementById('signalTT').textContent = '$' + (s.trailStart || 0);
-            
-            // Chart Cinematic
-            drawEntryOnChart(s);
-            
-            // TTS
-            speak('Sinyal ' + s.dir + ' di $' + s.entry);
-            
-            // Trigger Entry Event (sound + AI + battle highlight)
-            triggerEntryEvent(s);
-            
-            // Hide overlay after 8 seconds
-            setTimeout(() => {
-                document.getElementById('signalOverlay').style.display = 'none';
-            }, 8000);
-        }
-    });
 }
 
 function drawEntryOnChart(signal) {
@@ -1265,8 +1565,8 @@ function triggerSLEvent(slPrice, position) {
     const msg = `SL tersentuh di $${slPrice}! Kita tunggu sinyal berikutnya. Tetap tenang!`;
     speak(msg);
     addChatMessage('🤖 AI Host', '💀 ' + msg, 'ai');
-    document.getElementById('crowdChant').textContent = 'OOOH...';
-    setTimeout(() => { document.getElementById('crowdChant').textContent = 'FIGHT! FIGHT!'; }, 3000);
+    document.getElementById('stadiumMood').textContent = '😱 Penonton terkejut!';
+    setTimeout(() => { document.getElementById('stadiumMood').textContent = '⚔️ Lanjut bertarung!'; }, 3000);
 }
 
 function triggerTTEvent(ttPrice, position) {
@@ -1285,11 +1585,12 @@ function triggerTTEvent(ttPrice, position) {
     addChatMessage('🤖 AI Host', '🛡️ ' + msg, 'ai');
     spawnConfetti();
     
-    document.getElementById('crowdChant').textContent = 'NICE! NICE!';
+    document.getElementById('stadiumMood').textContent = '🎉 LUAR BIASA!';
     document.getElementById('crowdHypeBar').style.width = '100%';
     document.getElementById('crowdHypePct').textContent = '100%';
     setTimeout(() => {
-        document.getElementById('crowdChant').textContent = 'BUY! BUY!';
+        document.getElementById('stadiumMood').textContent = '👀 Menonton pertarungan...';
+        document.getElementById('stadiumMood').style.color = '#6b7280';
         document.getElementById('crowdHypeBar').style.width = '60%';
         document.getElementById('crowdHypePct').textContent = '60%';
     }, 3000);
@@ -1307,8 +1608,8 @@ function triggerEntryEvent(signal) {
     const slDist = Math.abs(signal.entry - signal.sl).toFixed(2);
     const msg = `Sinyal ${signal.dir} di $${signal.entry}! SL $${signal.sl}, jarak $${slDist}. Siapa berani?`;
     speak(msg);
-    document.getElementById('warVictor').innerHTML = '<span class="text-accent-400">📡 NEW SIGNAL: ' + signal.dir + '!</span>';
-    setTimeout(() => updateBattleDisplay(), 5000);
+    document.getElementById('stadiumMood').innerHTML = '<span class="text-accent-400">📡 NEW SIGNAL: ' + signal.dir + '!</span>';
+    setTimeout(() => updateStadium(), 5000);
 }
 
 // ==========================================
@@ -1316,17 +1617,19 @@ function triggerEntryEvent(signal) {
 // ==========================================
 function init(){
     initChart();
-    preloadVoices();  // ← tambahkan
-    updateBattleDisplay();
+    preloadVoices();
+    renderGladiatorCards();
+    renderHallOfFame();
+    updateStadium();
+    updateSeasonStats();
     updateStreak();
     updateGhostAndRankings();
     updateHeaderStats();
-    checkSignals();
     checkCrash();
     listenFirebaseChat();
     setInterval(updateAllTimers,1000);
     setInterval(updatePriceRace,2000);
-    setInterval(updateBattleDisplay,3000);
+    setInterval(updateStadium,3000);
     setInterval(updateStreak,5000);
     setInterval(updateGhostAndRankings,10000);
     setInterval(updateCountdownOverlay, 1000);
