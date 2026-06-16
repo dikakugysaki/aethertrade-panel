@@ -1137,7 +1137,6 @@ setInterval(updateSeasonStats, 60000);
 // ==========================================
 // 🔗 PATCH — Auto-spawn dari sinyal
 // ==========================================
-const originalCheckSignals = checkSignals;
 checkSignals = function() {
     db.ref('signals/' + CONFIG.adminLicense + '/XAU_USD/1').on('value', snap => {
         const s = snap.val();
