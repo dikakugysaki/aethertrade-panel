@@ -42,6 +42,7 @@
         .glass-light{background:rgba(255,255,255,0.02);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.06)}
         #crashOverlay{position:fixed;inset:0;background:rgba(239,68,68,0.3);z-index:100;display:none;pointer-events:none;animation:shake 0.5s ease-in-out}
         #confettiLayer{position:fixed;inset:0;z-index:99;pointer-events:none;overflow:hidden}
+        @keyframes arrowGlow{0%,100%{filter:drop-shadow(0 0 10px var(--arrow-glow))}50%{filter:drop-shadow(0 0 25px var(--arrow-glow))}}
     </style>
 </head>
 <body class="bg-surface-950 text-white font-sans">
@@ -96,6 +97,62 @@
     <!-- CHART -->
     <div style="flex:1;position:relative;min-height:0">
         <div id="tv_chart" style="width:100%;height:100%"></div>
+        
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- CHART COMMAND CENTER — PROFESSIONAL OVERLAYS                  -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="chartMarkers" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:10">
+            
+            <!-- Entry Arrow -->
+            <div id="entryArrow" style="position:absolute;display:none;transition:top 0.8s cubic-bezier(0.4,0,0.2,1);z-index:20">
+                <div style="display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 0 15px var(--arrow-color))">
+                    <div id="entryArrowHead" style="width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:24px solid var(--arrow-color);animation:arrowGlow 1.5s ease-in-out infinite"></div>
+                    <div id="entryArrowBody" style="width:3px;height:40px;background:var(--arrow-color);box-shadow:0 0 10px var(--arrow-color)"></div>
+                    <div id="entryArrowLabel" style="background:rgba(0,0,0,0.85);border:1px solid var(--arrow-color);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:800;color:white;white-space:nowrap;margin-top:4px;box-shadow:0 0 20px var(--arrow-glow)">
+                        <span id="arrowDir">BUY</span> &middot; <span id="arrowPrice">$0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SL Line -->
+            <div id="slLinePro" style="position:absolute;display:none;left:0;right:0;z-index:15;transition:top 0.8s cubic-bezier(0.4,0,0.2,1)">
+                <div style="position:relative;width:100%;height:0;border-top:2px dashed rgba(239,68,68,0.7)">
+                    <div style="position:absolute;right:12px;top:-12px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.5);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;color:#ef4444;backdrop-filter:blur(8px)">
+                        🛑 SL: <span id="slPrice">$0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TP Line -->
+            <div id="tpLinePro" style="position:absolute;display:none;left:0;right:0;z-index:15;transition:top 0.8s cubic-bezier(0.4,0,0.2,1)">
+                <div style="position:relative;width:100%;height:0;border-top:2px dashed rgba(16,185,129,0.7)">
+                    <div style="position:absolute;right:12px;top:-12px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.5);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;color:#10b981;backdrop-filter:blur(8px)">
+                        🎯 TP: <span id="tpPrice">$0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TT Line -->
+            <div id="ttLinePro" style="position:absolute;display:none;left:0;right:0;z-index:15;transition:top 0.8s cubic-bezier(0.4,0,0.2,1)">
+                <div style="position:relative;width:100%;height:0;border-top:2px dashed rgba(245,158,11,0.7)">
+                    <div style="position:absolute;right:12px;top:-12px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.5);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;color:#f59e0b;backdrop-filter:blur(8px)">
+                        🟡 TT: <span id="ttPrice">$0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- P/L Zone -->
+            <div id="profitZone" style="position:absolute;display:none;left:0;right:0;background:linear-gradient(180deg,rgba(16,185,129,0.08) 0%,rgba(16,185,129,0.02) 100%);pointer-events:none;z-index:5"></div>
+            <div id="lossZone" style="position:absolute;display:none;left:0;right:0;background:linear-gradient(0deg,rgba(239,68,68,0.08) 0%,rgba(239,68,68,0.02) 100%);pointer-events:none;z-index:5"></div>
+
+            <!-- Countdown Overlay -->
+            <div id="countdownOverlay" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;text-align:center;z-index:25">
+                <div style="font-size:60px;font-weight:900;color:white;text-shadow:0 0 40px rgba(245,158,11,0.8);font-family:monospace" id="countdownTimer">04:32</div>
+                <div style="font-size:12px;color:#f59e0b;letter-spacing:3px;margin-top:4px">CANDLE CLOSE</div>
+            </div>
+
+        </div>
+        
         <!-- Signal Overlay -->
         <div id="signalOverlay" style="position:absolute;top:20px;right:20px;z-index:10;display:none">
             <div class="glass" style="padding:16px;border-radius:16px;text-align:center;min-width:160px">
@@ -335,94 +392,151 @@ function initChart(){
 }
 
 // ==========================================
-// TTS — TEXT TO SPEECH (GRATIS)
+// TTS — TEXT TO SPEECH WITH QUEUE (NO OVERLAP)
 // ==========================================
-function speak(text){
-    if(!ttsEnabled)return;
-    try{
-        const u=new SpeechSynthesisUtterance(text);
-        u.lang='id-ID';u.rate=1.0;u.pitch=1.0;
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(u);
-    }catch(e){}
-}
-function toggleTTS(){
-    ttsEnabled=!ttsEnabled;
-    document.getElementById('ttsStatus').textContent=ttsEnabled?'AI ON':'AI OFF';
-    document.getElementById('ttsStatus').className=ttsEnabled?'text-accent-400':'text-neutral';
+let ttsQueue = [];
+let ttsIsSpeaking = false;
+
+function speak(text) {
+    if (!ttsEnabled) return;
+    if (!text || text.trim().length < 2) return;
+    
+    // Masukkan ke antrian
+    ttsQueue.push(text);
+    
+    // Mulai proses kalau belum ada yang speaking
+    if (!ttsIsSpeaking) {
+        processTTSQueue();
+    }
 }
 
+function processTTSQueue() {
+    // Ambil dari antrian
+    if (ttsQueue.length === 0) {
+        ttsIsSpeaking = false;
+        return;
+    }
+    
+    ttsIsSpeaking = true;
+    const text = ttsQueue.shift();
+    
+    try {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'id-ID';
+        u.rate = 1.05;      // Sedikit lebih cepat biar gak numpuk
+        u.pitch = 1.0;
+        u.volume = 0.9;
+        
+        // Event: setelah selesai bicara, proses berikutnya
+        u.onend = function() {
+            setTimeout(() => processTTSQueue(), 300); // Jeda 300ms antar pesan
+        };
+        
+        // Event: kalau error, skip ke berikutnya
+        u.onerror = function(e) {
+            console.warn('TTS error:', e);
+            setTimeout(() => processTTSQueue(), 500);
+        };
+        
+        // Stop yang sedang bicara (kalau ada)
+        window.speechSynthesis.cancel();
+        
+        // Mulai bicara
+        window.speechSynthesis.speak(u);
+        
+    } catch (e) {
+        console.error('TTS exception:', e);
+        setTimeout(() => processTTSQueue(), 500);
+    }
+}
+
+function toggleTTS() {
+    ttsEnabled = !ttsEnabled;
+    document.getElementById('ttsStatus').textContent = ttsEnabled ? 'AI ON' : 'AI OFF';
+    document.getElementById('ttsStatus').className = ttsEnabled ? 'text-accent-400' : 'text-neutral';
+    
+    // Kalau dimatikan, bersihkan queue
+    if (!ttsEnabled) {
+        ttsQueue = [];
+        window.speechSynthesis.cancel();
+        ttsIsSpeaking = false;
+    }
+}
 // ==========================================
 // 🤖 AI AUTO-REPLY SYSTEM
 // ==========================================
 let aiReplyQueue=[];
 let isAiProcessing=false;
 
-async function aiReplyToComment(username,comment){
-    // Skip kalau komentar kosong atau spam
-    if(!comment||comment.length<5)return;
+async function aiReplyToComment(username, comment) {
+    if (!comment || comment.length < 5) return;
     
-    // Tambah ke queue
-    aiReplyQueue.push({username,comment,time:Date.now()});
-    
-    // Proses queue
-    if(!isAiProcessing)processAiQueue();
+    aiReplyQueue.push({ username, comment, time: Date.now() });
+    if (!isAiProcessing) processAiQueue();
 }
 
-async function processAiQueue(){
-    if(aiReplyQueue.length===0){isAiProcessing=false;return;}
-    isAiProcessing=true;
+async function processAiQueue() {
+    if (aiReplyQueue.length === 0) { isAiProcessing = false; return; }
+    isAiProcessing = true;
     
-    const item=aiReplyQueue.shift();
-    const {username,comment}=item;
+    const item = aiReplyQueue.shift();
+    const { username, comment } = item;
     
-    try{
-        const response=await fetch(CONFIG.aiEndpoint,{
-            method:'POST',
-            headers:{
-                'Content-Type':'application/json',
-                'Authorization':'Bearer '+CONFIG.aiAPIKey
+    try {
+        const response = await fetch(CONFIG.aiEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + CONFIG.aiAPIKey
             },
-            body:JSON.stringify({
-                model:CONFIG.aiModel,
-                messages:[
+            body: JSON.stringify({
+                model: CONFIG.aiModel,
+                messages: [
                     {
-                        role:'system',
-                        content:'Kamu adalah host trading live yang ramah, lucu, dan informatif. Jawab pertanyaan penonton dengan singkat (maksimal 1-2 kalimat). Gunakan bahasa Indonesia santai. Jangan gunakan emoji. Jangan menyuruh orang beli/jual. Sebut nama penonton di awal jawaban. Jawab dengan gaya anak muda trader.'
+                        role: 'system',
+                        content: 'Kamu host trading live. Jawab SINGKAT maksimal 15 kata. Gunakan bahasa Indonesia santai. Jangan pakai emoji. Sebut nama penonton.'
                     },
                     {
-                        role:'user',
-                        content:'Penonton bernama '+username+' bilang: "'+comment+'". Sebagai host trading live XAUUSD yang sedang di harga $4,348, berikan jawaban singkat dan ramah dalam 1-2 kalimat saja.'
+                        role: 'user',
+                        content: `${username} bilang: "${comment}". Jawab singkat maksimal 15 kata.`
                     }
                 ],
-                max_tokens:80,
-                temperature:0.8
+                max_tokens: 50,  // Batasi biar pendek
+                temperature: 0.8
             })
         });
         
-        const data=await response.json();
-        const reply=data.choices[0].message.content;
+        const data = await response.json();
+        let reply = data.choices[0].message.content;
         
-        // Tampilkan di live chat
-        addChatMessage('🤖 AI Host',reply,'ai');
+        // 🔥 POTONG kalau kepanjangan (maks 100 karakter)
+        if (reply.length > 100) {
+            reply = reply.substring(0, 97) + '...';
+        }
         
-        // Bacakan dengan TTS
-        speak(username+', '+reply);
+        addChatMessage('🤖 AI Host', reply, 'ai');
         
-        // Simpan ke Firebase biar muncul di panel penonton
+        // Hanya speak nama + pesan singkat
+        const shortText = `${username}, ${reply}`;
+        if (shortText.length > 120) {
+            speak(shortText.substring(0, 117) + '...');
+        } else {
+            speak(shortText);
+        }
+        
         db.ref('broadcast_chat').push({
-            username:'🤖 AI Host',
-            comment:reply,
-            replyTo:'@'+username,
-            timestamp:Date.now()
+            username: '🤖 AI Host',
+            comment: reply,
+            replyTo: '@' + username,
+            timestamp: Date.now()
         });
         
-    }catch(e){
-        console.error('AI Reply error:',e);
+    } catch (e) {
+        console.error('AI Reply error:', e);
     }
     
-    // Process next
-    setTimeout(()=>processAiQueue(),2000);
+    // Jeda 3 detik antar reply biar gak spam TTS
+    setTimeout(() => processAiQueue(), 3000);
 }
 
 // ==========================================
@@ -813,21 +927,136 @@ function updateHeaderStats(){
 // ==========================================
 // SIGNAL OVERLAY
 // ==========================================
-function checkSignals(){
-    db.ref('signals/'+CONFIG.adminLicense+'/XAU_USD/1').on('value',snap=>{
-        const s=snap.val();
-        if(s&&s.dir){
-            document.getElementById('signalOverlay').style.display='block';
-            document.getElementById('signalIcon').textContent=s.dir==='BUY'?'📈':'📉';
-            document.getElementById('signalDir').textContent=s.dir;
-            document.getElementById('signalEntry').textContent='$'+s.entry;
-            document.getElementById('signalSL').textContent='$'+s.sl;
-            document.getElementById('signalTT').textContent='$'+(s.trailStart||0);
-            speak('Sinyal '+s.dir+' terdeteksi di '+s.entry);
-            setTimeout(()=>document.getElementById('signalOverlay').style.display='none',8000);
+// ==========================================
+// CHART COMMAND CENTER
+// ==========================================
+let chartHeight = 0;
+let chartPriceHigh = 2700;
+let chartPriceLow = 2600;
+
+function updateChartDimensions() {
+    const container = document.getElementById('tv_chart');
+    if (container) chartHeight = container.offsetHeight;
+}
+
+function checkSignals() {
+    db.ref('signals/' + CONFIG.adminLicense + '/XAU_USD/1').on('value', snap => {
+        const s = snap.val();
+        if (s && s.dir) {
+            document.getElementById('signalOverlay').style.display = 'block';
+            document.getElementById('signalIcon').textContent = s.dir === 'BUY' ? '📈' : '📉';
+            document.getElementById('signalDir').textContent = s.dir;
+            document.getElementById('signalEntry').textContent = '$' + s.entry;
+            document.getElementById('signalSL').textContent = '$' + s.sl;
+            document.getElementById('signalTT').textContent = '$' + (s.trailStart || 0);
+            
+            drawEntryOnChart(s);
+            speak('Sinyal ' + s.dir + ' di $' + s.entry);
+            
+            setTimeout(() => {
+                document.getElementById('signalOverlay').style.display = 'none';
+            }, 8000);
         }
     });
 }
+
+function drawEntryOnChart(signal) {
+    updateChartDimensions();
+    
+    const entry = parseFloat(signal.entry) || 2650;
+    const sl = parseFloat(signal.sl) || 0;
+    const tp = parseFloat(signal.tp) || 0;
+    const tt = parseFloat(signal.trailStart) || 0;
+    const dir = signal.dir || 'BUY';
+    
+    const range = 100;
+    chartPriceHigh = entry + range * 0.6;
+    chartPriceLow = entry - range * 0.4;
+    
+    const arrowColor = dir === 'BUY' ? '#10b981' : '#ef4444';
+    const arrowGlow = dir === 'BUY' ? 'rgba(16,185,129,0.8)' : 'rgba(239,68,68,0.8)';
+    
+    // Entry Arrow
+    const arrow = document.getElementById('entryArrow');
+    document.getElementById('entryArrowHead');
+    document.getElementById('entryArrowBody');
+    
+    arrow.style.setProperty('--arrow-color', arrowColor);
+    arrow.style.setProperty('--arrow-glow', arrowGlow);
+    arrow.style.display = 'block';
+    document.getElementById('arrowDir').textContent = dir;
+    document.getElementById('arrowPrice').textContent = '$' + entry;
+    document.getElementById('arrowDir').style.color = arrowColor;
+    
+    const entryPct = ((chartPriceHigh - entry) / range) * 100;
+    arrow.style.top = Math.min(90, Math.max(5, entryPct)) + '%';
+    arrow.style.left = '30px';
+    
+    // SL Line
+    if (sl > 0) {
+        const slPct = ((chartPriceHigh - sl) / range) * 100;
+        document.getElementById('slLinePro').style.display = 'block';
+        document.getElementById('slLinePro').style.top = Math.min(95, Math.max(2, slPct)) + '%';
+        document.getElementById('slPrice').textContent = '$' + sl;
+    }
+    
+    // TP Line
+    if (tp > 0) {
+        const tpPct = ((chartPriceHigh - tp) / range) * 100;
+        document.getElementById('tpLinePro').style.display = 'block';
+        document.getElementById('tpLinePro').style.top = Math.min(95, Math.max(2, tpPct)) + '%';
+        document.getElementById('tpPrice').textContent = '$' + tp;
+    }
+    
+    // TT Line
+    if (tt > 0) {
+        const ttPct = ((chartPriceHigh - tt) / range) * 100;
+        document.getElementById('ttLinePro').style.display = 'block';
+        document.getElementById('ttLinePro').style.top = Math.min(95, Math.max(2, ttPct)) + '%';
+        document.getElementById('ttPrice').textContent = '$' + tt;
+    }
+    
+    // P/L Zone
+    if (dir === 'BUY') {
+        document.getElementById('profitZone').style.display = 'block';
+        document.getElementById('profitZone').style.top = '0';
+        document.getElementById('profitZone').style.bottom = (100 - entryPct) + '%';
+        document.getElementById('lossZone').style.display = 'block';
+        document.getElementById('lossZone').style.top = entryPct + '%';
+        document.getElementById('lossZone').style.bottom = '0';
+    } else {
+        document.getElementById('lossZone').style.display = 'block';
+        document.getElementById('lossZone').style.top = '0';
+        document.getElementById('lossZone').style.bottom = (100 - entryPct) + '%';
+        document.getElementById('profitZone').style.display = 'block';
+        document.getElementById('profitZone').style.top = entryPct + '%';
+        document.getElementById('profitZone').style.bottom = '0';
+    }
+}
+
+function updateCountdownOverlay() {
+    const n = new Date();
+    const m = n.getMinutes(), s = n.getSeconds();
+    const cc = Math.floor(m / 15) * 15;
+    const nc = (cc + 15) % 60;
+    let mtc = nc - m;
+    if (mtc <= 0) mtc += 15;
+    const ts = mtc * 60 - s;
+    
+    const overlay = document.getElementById('countdownOverlay');
+    const timer = document.getElementById('countdownTimer');
+    
+    if (ts <= 60 && ts > 0) {
+        overlay.style.display = 'block';
+        const mm = Math.floor(ts / 60);
+        const ss = ts % 60;
+        timer.textContent = String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
+    } else {
+        overlay.style.display = 'none';
+    }
+}
+
+window.addEventListener('resize', updateChartDimensions);
 
 // ==========================================
 // INIT
@@ -847,6 +1076,9 @@ function init(){
     setInterval(updateStreak,5000);
     setInterval(updateGhostAndRankings,10000);
     setInterval(simulateComment,15000); // ← TAMBAHKAN (simulasi komentar tiap 15 detik)
+    setInterval(updateCountdownOverlay, 1000);
+    updateChartDimensions();
+    setInterval(updateChartDimensions, 3000);
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
