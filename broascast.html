@@ -64,6 +64,16 @@
         .hp-critical{animation:hpPulse 0.5s ease-in-out infinite}
         .stadium-cheer{animation:stadiumCheer 0.2s ease-in-out}
         @keyframes flashGreen{0%{background:rgba(16,185,129,0.3)}100%{background:transparent}}
+        @keyframes oracleReveal{0%{filter:blur(15px);opacity:0;transform:scale(0.9)}100%{filter:blur(0);opacity:1;transform:scale(1)}}
+        @keyframes oracleGlow{0%,100%{box-shadow:0 0 20px rgba(168,85,247,0.4)}50%{box-shadow:0 0 50px rgba(168,85,247,0.9),0 0 80px rgba(245,158,11,0.5)}}
+        @keyframes oracleBorder{0%{border-color:rgba(168,85,247,0.3)}50%{border-color:rgba(245,158,11,0.8)}100%{border-color:rgba(168,85,247,0.3)}}
+        @keyframes vignetteIn{0%{opacity:0}100%{opacity:1}}
+        @keyframes sparkle{0%,100%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1)}}
+        @keyframes rainbowSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+        @keyframes ttsBurst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+        @keyframes fadeIn{0%{opacity:0}100%{opacity:1}}
+        @keyframes shimmerText{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        .shimmer-text{background:linear-gradient(90deg,#f59e0b,#a855f7,#f59e0b);background-size:200% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmerText 2s linear infinite}
     </style>
 </head>
 <body class="bg-surface-950 text-white font-sans">
@@ -375,7 +385,7 @@
     <!-- 💬 LIVE CHAT -->
     <div class="glass-light" style="margin:8px;padding:10px;border-radius:12px;display:flex;flex-direction:column">
         <div style="font-size:10px;font-weight:700;margin-bottom:6px">💬 LIVE CHAT</div>
-        <div id="liveChat" style="font-size:10px;color:#6b7280;line-height:1.6;max-height:100px;overflow-y:auto;margin-bottom:6px">
+        <div id="liveChat" style="font-size:11px;color:#d1d5db;line-height:1.6;max-height:180px;overflow-y:auto;margin-bottom:8px;padding:4px;background:rgba(0,0,0,0.2);border-radius:8px;position:relative">
             <div>Waiting for comments...</div>
         </div>
         <div style="display:flex;gap:6px">
@@ -436,33 +446,39 @@ function initChart(){
 }
 
 // ==========================================
-// 🔥 TTS + AI — DUAL SYSTEM (FAST + SMART)
+//  TTS + AI + LIVE CHAT � CINEMATIC EXPERIENCE v5.0
 // ==========================================
 let ttsQueue = [];
 let ttsIsSpeaking = false;
 let aiCommentPool = [];
 let aiLastReplyTime = 0;
 let aiIsActive = true;
-let lastSpokeComment = '';  // Hindari baca komentar yang sama 2x
+let aiIsProcessing = false;
+let lastSpokeComment = '';
+let currentlyReadingBubble = null;
+const AI_MAX_AGE = 15000;
+const answerCache = new Map();
+const userColors = {};
+const userAvatars = {};
+const userMsgCount = {};
+const chatSpeed = [];
+let rapidFireMode = false;
 
 // ==========================================
-// 🎤 TTS — BACA SEMUA KOMENTAR (INSTANT)
+//  TTS � BACA SEMUA KOMENTAR (INSTANT)
 // ==========================================
 function speak(text) {
     if (!ttsEnabled) return;
     if (!text || text.trim().length < 2) return;
-    if (text === lastSpokeComment) return;  // Skip duplikat
+    if (text === lastSpokeComment) return;
     
     lastSpokeComment = text;
-    
-    // 🔥 Cancel & langsung speak
     window.speechSynthesis.cancel();
-    ttsQueue = [];
     
     try {
         const u = new SpeechSynthesisUtterance(text);
         u.lang = 'id-ID';
-        u.rate = 1.15;
+        u.rate = 1.3;
         u.pitch = 1.0;
         u.volume = 0.85;
         
@@ -485,7 +501,7 @@ function preloadVoices() {
     const voices = window.speechSynthesis.getVoices();
     if (voices.length === 0) {
         window.speechSynthesis.onvoiceschanged = () => {
-            console.log('✅ Voices loaded:', window.speechSynthesis.getVoices().length);
+            console.log(' Voices loaded:', window.speechSynthesis.getVoices().length);
         };
     }
 }
@@ -501,121 +517,99 @@ function toggleTTS() {
 }
 
 // ==========================================
-// 💬 KOMENTAR BARU → LANGSUNG BACA + MASUK POOL
+//  HIGHLIGHT KOMENTAR SAAT DIBACA TTS
 // ==========================================
-function onNewComment(username, comment) {
-    // 🔥 1. Langsung baca komentarnya (tanpa nunggu AI)
-    const shortText = username + ' bilang: ' + comment.substring(0, 80);
+function highlightCommentForTTS(bubbleElement, username) {
+    if (currentlyReadingBubble) {
+        currentlyReadingBubble.style.transform = 'scale(1)';
+        currentlyReadingBubble.style.zIndex = '1';
+        currentlyReadingBubble.style.boxShadow = 'none';
+        currentlyReadingBubble.style.border = currentlyReadingBubble.dataset.originalBorder || '';
+        currentlyReadingBubble.querySelector('.tts-badge')?.remove();
+        currentlyReadingBubble.querySelector('.rainbow-border')?.remove();
+    }
     
-    // Delay kecil biar ga numpuk
-    const delay = ttsIsSpeaking ? 2000 : 300;
+    currentlyReadingBubble = bubbleElement;
+    if (!bubbleElement) return;
+    
+    bubbleElement.dataset.originalBorder = bubbleElement.style.borderLeft || '';
+    bubbleElement.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    bubbleElement.style.transform = 'scale(1.05)';
+    bubbleElement.style.zIndex = '100';
+    bubbleElement.style.boxShadow = '0 0 30px rgba(245,158,11,0.6), 0 0 60px rgba(245,158,11,0.3)';
+    
+    const rainbow = document.createElement('div');
+    rainbow.className = 'rainbow-border';
+    rainbow.style.cssText = 'position:absolute;inset:-3px;border-radius:14px;background:conic-gradient(#f59e0b,#10b981,#3b82f6,#a855f7,#ec4899,#ef4444,#f59e0b);animation:rainbowSpin 1.5s linear infinite;z-index:-1;opacity:0.8;';
+    bubbleElement.style.position = 'relative';
+    bubbleElement.appendChild(rainbow);
+    
+    const badge = document.createElement('div');
+    badge.className = 'tts-badge';
+    badge.style.cssText = 'position:absolute;top:-14px;right:10px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;font-size:8px;font-weight:900;padding:3px 8px;border-radius:6px;z-index:101;animation:bounceIn 0.4s ease-out;letter-spacing:1px;';
+    badge.textContent = ' DIBACAKAN';
+    bubbleElement.appendChild(badge);
+    
+    spawnTTSBurst(bubbleElement);
+    playSound('horn');
     
     setTimeout(() => {
-        speak(shortText);
+        if (currentlyReadingBubble === bubbleElement) {
+            bubbleElement.style.transform = 'scale(1)';
+            bubbleElement.style.zIndex = '1';
+            bubbleElement.style.boxShadow = 'none';
+            bubbleElement.querySelector('.tts-badge')?.remove();
+            bubbleElement.querySelector('.rainbow-border')?.remove();
+            currentlyReadingBubble = null;
+        }
+    }, 2500);
+}
+
+function spawnTTSBurst(bubbleElement) {
+    const rect = bubbleElement.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const colors = ['#f59e0b','#10b981','#f97316','#a855f7','#ec4899','#3b82f6'];
+    
+    for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        const angle = (Math.PI * 2 / 12) * i;
+        const distance = 40 + Math.random() * 60;
+        p.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;width:4px;height:4px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:50%;pointer-events:none;z-index:102;animation:ttsBurst ${0.6+Math.random()*0.5}s ease-out forwards;`;
+        p.style.setProperty('--dx', Math.cos(angle) * distance + 'px');
+        p.style.setProperty('--dy', Math.sin(angle) * distance + 'px');
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1200);
+    }
+}
+
+// ==========================================
+//  KOMENTAR BARU  LANGSUNG BACA + POOL AI
+// ==========================================
+function onNewComment(username, comment) {
+    const shortText = comment.length > 60 ? comment.substring(0, 57) + '...' : comment;
+    const ttsText = username + ' bilang: ' + shortText;
+    const delay = ttsIsSpeaking ? 1500 : 200;
+    
+    setTimeout(() => {
+        const chatContainer = document.getElementById('liveChat');
+        const lastBubble = chatContainer.lastElementChild;
+        if (lastBubble && !lastBubble.classList.contains('ai-bubble')) {
+            highlightCommentForTTS(lastBubble, username);
+        }
+        speak(ttsText);
     }, delay);
     
-    // 🔥 2. Masukkan ke pool untuk AI (kalau komentar berupa pertanyaan)
-    if (isQuestion(comment) && comment.length > 10) {
+    if (comment.length > 8 && (comment.includes('?') || comment.length > 20)) {
         aiCommentPool.push({ username, comment, time: Date.now() });
         if (aiCommentPool.length > 15) aiCommentPool.shift();
         updatePoolCounter();
     }
     
-    // 🔥 3. Trigger AI picker (jeda 4 detik dari last reply)
     const now = Date.now();
-    if (now - aiLastReplyTime > 4000 && aiCommentPool.length > 0) {
+    if (!aiIsProcessing && aiCommentPool.length > 0 && (now - aiLastReplyTime > 1500)) {
         aiLastReplyTime = now;
-        setTimeout(() => aiSmartReply(), 500);
-    }
-}
-
-// ==========================================
-// 🧠 DETEKSI PERTANYAAN (BUTUH AI JAWAB)
-// ==========================================
-function isQuestion(comment) {
-    const questionWords = ['?', 'gimana', 'kapan', 'kenapa', 'apa', 'bagaimana', 
-                           'dimana', 'siapa', 'kok', 'dong', 'bang', 'kak', 'bro',
-                           'naik', 'turun', 'buy', 'sell', 'hold', 'close', 'entry'];
-    const lower = comment.toLowerCase();
-    return questionWords.some(w => lower.includes(w));
-}
-
-// ==========================================
-// 🤖 AI JAWAB — CEPAT (MAX 3 DETIK)
-// ==========================================
-async function aiSmartReply() {
-    if (!aiIsActive || aiCommentPool.length === 0) return;
-    
-    // 🔥 Ambil 1 dari pool
-    const picked = aiCommentPool.shift();
-    updatePoolCounter();
-    
-    const { username, comment } = picked;
-    
-    try {
-        // 🔥 Ambil data real-time CEPAT (pakai once)
-        const [trailSnap, signalSnap, voteSnap] = await Promise.all([
-            db.ref('trailing/' + CONFIG.adminLicense + '/XAU_USD').once('value'),
-            db.ref('signals/' + CONFIG.adminLicense + '/XAU_USD/1').once('value'),
-            db.ref('live_votes/current').once('value')
-        ]);
-        
-        const trailData = trailSnap.val() || {};
-        const signalData = signalSnap.val() || {};
-        const voteData = voteSnap.val() || {};
-        
-        const positions = trailData.positions || [];
-        const totalPL = positions.reduce((s, p) => s + (p.profit || 0), 0).toFixed(0);
-        const currentSignal = signalData.dir || 'tidak ada';
-        const buyVotes = voteData.buy || 0;
-        const sellVotes = voteData.sell || 0;
-        
-        const systemPrompt = `Kamu host trading LIVE. Data real-time:
-- Profit: $${totalPL} | Sinyal: ${currentSignal}
-- Battle: ${buyVotes} BUY vs ${sellVotes} SELL
-Jawab SINGKAT 10-15 kata. Sarkastik tapi helpful. JANGAN suruh buy/sell.`;
-        
-        const response = await fetch(CONFIG.aiEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + CONFIG.aiAPIKey
-            },
-            body: JSON.stringify({
-                model: CONFIG.aiModel,
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: `@${username}: "${comment}". Jawab singkat.` }
-                ],
-                max_tokens: 40,
-                temperature: 0.8
-            })
-        });
-        
-        const data = await response.json();
-        let reply = data.choices[0].message.content;
-        if (reply.length > 100) reply = reply.substring(0, 97) + '...';
-        
-        // 🔥 Tampilkan & bacakan
-        addChatMessage('🤖 AI Host', reply, 'ai');
-        speak(reply);
-        
-        db.ref('broadcast_chat').push({
-            username: '🤖 AI Host',
-            comment: reply,
-            replyTo: '@' + username,
-            timestamp: Date.now()
-        });
-        
-        aiLastReplyTime = Date.now();
-        
-    } catch (e) {
-        console.error('AI reply error:', e);
-    }
-    
-    // 🔥 Lanjut ke pertanyaan berikutnya setelah jeda
-    if (aiCommentPool.length > 0) {
-        setTimeout(() => aiSmartReply(), 3000 + Math.random() * 4000);
+        setTimeout(() => aiSmartReply(), 200);
     }
 }
 
@@ -628,35 +622,269 @@ function updatePoolCounter() {
 }
 
 // ==========================================
-// 💬 ADD CHAT + AUTO-TTS + AUTO-POOL
+//  AI SMART REPLY � CACHE + INSTANT
+// ==========================================
+async function aiSmartReply() {
+    if (!aiIsActive || aiCommentPool.length === 0) return;
+    if (aiIsProcessing) return;
+    
+    aiIsProcessing = true;
+    
+    const now = Date.now();
+    aiCommentPool = aiCommentPool.filter(c => (now - c.time) < AI_MAX_AGE);
+    updatePoolCounter();
+    if (aiCommentPool.length === 0) { aiIsProcessing = false; return; }
+    
+    const picked = aiCommentPool.pop();
+    updatePoolCounter();
+    const { username, comment } = picked;
+    
+    // Cache check
+    const cacheKey = comment.toLowerCase().replace(/[^a-z0-9?]/g, '').substring(0, 25);
+    let reply = answerCache.get(cacheKey);
+    
+    if (!reply) {
+        //  ORACLE CINEMATIC
+        await oracleThinking(username, comment);
+        
+        reply = await Promise.race([
+            fetchAIReply(comment),
+            new Promise(resolve => setTimeout(() => resolve('Pertanyaan menarik! Coba tanya lagi ya.'), 2000))
+        ]);
+        answerCache.set(cacheKey, reply);
+        if (answerCache.size > 200) answerCache.delete(answerCache.keys().next().value);
+        
+        await oracleAnswer(username, comment, reply);
+    } else {
+        // Cache hit � tetap cinematic tapi lebih cepat
+        await oracleQuickAnswer(username, comment, reply);
+    }
+    
+    // Simpan
+    db.ref('broadcast_chat').push({
+        username: ' AI Host', comment: reply, replyTo: '@' + username, timestamp: Date.now()
+    });
+    
+    aiIsProcessing = false;
+    aiLastReplyTime = now;
+    
+    if (aiCommentPool.length > 0) {
+        setTimeout(() => aiSmartReply(), 500);
+    }
+}
+
+// ==========================================
+//  ORACLE CINEMATIC SYSTEM
+// ==========================================
+async function oracleThinking(username, comment) {
+    const overlay = document.createElement('div');
+    overlay.className = 'oracle-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,0.85) 100%);z-index:200;pointer-events:none;animation:vignetteIn 0.5s ease-out;';
+    document.body.appendChild(overlay);
+    
+    const text = document.createElement('div');
+    text.style.cssText = 'position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);z-index:201;text-align:center;pointer-events:none;animation:floatUp 0.5s ease-out;';
+    text.innerHTML = `
+        <div style="font-size:14px;color:#a855f7;letter-spacing:4px;margin-bottom:12px"> THE ORACLE IS THINKING</div>
+        <div style="display:flex;gap:6px;justify-content:center">
+            <span style="width:8px;height:8px;background:#a855f7;border-radius:50%;animation:sparkle 1s ease-in-out infinite"></span>
+            <span style="width:8px;height:8px;background:#a855f7;border-radius:50%;animation:sparkle 1s ease-in-out 0.2s infinite"></span>
+            <span style="width:8px;height:8px;background:#a855f7;border-radius:50%;animation:sparkle 1s ease-in-out 0.4s infinite"></span>
+        </div>
+    `;
+    document.body.appendChild(text);
+    
+    playSound('horn');
+    await sleep(1200);
+    
+    text.innerHTML = `
+        <div style="font-size:12px;color:#f59e0b;letter-spacing:2px;margin-bottom:12px"> MENJAWAB PERTANYAAN</div>
+        <div style="font-size:16px;color:white;font-weight:700;margin-bottom:6px">
+            <span style="font-size:18px">${getUserAvatar(username)}</span> 
+            <span class="shimmer-text">@${username}</span>
+        </div>
+        <div style="font-size:11px;color:#9ca3af;max-width:300px;margin:0 auto;line-height:1.5">"${comment.substring(0, 80)}"</div>
+    `;
+    
+    overlay._text = text;
+    overlay._overlay = overlay;
+    window._oracleOverlay = overlay;
+    
+    await sleep(1500);
+}
+
+async function oracleAnswer(username, comment, reply) {
+    const overlay = window._oracleOverlay;
+    const text = overlay?._text;
+    
+    if (text) {
+        text.innerHTML = `
+            <div style="font-size:12px;color:#f59e0b;letter-spacing:2px;margin-bottom:12px"> THE ORACLE ANSWERS</div>
+            <div style="font-size:16px;color:white;font-weight:600;max-width:350px;margin:0 auto;line-height:1.6;padding:16px 20px;background:rgba(168,85,247,0.1);border:2px solid rgba(245,158,11,0.4);border-radius:16px;animation:oracleReveal 0.8s ease-out,oracleGlow 2s ease-in-out infinite,oracleBorder 3s ease-in-out infinite">${reply}</div>
+        `;
+    }
+    
+    playSound('victory');
+    spawnOracleParticles();
+    speak(reply);
+    
+    await sleep(3000);
+    
+    if (overlay) {
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.5s';
+    }
+    if (text) {
+        text.style.opacity = '0';
+        text.style.transition = 'opacity 0.5s';
+    }
+    
+    await sleep(500);
+    overlay?.remove();
+    text?.remove();
+    window._oracleOverlay = null;
+}
+
+async function oracleQuickAnswer(username, comment, reply) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;pointer-events:none;animation:vignetteIn 0.3s ease-out;';
+    document.body.appendChild(overlay);
+    
+    const text = document.createElement('div');
+    text.style.cssText = 'position:fixed;top:45%;left:50%;transform:translate(-50%,-50%);z-index:201;text-align:center;pointer-events:none;animation:floatUp 0.3s ease-out;';
+    text.innerHTML = `
+        <div style="font-size:12px;color:#f59e0b;letter-spacing:2px;margin-bottom:10px"> @${username}</div>
+        <div style="font-size:15px;color:white;font-weight:600;max-width:300px;margin:0 auto;line-height:1.5;padding:12px 16px;background:rgba(168,85,247,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:12px;animation:oracleReveal 0.5s ease-out">${reply}</div>
+    `;
+    document.body.appendChild(text);
+    
+    speak(reply);
+    await sleep(2000);
+    
+    overlay.style.opacity = '0'; text.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.3s'; text.style.transition = 'opacity 0.3s';
+    await sleep(300);
+    overlay.remove(); text.remove();
+}
+
+function spawnOracleParticles() {
+    const colors = ['#a855f7','#f59e0b','#c084fc','#fbbf24'];
+    for (let i = 0; i < 20; i++) {
+        const p = document.createElement('div');
+        p.style.cssText = `position:fixed;left:50%;top:50%;width:${3+Math.random()*6}px;height:${3+Math.random()*6}px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:50%;pointer-events:none;z-index:202;animation:ttsBurst ${1+Math.random()*1.5}s ease-out forwards;`;
+        p.style.setProperty('--dx', (Math.random()-0.5)*300+'px');
+        p.style.setProperty('--dy', (Math.random()-0.5)*300+'px');
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 2500);
+    }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ==========================================
+//  FETCH AI REPLY (MINIMAL API CALL)
+// ==========================================
+async function fetchAIReply(comment) {
+    const response = await fetch(CONFIG.aiEndpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + CONFIG.aiAPIKey
+        },
+        body: JSON.stringify({
+            model: CONFIG.aiModel,
+            messages: [
+                { role: 'system', content: 'Kamu host trading LIVE. Jawab SINGKAT 10-15 kata. Santai, friendly, kadang lucu.' },
+                { role: 'user', content: comment }
+            ],
+            max_tokens: 30,
+            temperature: 0.7
+        })
+    });
+    const data = await response.json();
+    return data.choices[0].message.content.substring(0, 100);
+}
+
+// ==========================================
+//  USER HELPERS (Avatar + Color + Level)
+// ==========================================
+function getUserAvatar(username) {
+    if (!userAvatars[username]) {
+        const avatars = ['','','','','','','','','','','','','','','','','','','',''];
+        userAvatars[username] = avatars[Math.floor(Math.random() * avatars.length)];
+    }
+    return userAvatars[username];
+}
+
+function getUserColor(username) {
+    if (!userColors[username]) {
+        const colors = ['#f59e0b','#10b981','#3b82f6','#a855f7','#ec4899','#f97316','#06b6d4','#84cc16','#ef4444','#8b5cf6'];
+        userColors[username] = colors[Math.floor(Math.random() * colors.length)];
+    }
+    return userColors[username];
+}
+
+function getUserLevel(username) {
+    const count = userMsgCount[username] || 1;
+    if (count >= 50) return { name:'LEGEND', color:'#f59e0b', icon:'' };
+    if (count >= 20) return { name:'VIP', color:'#a855f7', icon:'' };
+    if (count >= 5)  return { name:'REGULAR', color:'#3b82f6', icon:'' };
+    return { name:'NEW', color:'#6b7280', icon:'' };
+}
+
+// ==========================================
+//  ADD CHAT � CINEMATIC BUBBLE
 // ==========================================
 function addChatMessage(username, comment, type) {
     const chatContainer = document.getElementById('liveChat');
     const bubble = document.createElement('div');
-    bubble.style.cssText = 'padding:4px 8px;margin:2px 0;border-radius:8px;font-size:10px;animation:slideUp 0.3s ease-out';
+    
+    if (type === 'user') {
+        userMsgCount[username] = (userMsgCount[username] || 0) + 1;
+    }
+    
+    const userColor = getUserColor(username);
+    const level = getUserLevel(username);
+    const avatar = getUserAvatar(username);
+    
+    let badge = '';
+    if (type === 'admin') badge = '<span style="background:linear-gradient(135deg,#10b981,#34d399);color:#000;font-size:7px;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:700;animation:pulse-gold 2s infinite"> LIVE</span>';
+    else if (type === 'ai') badge = '<span style="background:#f59e0b;color:#000;font-size:7px;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:700"> AI</span>';
+    else badge = `<span style="font-size:8px;background:${level.color}20;color:${level.color};padding:1px 5px;border-radius:3px;margin-left:3px;border:1px solid ${level.color}40">${level.icon} ${level.name}</span>`;
+    
+    bubble.style.cssText = 'padding:6px 10px;margin:4px 0;border-radius:10px;font-size:11px;line-height:1.5;animation:slideUp 0.3s ease-out;transition:all 0.3s;position:relative;';
     
     if (type === 'ai') {
-        bubble.style.background = 'rgba(245,158,11,0.15)';
-        bubble.style.borderLeft = '2px solid #f59e0b';
-        bubble.innerHTML = '<b style="color:#f59e0b">🤖 AI</b>: ' + comment;
+        bubble.style.background = 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.03))';
+        bubble.style.borderLeft = '3px solid #f59e0b';
+        bubble.innerHTML = '<span style="font-size:14px"></span> <b style="color:#f59e0b">AI</b>' + badge + ': <span style="color:#e2e8f0">' + comment + '</span>';
+        bubble.classList.add('ai-bubble');
     } else if (type === 'admin') {
-        bubble.style.background = 'rgba(16,185,129,0.15)';
-        bubble.style.borderLeft = '2px solid #10b981';
-        bubble.innerHTML = '<b style="color:#10b981">📢 Host</b>: ' + comment;
+        bubble.style.background = 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.03))';
+        bubble.style.borderLeft = '3px solid #10b981';
+        bubble.style.boxShadow = '0 0 15px rgba(16,185,129,0.15)';
+        bubble.innerHTML = '<span style="font-size:14px"></span> <b style="color:#10b981">Host</b>' + badge + ': <span style="color:#d1fae5">' + comment + '</span>';
     } else {
-        bubble.style.background = 'rgba(255,255,255,0.03)';
-        bubble.innerHTML = '<b>@' + username + '</b>: ' + comment;
+        bubble.style.background = 'rgba(255,255,255,0.02)';
+        bubble.style.borderLeft = '3px solid ' + userColor;
+        bubble.innerHTML = '<span style="font-size:14px">' + avatar + '</span> <b style="color:' + userColor + '">@' + username + '</b>' + badge + ': <span style="color:#d1d5db">' + comment + '</span>';
         
-        // 🔥 KOMENTAR USER → LANGSUNG BACA + MASUK POOL
-        if (type === 'user' && username !== '🤖 AI Host') {
+        if (userMsgCount[username] <= 1) {
+            bubble.style.boxShadow = '0 0 20px ' + userColor + '40';
+            playSound('horn');
+        } else {
+            playSound('coin');
+        }
+        
+        if (username !== ' AI Host') {
             onNewComment(username, comment);
         }
     }
     
     chatContainer.appendChild(bubble);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
     
-    while (chatContainer.children.length > 50) {
+    while (chatContainer.children.length > 200) {
         chatContainer.removeChild(chatContainer.firstChild);
     }
 }
@@ -667,7 +895,7 @@ function addChatMessage(username, comment, type) {
 function listenFirebaseChat() {
     db.ref('broadcast_chat').limitToLast(20).on('child_added', snap => {
         const d = snap.val();
-        if (d.username !== '🤖 AI Host' && d.username !== '📢 Host') {
+        if (d.username !== ' AI Host' && d.username !== ' Host') {
             addChatMessage(d.username, d.comment, 'user');
         }
     });
@@ -1135,10 +1363,18 @@ setInterval(updateStadium, 10000);
 setInterval(updateSeasonStats, 60000);
 
 // ==========================================
+let lastSpawnCandle = 0;
+
 function checkSignals() {
-    db.ref('signals/' + CONFIG.adminLicense + '/XAU_USD/1').on('value', snap => {
+    const currentCandle = Math.floor(Date.now() / 900000);
+    if (currentCandle === lastSpawnCandle) return;
+    
+    db.ref('signals/' + CONFIG.adminLicense + '/XAU_USD/1').once('value', snap => {
         const s = snap.val();
         if (s && s.dir) {
+            lastSpawnCandle = currentCandle;
+            spawnGladiatorFromSignal(s);
+            
             document.getElementById('signalOverlay').style.display = 'block';
             document.getElementById('signalIcon').textContent = s.dir === 'BUY' ? '' : '';
             document.getElementById('signalDir').textContent = s.dir;
@@ -1146,14 +1382,9 @@ function checkSignals() {
             document.getElementById('signalSL').textContent = '$' + s.sl;
             document.getElementById('signalTT').textContent = '$' + (s.trailStart || 0);
             
-            drawEntryOnChart(s);
             speak('Sinyal ' + s.dir + ' di $' + s.entry);
-            triggerEntryEvent(s);
-            spawnGladiatorFromSignal(s);
             
-            setTimeout(() => {
-                document.getElementById('signalOverlay').style.display = 'none';
-            }, 8000);
+            setTimeout(() => { document.getElementById('signalOverlay').style.display = 'none'; }, 8000);
         }
     });
 }
