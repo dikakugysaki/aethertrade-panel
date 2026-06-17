@@ -424,6 +424,15 @@ let adminBuyVotes=0,adminSellVotes=0;
 let ttsEnabled=true;
 let currentScene='normal';
 let streakCount=0,lootCD=1800;
+// ==========================================
+// 🔥 CACHE SYSTEM — Data tetap tampil walau Firebase lambat
+// ==========================================
+let positionCache = {
+    xau: { positions: [], totalTrails: 0, activeTrails: 0, totalProfitLocked: 0, updated: 0 },
+    btc: { positions: [], totalTrails: 0, activeTrails: 0, totalProfitLocked: 0, updated: 0 }
+};
+let cacheLastValid = { xau: 0, btc: 0 };
+let connectionStatus = 'online'; // online | slow | offline
 
 // ==========================================
 // TRADINGVIEW CHART
@@ -646,63 +655,6 @@ function killGladiator(gladId, reason, finalProfit) {
     renderHallOfFame();
     updateStadium();
     updateSeasonStats();
-}
-
-// ==========================================
-// 📊 UPDATE HARGA GLADIATOR (dari trailing)
-// ==========================================
-let gladiatorPriceInterval = null;
-
-function updateGladiatorPrices() {
-    if (gladiatorPriceInterval) clearInterval(gladiatorPriceInterval);
-    gladiatorPriceInterval = setInterval(() => {
-        db.ref('trailing/' + CONFIG.adminLicense + '/XAU_USD').once('value', snap => {
-            const data = snap.val() || {};
-            const positions = data.positions || [];
-            
-            positions.forEach(pos => {
-                const glad = gladiators.find(g => 
-                    g.status !== 'dead' && 
-                    Math.abs(g.entry - pos.entry) < 1 && 
-                    g.dir === pos.dir
-                );
-                
-                if (glad && pos.active) {
-                    glad.currentPrice = pos.currentPrice || glad.currentPrice;
-                    glad.profit = pos.profit || 0;
-                    
-                    const distToSL = Math.abs(glad.currentPrice - glad.sl);
-                    const totalDist = Math.abs(glad.entry - glad.sl);
-                    glad.hp = Math.max(0, Math.min(100, (distToSL / totalDist) * 100));
-                    
-                    if (glad.profit > 0 && glad.hp > 50) glad.status = 'winning';
-                    else if (glad.hp < 20) glad.status = 'dying';
-                    
-                    if (glad.hp <= 5 && glad.status !== 'dead') {
-                        killGladiator(glad.id, 'SL tersentuh', glad.profit);
-                    }
-                }
-                
-                if (glad && !pos.active && glad.status !== 'dead') {
-                    killGladiator(glad.id, 'Posisi ditutup', pos.profit || 0);
-                }
-            });
-            
-            gladiators.forEach(g => {
-                if (g.status === 'alive' || g.status === 'winning' || g.status === 'dying') {
-                    const exists = positions.find(p => 
-                        Math.abs(p.entry - g.entry) < 1 && p.dir === g.dir
-                    );
-                    if (!exists && Date.now() - g.spawnedAt > 60000) {
-                        killGladiator(g.id, 'Menghilang dari arena', g.profit);
-                    }
-                }
-            });
-            
-            renderGladiatorCards();
-            updateStadium();
-        });
-    }, 5000);
 }
 
 // ==========================================
@@ -941,7 +893,6 @@ function resetColosseum() {
 // ==========================================
 // 🔄 AUTO-UPDATE LOOP
 // ==========================================
-setInterval(updateGladiatorPrices, 5000);
 setInterval(updateStadium, 10000);
 setInterval(updateSeasonStats, 60000);
 
@@ -993,15 +944,76 @@ function spawnFireParticles(){
 let lastStreakSpoken = 0;
 let lastCrashSpoken = 0;
 
+// ==========================================
+// 🔥 UPDATE ALL STATS — REAL-TIME + CACHE + FALLBACK
+// ==========================================
 function updateAllStats() {
-    db.ref('trailing/' + CONFIG.adminLicense + '/XAU_USD').on('value', snap => {
-        const d = snap.val() || {};
-        const pos = d.positions || [];
-        const wins = pos.filter(p => (p.profit || 0) > 0).length;
-        const pl = pos.reduce((s, p) => s + (p.profit || 0), 0);
-        const wr = pos.length > 0 ? Math.round((wins / pos.length) * 100) : 0;
+    
+    // 🔥 LISTENER GABUNGAN (1 listener untuk semua trailing)
+    db.ref('trailing/' + CONFIG.adminLicense).on('value', snap => {
+        const allData = snap.val() || {};
+        const now = Date.now();
         
-        // 🔥 STREAK
+        // === XAU/USD ===
+        const xauData = allData['XAU_USD'] || {};
+        if (xauData.positions && xauData.positions.length > 0) {
+            positionCache.xau = {
+                positions: xauData.positions,
+                totalTrails: xauData.totalTrails || 0,
+                activeTrails: xauData.activeTrails || 0,
+                totalProfitLocked: xauData.totalProfitLocked || 0,
+                updated: now
+            };
+            cacheLastValid.xau = now;
+        }
+        
+        // === BTC/USD ===
+        const btcData = allData['BTC_USD'] || {};
+        if (btcData.positions && btcData.positions.length > 0) {
+            positionCache.btc = {
+                positions: btcData.positions,
+                totalTrails: btcData.totalTrails || 0,
+                activeTrails: btcData.activeTrails || 0,
+                totalProfitLocked: btcData.totalProfitLocked || 0,
+                updated: now
+            };
+            cacheLastValid.btc = now;
+        }
+        
+        // === RENDER DATA (pakai cache kalau data kosong) ===
+        const xauRender = (xauData.positions && xauData.positions.length > 0) 
+            ? xauData 
+            : (positionCache.xau.positions.length > 0 ? positionCache.xau : null);
+        
+        const btcRender = (btcData.positions && btcData.positions.length > 0) 
+            ? btcData 
+            : (positionCache.btc.positions.length > 0 ? positionCache.btc : null);
+        
+        // Update header stats
+        const allPositions = [
+            ...(xauRender?.positions || []), 
+            ...(btcRender?.positions || [])
+        ];
+        
+        const wins = allPositions.filter(p => (p.profit || 0) > 0).length;
+        const pl = allPositions.reduce((s, p) => s + (p.profit || 0), 0);
+        const wr = allPositions.length > 0 ? Math.round((wins / allPositions.length) * 100) : 0;
+        
+        document.getElementById('btmPositions').textContent = allPositions.length;
+        document.getElementById('btmPL').textContent = (pl >= 0 ? '+' : '') + '$' + pl.toFixed(2);
+        document.getElementById('btmPL').className = pl >= 0 ? 'text-profit' : 'text-loss';
+        document.getElementById('btmWR').textContent = allPositions.length > 0 ? wr + '%' : '0%';
+        
+        // Update Gladiator Cards (pakai XAU + BTC)
+        const allGladiators = [
+            ...(xauRender?.positions || []).map(p => ({ ...p, pair: 'XAU/USD' })),
+            ...(btcRender?.positions || []).map(p => ({ ...p, pair: 'BTC/USD' }))
+        ];
+        
+        // Sinkronisasi dengan gladiators yang sudah ada
+        syncGladiatorsWithPositions(allGladiators);
+        
+        // Update streak
         streakCount = wins;
         const icons = ['', '🔥', '🔥🔥', '🔥🔥🔥', '🔥🔥🔥🔥', '🔥🔥🔥🔥🔥', '💥💥', '💥💥💥', '🌟'];
         document.getElementById('streakIcon').textContent = icons[Math.min(wins, icons.length - 1)] || '🔥';
@@ -1009,60 +1021,167 @@ function updateAllStats() {
         document.getElementById('streakProgress').style.width = Math.min(wins * 10, 100) + '%';
         document.getElementById('streakMultiplier').textContent = (wins >= 10 ? '5x' : wins >= 7 ? '3x' : wins >= 5 ? '2x' : '1x') + ' MULTIPLIER';
         
-        // 🔥 STREAK TTS — hanya 1x per 5 menit
-        if (wins >= 5 && wins > streakCount - 1 && Date.now() - lastStreakSpoken > 300000) {
-            lastStreakSpoken = Date.now();
-            spawnFireParticles();
-            playTone('triangle', 523, 0.12, 0.25);
-            speak(wins + ' kemenangan berturut-turut!');
-        }
-        
-        // 🔥 GHOST vs YOU
+        // Ghost vs You
         document.getElementById('ghostWR').textContent = wr + '%';
         document.getElementById('ghostPL').textContent = (pl >= 0 ? '+' : '') + '$' + pl.toFixed(0);
         document.getElementById('youWR').textContent = Math.max(0, wr - 7) + '%';
         document.getElementById('youPL').textContent = (pl >= 0 ? '+' : '') + '$' + (pl * 0.8).toFixed(0);
         document.getElementById('ghostComment').textContent = wr >= 70 ? '👻 "Aku terlalu kuat!"' : wr >= 50 ? '👻 "Lumayan profit!"' : '👻 "Sabar, pasar lagi sulit"';
         
-        // 🔥 HEADER STATS
-        document.getElementById('btmPositions').textContent = pos.length;
-        document.getElementById('btmPL').textContent = (pl >= 0 ? '+' : '') + '$' + pl.toFixed(2);
-        document.getElementById('btmPL').className = pl >= 0 ? 'text-profit' : 'text-loss';
-        document.getElementById('btmWR').textContent = pos.length > 0 ? wr + '%' : '0%';
-        
-        // 🔥 CRASH — hanya 1x per 1 menit
-        if (pl < -500 && Date.now() - lastCrashSpoken > 60000) {
-            lastCrashSpoken = Date.now();
-            document.getElementById('crashOverlay').style.display = 'block';
-            document.getElementById('crashAmount').textContent = '-$' + Math.abs(pl).toFixed(0);
-            playTone('sawtooth', 80, 0.3, 0.5);
-            speak('WASPADA! Kerugian mencapai ' + Math.abs(pl).toFixed(0) + ' dollar!');
-            setTimeout(() => { document.getElementById('crashOverlay').style.display = 'none'; }, 5000);
-        }
+        // Connection indicator
+        connectionStatus = 'online';
+        updateConnectionIndicator();
     });
     
-    // 🔥 RANKINGS (listener terpisah karena beda path)
-    db.ref('live_votes/rankings').orderByChild('xp').limitToLast(5).on('value', snap => {
-        const data = snap.val();
-        const c = document.getElementById('apexRankings');
-        if (data) {
-            const entries = Object.entries(data).sort((a, b) => (b[1].xp || 0) - (a[1].xp || 0));
-            const medals = { 0: '🥇', 1: '🥈', 2: '🥉', 3: '4.', 4: '5.' };
-            let h = '';
-            entries.forEach(([k, v], i) => {
-                h += medals[i] + ' ' + (v.username || k) + ' Lv.' + (Math.floor((v.xp || 0) / 100) + 1) + '<br>';
-            });
-            c.innerHTML = h || 'No rankings';
-        }
-    });
-    
-    // 🔥 HARGA FALLBACK (tetap jalan)
+    // 🔥 FALLBACK: Kalau lebih dari 15 detik tidak ada update, tampilkan cache
     setInterval(() => {
-        document.getElementById('headerPrice').textContent = '$4348.18';
-        document.getElementById('headerChange').textContent = '+0.32%';
-        document.getElementById('headerChange').className = 'text-profit';
+        const now = Date.now();
+        
+        // XAU fallback
+        if (now - cacheLastValid.xau > 15000 && positionCache.xau.positions.length > 0) {
+            console.warn('⚠️ XAU Firebase slow, using cache');
+            connectionStatus = 'slow';
+            updateConnectionIndicator();
+        }
+        
+        // BTC fallback
+        if (now - cacheLastValid.btc > 15000 && positionCache.btc.positions.length > 0) {
+            console.warn('⚠️ BTC Firebase slow, using cache');
+            connectionStatus = 'slow';
+            updateConnectionIndicator();
+        }
+        
+        // Kalau lebih dari 60 detik, anggap offline
+        if (now - cacheLastValid.xau > 60000 && now - cacheLastValid.btc > 60000) {
+            connectionStatus = 'offline';
+            updateConnectionIndicator();
+        }
     }, 5000);
+    
+    // 🔥 HEARTBEAT — Cek koneksi Firebase
+    db.ref('.info/connected').on('value', snap => {
+        const connected = snap.val();
+        if (!connected) {
+            connectionStatus = 'offline';
+            updateConnectionIndicator();
+        }
+    });
 }
+
+// ==========================================
+// 🔥 SYNC GLADIATORS WITH POSITIONS
+// ==========================================
+function syncGladiatorsWithPositions(allPositions) {
+    // Hapus gladiators yang sudah tidak ada di posisi
+    gladiators = gladiators.filter(g => {
+        const exists = allPositions.find(p => 
+            Math.abs(p.entry - g.entry) < 1 && p.dir === g.dir
+        );
+        if (!exists && g.status !== 'dead') {
+            // Pindah ke Hall of Fame
+            fallenGladiators.push(g);
+            if (g.profit > 0) seasonStats.wins++;
+            else seasonStats.losses++;
+            seasonStats.profit += g.profit;
+            seasonStats.battles++;
+            return false;
+        }
+        return true;
+    });
+    
+    // Tambah gladiators baru
+    allPositions.forEach(pos => {
+        const exists = gladiators.find(g => 
+            g.status !== 'dead' && 
+            Math.abs(g.entry - pos.entry) < 1 && 
+            g.dir === pos.dir
+        );
+        
+        if (!exists && pos.dir) {
+            // Buat gladiator baru
+            const gladId = 'GLAD-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 4);
+            const names = ['MAXIMUS', 'SPARTACUS', 'TITAN', 'PHANTOM', 'VIPER', 'SHADOW', 'BLADE', 'STORM', 'FROST', 'EMBER'];
+            const name = names[Math.floor(Math.random() * names.length)];
+            
+            const gladiator = {
+                id: gladId,
+                name: name,
+                dir: pos.dir,
+                entry: pos.entry || 0,
+                sl: pos.sl || 0,
+                trailStart: pos.trailStart || 0,
+                currentPrice: pos.currentPrice || pos.entry || 0,
+                profit: pos.profit || 0,
+                hp: 100,
+                maxHp: Math.abs((pos.entry || 0) - (pos.sl || 1)) || 100,
+                status: pos.active ? 'alive' : 'dead',
+                backers: 0,
+                spawnedAt: Date.now(),
+                title: 'ROOKIE',
+                color: pos.dir === 'BUY' ? '#10b981' : '#ef4444',
+                emblem: pos.dir === 'BUY' ? '🐂' : '🐻',
+                weapon: pos.dir === 'BUY' ? '⚔️ LONGSWORD' : '🗡️ DAGGER'
+            };
+            
+            gladiators.push(gladiator);
+            seasonStats.battles++;
+        } else if (exists) {
+            // Update gladiator yang sudah ada
+            exists.currentPrice = pos.currentPrice || exists.currentPrice;
+            exists.profit = pos.profit || 0;
+            exists.sl = pos.sl || exists.sl;
+            exists.trailStart = pos.trailStart || exists.trailStart;
+            
+            const distToSL = Math.abs(exists.currentPrice - exists.sl);
+            const totalDist = Math.abs(exists.entry - exists.sl);
+            exists.hp = Math.max(0, Math.min(100, totalDist > 0 ? (distToSL / totalDist) * 100 : 50));
+            
+            if (pos.active && exists.profit > 0 && exists.hp > 50) exists.status = 'winning';
+            else if (pos.active && exists.hp < 20) exists.status = 'dying';
+            else if (pos.active) exists.status = 'alive';
+            else exists.status = 'dead';
+        }
+    });
+    
+    // Update tampilan
+    renderGladiatorCards();
+    renderHallOfFame();
+    updateStadium();
+    updateSeasonStats();
+}
+
+// ==========================================
+// 🔥 UPDATE CONNECTION INDICATOR
+// ==========================================
+function updateConnectionIndicator() {
+    const el = document.getElementById('connStatus');
+    if (!el) return;
+    
+    if (connectionStatus === 'online') {
+        el.textContent = '🟢 LIVE';
+        el.style.color = '#10b981';
+    } else if (connectionStatus === 'slow') {
+        el.textContent = '🟡 LAMBAT';
+        el.style.color = '#f59e0b';
+    } else {
+        el.textContent = '🔴 OFFLINE';
+        el.style.color = '#ef4444';
+    }
+}
+
+// ==========================================
+// 🔥 CLEANUP CACHE SETIAP 5 MENIT
+// ==========================================
+setInterval(() => {
+    const now = Date.now();
+    // Hapus cache yang lebih dari 5 menit
+    if (now - positionCache.xau.updated > 300000) {
+        positionCache.xau.positions = [];
+    }
+    if (now - positionCache.btc.updated > 300000) {
+        positionCache.btc.positions = [];
+    }
+}, 60000);
 
 // ==========================================
 // 🏎️ PRICE RACE
