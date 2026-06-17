@@ -122,6 +122,7 @@
             <span>⏱ <b class="text-accent-400" id="headerTimer">--:--</b></span>
             <button onclick="toggleTTS()" class="glass" style="padding:4px 10px;border-radius:8px;font-size:10px">🔊</button>
             <button onclick="toggleScene()" class="glass" style="padding:4px 10px;border-radius:8px;font-size:10px">🎬</button>
+            <button onclick="window.location.href='index.html'" class="glass" style="padding:4px 10px;border-radius:8px;font-size:10px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#f59e0b">🏠 Panel</button>
         </div>
     </div>
 
@@ -445,462 +446,48 @@ function initChart(){
     });
 }
 
+// // ==========================================
+// 🧠 AI PERSONALITY — ULTIMATE v6.0
 // ==========================================
-//  TTS + AI + LIVE CHAT � CINEMATIC EXPERIENCE v5.0
-// ==========================================
-let ttsQueue = [];
-let ttsIsSpeaking = false;
-let aiCommentPool = [];
-let aiLastReplyTime = 0;
-let aiIsActive = true;
-let aiIsProcessing = false;
-let lastSpokeComment = '';
-let currentlyReadingBubble = null;
-const AI_MAX_AGE = 15000;
-const answerCache = new Map();
-const userColors = {};
-const userAvatars = {};
-const userMsgCount = {};
-const chatSpeed = [];
-let rapidFireMode = false;
+const AI_PERSONA={name:"AetherTrade AI",tagline:"Robot Trading AI 24 Jam — Profit Sambil Rebahan",features:[{icon:"📡",text:"AI Trading Signals (XAUUSD & BTCUSD)"},{icon:"🤖",text:"Auto Trading EA 24/7 (MT5)"},{icon:"🛡️",text:"Trailing Stop & Risk Management"},{icon:"⚡",text:"Real-time Firebase Integration"},{icon:"📊",text:"Win Rate 70%+ Backtest Proven"},{icon:"👥",text:"Multi-User License System"},{icon:"🎥",text:"Live Trading Broadcast"},{icon:"🖥️",text:"Web Panel Dashboard"},{icon:"📱",text:"Telegram Bot Command"},{icon:"🚨",text:"Emergency Close Protection"}],pricing:{pro:{name:"PRO",price:"Rp 150K",period:"/bulan",color:"#10b981",features:"AI Chat • Analisa Manual • Chart • Notifikasi"},max:{name:"MAX",price:"Rp 350K",period:"/bulan",color:"#f59e0b",features:"Semua Pro • Auto EA • Multi-Pair • Firebase • Priority Support",badge:"🔥 BEST VALUE"}},admin:"@rimuru_genkai",broker:{name:"Exness",link:"https://one.exnessonelink.com/a/tpdtmhxhoi",tag:"Spread Rendah • Regulasi FCA • WD Instant"}};
 
 // ==========================================
-//  TTS � BACA SEMUA KOMENTAR (INSTANT)
+// 🔥 TTS + AI + LIVE CHAT — CINEMATIC EXPERIENCE v5.0
 // ==========================================
-function speak(text) {
-    if (!ttsEnabled) return;
-    if (!text || text.trim().length < 2) return;
-    if (text === lastSpokeComment) return;
-    
-    lastSpokeComment = text;
-    window.speechSynthesis.cancel();
-    
-    try {
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'id-ID';
-        u.rate = 1.3;
-        u.pitch = 1.0;
-        u.volume = 0.85;
-        
-        const voices = window.speechSynthesis.getVoices();
-        const idVoice = voices.find(v => v.lang === 'id-ID');
-        if (idVoice) u.voice = idVoice;
-        
-        u.onend = () => { ttsIsSpeaking = false; };
-        u.onerror = () => { ttsIsSpeaking = false; };
-        
-        window.speechSynthesis.speak(u);
-        ttsIsSpeaking = true;
-        
-    } catch (e) {
-        ttsIsSpeaking = false;
-    }
-}
+let ttsQueue=[];let ttsIsSpeaking=false;let aiCommentPool=[];let aiLastReplyTime=0;let aiIsActive=true;let aiIsProcessing=false;let lastSpokeComment='';let currentlyReadingBubble=null;const AI_MAX_AGE=15000;const answerCache=new Map();const userColors={};const userAvatars={};const userMsgCount={};const chatSpeed=[];let rapidFireMode=false;
 
-function preloadVoices() {
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length === 0) {
-        window.speechSynthesis.onvoiceschanged = () => {
-            console.log(' Voices loaded:', window.speechSynthesis.getVoices().length);
-        };
-    }
-}
+function speak(text){if(!ttsEnabled)return;if(!text||text.trim().length<2)return;if(text===lastSpokeComment)return;lastSpokeComment=text;window.speechSynthesis.cancel();try{const u=new SpeechSynthesisUtterance(text);u.lang='id-ID';u.rate=1.3;u.pitch=1.0;u.volume=0.85;const voices=window.speechSynthesis.getVoices();const idVoice=voices.find(v=>v.lang==='id-ID');if(idVoice)u.voice=idVoice;u.onend=()=>{ttsIsSpeaking=false};u.onerror=()=>{ttsIsSpeaking=false};window.speechSynthesis.speak(u);ttsIsSpeaking=true}catch(e){ttsIsSpeaking=false}}
+function preloadVoices(){const voices=window.speechSynthesis.getVoices();if(voices.length===0){window.speechSynthesis.onvoiceschanged=()=>{console.log('✅ Voices loaded:',window.speechSynthesis.getVoices().length)}}}
+function toggleTTS(){ttsEnabled=!ttsEnabled;document.getElementById('ttsStatus').textContent=ttsEnabled?'AI ON':'AI OFF';document.getElementById('ttsStatus').className=ttsEnabled?'text-accent-400':'text-neutral';if(!ttsEnabled){window.speechSynthesis.cancel();ttsIsSpeaking=false}}
 
-function toggleTTS() {
-    ttsEnabled = !ttsEnabled;
-    document.getElementById('ttsStatus').textContent = ttsEnabled ? 'AI ON' : 'AI OFF';
-    document.getElementById('ttsStatus').className = ttsEnabled ? 'text-accent-400' : 'text-neutral';
-    if (!ttsEnabled) {
-        window.speechSynthesis.cancel();
-        ttsIsSpeaking = false;
-    }
-}
+function highlightCommentForTTS(bubbleElement,username){if(currentlyReadingBubble){currentlyReadingBubble.style.transform='scale(1)';currentlyReadingBubble.style.zIndex='1';currentlyReadingBubble.style.boxShadow='none';currentlyReadingBubble.style.border=currentlyReadingBubble.dataset.originalBorder||'';currentlyReadingBubble.querySelector('.tts-badge')?.remove();currentlyReadingBubble.querySelector('.rainbow-border')?.remove()}currentlyReadingBubble=bubbleElement;if(!bubbleElement)return;bubbleElement.dataset.originalBorder=bubbleElement.style.borderLeft||'';bubbleElement.style.transition='all 0.4s cubic-bezier(0.175,0.885,0.32,1.275)';bubbleElement.style.transform='scale(1.05)';bubbleElement.style.zIndex='100';bubbleElement.style.boxShadow='0 0 30px rgba(245,158,11,0.6),0 0 60px rgba(245,158,11,0.3)';const rainbow=document.createElement('div');rainbow.className='rainbow-border';rainbow.style.cssText='position:absolute;inset:-3px;border-radius:14px;background:conic-gradient(#f59e0b,#10b981,#3b82f6,#a855f7,#ec4899,#ef4444,#f59e0b);animation:rainbowSpin 1.5s linear infinite;z-index:-1;opacity:0.8';bubbleElement.style.position='relative';bubbleElement.appendChild(rainbow);const badge=document.createElement('div');badge.className='tts-badge';badge.style.cssText='position:absolute;top:-14px;right:10px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;font-size:8px;font-weight:900;padding:3px 8px;border-radius:6px;z-index:101;animation:bounceIn 0.4s ease-out;letter-spacing:1px';badge.textContent='🔊 DIBACAKAN';bubbleElement.appendChild(badge);spawnTTSBurst(bubbleElement);playSound('horn');setTimeout(()=>{if(currentlyReadingBubble===bubbleElement){bubbleElement.style.transform='scale(1)';bubbleElement.style.zIndex='1';bubbleElement.style.boxShadow='none';bubbleElement.querySelector('.tts-badge')?.remove();bubbleElement.querySelector('.rainbow-border')?.remove();currentlyReadingBubble=null}},2500)}
+function spawnTTSBurst(bubbleElement){const rect=bubbleElement.getBoundingClientRect();const cx=rect.left+rect.width/2;const cy=rect.top+rect.height/2;const colors=['#f59e0b','#10b981','#f97316','#a855f7','#ec4899','#3b82f6'];for(let i=0;i<12;i++){const p=document.createElement('div');const angle=(Math.PI*2/12)*i;const distance=40+Math.random()*60;p.style.cssText=`position:fixed;left:${cx}px;top:${cy}px;width:4px;height:4px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:50%;pointer-events:none;z-index:102;animation:ttsBurst ${0.6+Math.random()*0.5}s ease-out forwards`;p.style.setProperty('--dx',Math.cos(angle)*distance+'px');p.style.setProperty('--dy',Math.sin(angle)*distance+'px');document.body.appendChild(p);setTimeout(()=>p.remove(),1200)}}
+
+function onNewComment(username,comment){const shortText=comment.length>60?comment.substring(0,57)+'...':comment;const ttsText=username+' bilang: '+shortText;const delay=ttsIsSpeaking?1500:200;setTimeout(()=>{const chatContainer=document.getElementById('liveChat');const lastBubble=chatContainer.lastElementChild;if(lastBubble&&!lastBubble.classList.contains('ai-bubble')){highlightCommentForTTS(lastBubble,username)}speak(ttsText)},delay);if(comment.length>8&&(comment.includes('?')||comment.length>20)){aiCommentPool.push({username,comment,time:Date.now()});if(aiCommentPool.length>15)aiCommentPool.shift();updatePoolCounter()}const now=Date.now();if(!aiIsProcessing&&aiCommentPool.length>0&&(now-aiLastReplyTime>1500)){aiLastReplyTime=now;setTimeout(()=>aiSmartReply(),200)}}
+function updatePoolCounter(){const counter=document.getElementById('poolCounter');if(counter){counter.textContent=aiCommentPool.length;counter.style.display=aiCommentPool.length>0?'inline':'none'}}
+
+function getLocalAIReply(comment,username){const msg=comment.toLowerCase().trim();if(msg.match(/^(hai|halo|hey|hi|helo|pagi|siang|malam|bro|gan|bg|kak|min)/)){const g=[`Halo ${username}! 🖐️ Siap cuan hari ini bareng *${AI_PERSONA.name}*?`,`Woi ${username}! 👋 Lagi ngapain? Mending trading aja, biar cuan!`,`Eh ${username}! 🫡 Mau tau rahasia profit konsisten? Gas!`];return g[Math.floor(Math.random()*g.length)]}if(msg.match(/(apa itu|ini apa|bot apa|aethertrade|aether trade|tentang bot)/)){return `🚀 *${AI_PERSONA.name}* — ${AI_PERSONA.tagline}\n\nFitur unggulan:\n${AI_PERSONA.features.slice(0,5).map(f=>`${f.icon} ${f.text}`).join('\n')}\n\nBacktest WR 70%+, real trading pake EA MT5. Mau? DM *${AI_PERSONA.admin}*!`}if(msg.match(/(cara daftar|cara kerja|gimana|bagaimana|langganan|join)/)){return `Gampang banget! 📝\n\n1️⃣ DM *${AI_PERSONA.admin}*\n2️⃣ Pilih paket:\n   🥈 *${AI_PERSONA.pricing.pro.name}* — ${AI_PERSONA.pricing.pro.price}${AI_PERSONA.pricing.pro.period}\n   🥇 *${AI_PERSONA.pricing.max.name}* — ${AI_PERSONA.pricing.max.price}${AI_PERSONA.pricing.max.period}\n3️⃣ Dapet license key → input EA → Auto trading JALAN!\n\nTinggal duduk manis, liat profit ngendep.`}if(msg.match(/(harga|biaya|bayar|paket|price|cost|berapa)/)){return `💰 *PAKET TERSEDIA:*\n\n🥈 *${AI_PERSONA.pricing.pro.name}* — ${AI_PERSONA.pricing.pro.price}${AI_PERSONA.pricing.pro.period}\n   ${AI_PERSONA.pricing.pro.features}\n\n🥇 *${AI_PERSONA.pricing.max.name}* — ${AI_PERSONA.pricing.max.price}${AI_PERSONA.pricing.max.period} ${AI_PERSONA.pricing.max.badge}\n   ${AI_PERSONA.pricing.max.features}\n\nMurah kan? Dibanding loss mulu mending pake bot!`}if(msg.match(/(profit|cuan|hasil|keuntungan|balik modal|bep|rugi)/)){const r=[`Backtest: *+7,251% XAUUSD* | *+23,969% BTCUSD*. Tapi inget ya, itu backtest. Real trading ada resiko. Jangan ngarep kaya sultan 3 hari!`,`WR *70%+*. Tapi kalo lo entry manual ngelawan sinyal, ya loss sendiri. Jangan salahin bot ya! 🤣`,`Profit tergantung market. Trending = cuan deres. Sideways = sabar. Ini bot, bukan dukun! 🔮`];return r[Math.floor(Math.random()*r.length)]}if(msg.match(/(broker|exness|daftar akun|akun trading|mt5|metatrader)/)){return `Pake *${AI_PERSONA.broker.name}*! 🔗 ${AI_PERSONA.broker.link}\n\n${AI_PERSONA.broker.tag}. Daftar pake link itu biar dapet rebate. Udah banyak yang pake!`}if(msg.match(/(testimoni|review|pengalaman|ada yang pernah|user|pelanggan)/)){return `Banyak yang profit konsisten! Cek channel Telegram. Tapi ingat, trading itu ga selalu mulus. Setidaknya ada *AI yang bantu analisa 24 jam*!`}if(msg.match(/(ea|expert advisor|setup|install|pasang|download|mt5)/)){return `Setup EA gampang:\n1️⃣ Download dari Telegram Bot\n2️⃣ Copy ke MQL5/Experts/\n3️⃣ Pasang di chart XAUUSD/BTCUSD\n4️⃣ Masukkan license key\n5️⃣ Done! Kalo gagal, DM *${AI_PERSONA.admin}*`}if(msg.match(/(lo siapa|lu siapa|kamu siapa|ai|bot|robot)/)){return `Gue *AI Host ${AI_PERSONA.name}*! 🧠 Tugas gue: nemenin lo trading 24/7, jawabin pertanyaan, bacain komentar, promosiin bot.\n\nGa digaji, tapi gapapa. Yang penting lo pada *PROFIT*!`}if(msg.match(/(kenapa|kelebihan|keunggulan|beda|dibanding|vs)/)){return `Kenapa ${AI_PERSONA.name}?\n${AI_PERSONA.features.slice(0,6).map(f=>`${f.icon} ${f.text}`).join('\n')}\n\nBandingin sama bot abal-abal. Ini *FULL PACKAGE*!`}if(msg.match(/(thanks|makasih|thx|terima kasih|keren|mantap|good|nice)/)){const r=[`Sama-sama ${username}! 🙏 Jangan lupa ajak temen-temen lo! Biar rame!`,`Thanks bro! 🫶 Semoga cuan terus! DM *${AI_PERSONA.admin}* kalo mau langganan!`];return r[Math.floor(Math.random()*r.length)]}if(msg.match(/(jelek|sampah|scam|nipu|bohong|gabisa|gagal|loss|rugi terus)/)){const roasts=[`Wkwkwk loss mulu? Evaluasi strategi lo. Jangan cuma nyalahin bot. Bot mah kerja 24 jam, lo nya yang ga sabaran!`,`Dibilang scam? Backtest sendiri di MT5. Kalo hasilnya beda, baru komplain. Tipikal trader gagal: kalo profit diam, kalo loss teriak scam! 🤣`,`Bro, bot ini alat. Yang make lo. Kalo lo nya bego, pake alat apapun tetep loss. *Peace!* ✌️`];return roasts[Math.floor(Math.random()*roasts.length)]}if(msg.match(/(bye|dadah|pamit|pergi|cabut|minggat)/)){return `Dadah ${username}! 👋 Jangan lama-lama! Nanti ketinggalan sinyal!`}if(msg.length<10)return null;const defaults=[`Hmm, pertanyaan bagus ${username}. Bisa lebih spesifik? Mau tau *harga*, *cara kerja*, atau *testimoni*?`,`Waduh, gue kurang paham maksud lo. Coba dijelasin lagi ya! Atau tanya yang lain.`];return defaults[Math.floor(Math.random()*defaults.length)]}
+
+async function fetchAIReplyWithPersonality(comment){const systemPrompt=`Kamu adalah AI Host live trading untuk *${AI_PERSONA.name}*.\n\n🎯 FITUR:\n${AI_PERSONA.features.map((f,i)=>`${f.icon} ${f.text}`).join('\n')}\n\n💰 PAKET:\n- ${AI_PERSONA.pricing.pro.name}: ${AI_PERSONA.pricing.pro.price}${AI_PERSONA.pricing.pro.period}\n- ${AI_PERSONA.pricing.max.name}: ${AI_PERSONA.pricing.max.price}${AI_PERSONA.pricing.max.period}\n\n📞 ADMIN: ${AI_PERSONA.admin}\n🏦 BROKER: ${AI_PERSONA.broker.name} — ${AI_PERSONA.broker.tag}\n\n🗣️ PERSONALITY:\n- Jawab SINGKAT 15-25 kata\n- Bahasa Indonesia SANTRI (Santai + trendy)\n- Boleh SARKAS, ROASTING ringan, tapi tetap friendly\n- Kalau relevan, sebutkan PAKET atau arahkan ke ADMIN\n- JANGAN terlalu formal, JANGAN kayak robot`;const response=await fetch(CONFIG.aiEndpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+CONFIG.aiAPIKey},body:JSON.stringify({model:CONFIG.aiModel,messages:[{role:'system',content:systemPrompt},{role:'user',content:comment}],max_tokens:50,temperature:0.75})});const data=await response.json();return data.choices[0].message.content.substring(0,120)}
+
+async function aiSmartReply(){if(!aiIsActive||aiCommentPool.length===0)return;if(aiIsProcessing)return;aiIsProcessing=true;const now=Date.now();aiCommentPool=aiCommentPool.filter(c=>(now-c.time)<AI_MAX_AGE);updatePoolCounter();if(aiCommentPool.length===0){aiIsProcessing=false;return}const picked=aiCommentPool.pop();updatePoolCounter();const{username,comment}=picked;const localReply=getLocalAIReply(comment,username);if(localReply){addChatMessage('🤖 AI Host',localReply,'ai');speak(localReply);db.ref('broadcast_chat').push({username:'🤖 AI Host',comment:localReply,replyTo:'@'+username,timestamp:Date.now()});aiIsProcessing=false;aiLastReplyTime=now;if(aiCommentPool.length>0)setTimeout(()=>aiSmartReply(),500);return}const cacheKey=comment.toLowerCase().replace(/[^a-z0-9?]/g,'').substring(0,25);let reply=answerCache.get(cacheKey);if(!reply){reply=await Promise.race([fetchAIReplyWithPersonality(comment),new Promise(resolve=>setTimeout(()=>resolve('Pertanyaan bagus! Coba tanya lagi ya.'),2000))]);answerCache.set(cacheKey,reply);if(answerCache.size>200)answerCache.delete(answerCache.keys().next().value)}addChatMessage('🤖 AI Host',reply,'ai');speak(reply);db.ref('broadcast_chat').push({username:'🤖 AI Host',comment:reply,replyTo:'@'+username,timestamp:Date.now()});aiIsProcessing=false;aiLastReplyTime=now;if(aiCommentPool.length>0)setTimeout(()=>aiSmartReply(),500)}
 
 // ==========================================
-//  HIGHLIGHT KOMENTAR SAAT DIBACA TTS
+// 🎨 USER HELPERS (Avatar + Color + Level)
 // ==========================================
-function highlightCommentForTTS(bubbleElement, username) {
-    if (currentlyReadingBubble) {
-        currentlyReadingBubble.style.transform = 'scale(1)';
-        currentlyReadingBubble.style.zIndex = '1';
-        currentlyReadingBubble.style.boxShadow = 'none';
-        currentlyReadingBubble.style.border = currentlyReadingBubble.dataset.originalBorder || '';
-        currentlyReadingBubble.querySelector('.tts-badge')?.remove();
-        currentlyReadingBubble.querySelector('.rainbow-border')?.remove();
-    }
-    
-    currentlyReadingBubble = bubbleElement;
-    if (!bubbleElement) return;
-    
-    bubbleElement.dataset.originalBorder = bubbleElement.style.borderLeft || '';
-    bubbleElement.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-    bubbleElement.style.transform = 'scale(1.05)';
-    bubbleElement.style.zIndex = '100';
-    bubbleElement.style.boxShadow = '0 0 30px rgba(245,158,11,0.6), 0 0 60px rgba(245,158,11,0.3)';
-    
-    const rainbow = document.createElement('div');
-    rainbow.className = 'rainbow-border';
-    rainbow.style.cssText = 'position:absolute;inset:-3px;border-radius:14px;background:conic-gradient(#f59e0b,#10b981,#3b82f6,#a855f7,#ec4899,#ef4444,#f59e0b);animation:rainbowSpin 1.5s linear infinite;z-index:-1;opacity:0.8;';
-    bubbleElement.style.position = 'relative';
-    bubbleElement.appendChild(rainbow);
-    
-    const badge = document.createElement('div');
-    badge.className = 'tts-badge';
-    badge.style.cssText = 'position:absolute;top:-14px;right:10px;background:linear-gradient(135deg,#f59e0b,#f97316);color:#000;font-size:8px;font-weight:900;padding:3px 8px;border-radius:6px;z-index:101;animation:bounceIn 0.4s ease-out;letter-spacing:1px;';
-    badge.textContent = ' DIBACAKAN';
-    bubbleElement.appendChild(badge);
-    
-    spawnTTSBurst(bubbleElement);
-    playSound('horn');
-    
-    setTimeout(() => {
-        if (currentlyReadingBubble === bubbleElement) {
-            bubbleElement.style.transform = 'scale(1)';
-            bubbleElement.style.zIndex = '1';
-            bubbleElement.style.boxShadow = 'none';
-            bubbleElement.querySelector('.tts-badge')?.remove();
-            bubbleElement.querySelector('.rainbow-border')?.remove();
-            currentlyReadingBubble = null;
-        }
-    }, 2500);
-}
-
-function spawnTTSBurst(bubbleElement) {
-    const rect = bubbleElement.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const colors = ['#f59e0b','#10b981','#f97316','#a855f7','#ec4899','#3b82f6'];
-    
-    for (let i = 0; i < 12; i++) {
-        const p = document.createElement('div');
-        const angle = (Math.PI * 2 / 12) * i;
-        const distance = 40 + Math.random() * 60;
-        p.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;width:4px;height:4px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:50%;pointer-events:none;z-index:102;animation:ttsBurst ${0.6+Math.random()*0.5}s ease-out forwards;`;
-        p.style.setProperty('--dx', Math.cos(angle) * distance + 'px');
-        p.style.setProperty('--dy', Math.sin(angle) * distance + 'px');
-        document.body.appendChild(p);
-        setTimeout(() => p.remove(), 1200);
-    }
-}
+function getUserAvatar(username){if(!userAvatars[username]){const avatars=['🐶','🐱','🐼','🦊','🐸','🐵','🦁','🐯','🐮','🐷','🐨','🐰','🦄','🐲','🦜','🐙','🦖','🐳','🦅','🐺'];userAvatars[username]=avatars[Math.floor(Math.random()*avatars.length)]}return userAvatars[username]}
+function getUserColor(username){if(!userColors[username]){const colors=['#f59e0b','#10b981','#3b82f6','#a855f7','#ec4899','#f97316','#06b6d4','#84cc16','#ef4444','#8b5cf6'];userColors[username]=colors[Math.floor(Math.random()*colors.length)]}return userColors[username]}
+function getUserLevel(username){const count=userMsgCount[username]||1;if(count>=50)return{name:'LEGEND',color:'#f59e0b',icon:'👑'};if(count>=20)return{name:'VIP',color:'#a855f7',icon:'💎'};if(count>=5)return{name:'REGULAR',color:'#3b82f6',icon:'⭐'};return{name:'NEW',color:'#6b7280',icon:'✨'}}
 
 // ==========================================
-//  KOMENTAR BARU  LANGSUNG BACA + POOL AI
+// 💬 ADD CHAT — CINEMATIC BUBBLE
 // ==========================================
-function onNewComment(username, comment) {
-    const shortText = comment.length > 60 ? comment.substring(0, 57) + '...' : comment;
-    const ttsText = username + ' bilang: ' + shortText;
-    const delay = ttsIsSpeaking ? 1500 : 200;
-    
-    setTimeout(() => {
-        const chatContainer = document.getElementById('liveChat');
-        const lastBubble = chatContainer.lastElementChild;
-        if (lastBubble && !lastBubble.classList.contains('ai-bubble')) {
-            highlightCommentForTTS(lastBubble, username);
-        }
-        speak(ttsText);
-    }, delay);
-    
-    if (comment.length > 8 && (comment.includes('?') || comment.length > 20)) {
-        aiCommentPool.push({ username, comment, time: Date.now() });
-        if (aiCommentPool.length > 15) aiCommentPool.shift();
-        updatePoolCounter();
-    }
-    
-    const now = Date.now();
-    if (!aiIsProcessing && aiCommentPool.length > 0 && (now - aiLastReplyTime > 1500)) {
-        aiLastReplyTime = now;
-        setTimeout(() => aiSmartReply(), 200);
-    }
-}
-
-function updatePoolCounter() {
-    const counter = document.getElementById('poolCounter');
-    if (counter) {
-        counter.textContent = aiCommentPool.length;
-        counter.style.display = aiCommentPool.length > 0 ? 'inline' : 'none';
-    }
-}
-
-// ==========================================
-//  AI SMART REPLY � CACHE + INSTANT
-// ==========================================
-async function aiSmartReply() {
-    if (!aiIsActive || aiCommentPool.length === 0) return;
-    if (aiIsProcessing) return;
-    
-    aiIsProcessing = true;
-    
-    const now = Date.now();
-    aiCommentPool = aiCommentPool.filter(c => (now - c.time) < AI_MAX_AGE);
-    updatePoolCounter();
-    if (aiCommentPool.length === 0) { aiIsProcessing = false; return; }
-    
-    const picked = aiCommentPool.pop();
-    updatePoolCounter();
-    const { username, comment } = picked;
-    
-    // Cache check
-    const cacheKey = comment.toLowerCase().replace(/[^a-z0-9?]/g, '').substring(0, 25);
-    let reply = answerCache.get(cacheKey);
-    
-    if (!reply) {
-        //  ORACLE CINEMATIC
-        await oracleThinking(username, comment);
-        
-        reply = await Promise.race([
-            fetchAIReply(comment),
-            new Promise(resolve => setTimeout(() => resolve('Pertanyaan menarik! Coba tanya lagi ya.'), 2000))
-        ]);
-        answerCache.set(cacheKey, reply);
-        if (answerCache.size > 200) answerCache.delete(answerCache.keys().next().value);
-        
-        await oracleAnswer(username, comment, reply);
-    } else {
-        // Cache hit � tetap cinematic tapi lebih cepat
-        await oracleQuickAnswer(username, comment, reply);
-    }
-    
-    // Simpan
-    db.ref('broadcast_chat').push({
-        username: ' AI Host', comment: reply, replyTo: '@' + username, timestamp: Date.now()
-    });
-    
-    aiIsProcessing = false;
-    aiLastReplyTime = now;
-    
-    if (aiCommentPool.length > 0) {
-        setTimeout(() => aiSmartReply(), 500);
-    }
-}
-
-// ==========================================
-//  ORACLE CINEMATIC SYSTEM
-// ==========================================
-async function oracleThinking(username, comment) {
-    const overlay = document.createElement('div');
-    overlay.className = 'oracle-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,0.85) 100%);z-index:200;pointer-events:none;animation:vignetteIn 0.5s ease-out;';
-    document.body.appendChild(overlay);
-    
-    const text = document.createElement('div');
-    text.style.cssText = 'position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);z-index:201;text-align:center;pointer-events:none;animation:floatUp 0.5s ease-out;';
-    text.innerHTML = `
-        <div style="font-size:14px;color:#a855f7;letter-spacing:4px;margin-bottom:12px"> THE ORACLE IS THINKING</div>
-        <div style="display:flex;gap:6px;justify-content:center">
-            <span style="width:8px;height:8px;background:#a855f7;border-radius:50%;animation:sparkle 1s ease-in-out infinite"></span>
-            <span style="width:8px;height:8px;background:#a855f7;border-radius:50%;animation:sparkle 1s ease-in-out 0.2s infinite"></span>
-            <span style="width:8px;height:8px;background:#a855f7;border-radius:50%;animation:sparkle 1s ease-in-out 0.4s infinite"></span>
-        </div>
-    `;
-    document.body.appendChild(text);
-    
-    playSound('horn');
-    await sleep(1200);
-    
-    text.innerHTML = `
-        <div style="font-size:12px;color:#f59e0b;letter-spacing:2px;margin-bottom:12px"> MENJAWAB PERTANYAAN</div>
-        <div style="font-size:16px;color:white;font-weight:700;margin-bottom:6px">
-            <span style="font-size:18px">${getUserAvatar(username)}</span> 
-            <span class="shimmer-text">@${username}</span>
-        </div>
-        <div style="font-size:11px;color:#9ca3af;max-width:300px;margin:0 auto;line-height:1.5">"${comment.substring(0, 80)}"</div>
-    `;
-    
-    overlay._text = text;
-    overlay._overlay = overlay;
-    window._oracleOverlay = overlay;
-    
-    await sleep(1500);
-}
-
-async function oracleAnswer(username, comment, reply) {
-    const overlay = window._oracleOverlay;
-    const text = overlay?._text;
-    
-    if (text) {
-        text.innerHTML = `
-            <div style="font-size:12px;color:#f59e0b;letter-spacing:2px;margin-bottom:12px"> THE ORACLE ANSWERS</div>
-            <div style="font-size:16px;color:white;font-weight:600;max-width:350px;margin:0 auto;line-height:1.6;padding:16px 20px;background:rgba(168,85,247,0.1);border:2px solid rgba(245,158,11,0.4);border-radius:16px;animation:oracleReveal 0.8s ease-out,oracleGlow 2s ease-in-out infinite,oracleBorder 3s ease-in-out infinite">${reply}</div>
-        `;
-    }
-    
-    playSound('victory');
-    spawnOracleParticles();
-    speak(reply);
-    
-    await sleep(3000);
-    
-    if (overlay) {
-        overlay.style.opacity = '0';
-        overlay.style.transition = 'opacity 0.5s';
-    }
-    if (text) {
-        text.style.opacity = '0';
-        text.style.transition = 'opacity 0.5s';
-    }
-    
-    await sleep(500);
-    overlay?.remove();
-    text?.remove();
-    window._oracleOverlay = null;
-}
-
-async function oracleQuickAnswer(username, comment, reply) {
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;pointer-events:none;animation:vignetteIn 0.3s ease-out;';
-    document.body.appendChild(overlay);
-    
-    const text = document.createElement('div');
-    text.style.cssText = 'position:fixed;top:45%;left:50%;transform:translate(-50%,-50%);z-index:201;text-align:center;pointer-events:none;animation:floatUp 0.3s ease-out;';
-    text.innerHTML = `
-        <div style="font-size:12px;color:#f59e0b;letter-spacing:2px;margin-bottom:10px"> @${username}</div>
-        <div style="font-size:15px;color:white;font-weight:600;max-width:300px;margin:0 auto;line-height:1.5;padding:12px 16px;background:rgba(168,85,247,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:12px;animation:oracleReveal 0.5s ease-out">${reply}</div>
-    `;
-    document.body.appendChild(text);
-    
-    speak(reply);
-    await sleep(2000);
-    
-    overlay.style.opacity = '0'; text.style.opacity = '0';
-    overlay.style.transition = 'opacity 0.3s'; text.style.transition = 'opacity 0.3s';
-    await sleep(300);
-    overlay.remove(); text.remove();
-}
-
-function spawnOracleParticles() {
-    const colors = ['#a855f7','#f59e0b','#c084fc','#fbbf24'];
-    for (let i = 0; i < 20; i++) {
-        const p = document.createElement('div');
-        p.style.cssText = `position:fixed;left:50%;top:50%;width:${3+Math.random()*6}px;height:${3+Math.random()*6}px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:50%;pointer-events:none;z-index:202;animation:ttsBurst ${1+Math.random()*1.5}s ease-out forwards;`;
-        p.style.setProperty('--dx', (Math.random()-0.5)*300+'px');
-        p.style.setProperty('--dy', (Math.random()-0.5)*300+'px');
-        document.body.appendChild(p);
-        setTimeout(() => p.remove(), 2500);
-    }
-}
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// ==========================================
-//  FETCH AI REPLY (MINIMAL API CALL)
-// ==========================================
-async function fetchAIReply(comment) {
-    const response = await fetch(CONFIG.aiEndpoint, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + CONFIG.aiAPIKey
-        },
-        body: JSON.stringify({
-            model: CONFIG.aiModel,
-            messages: [
-                { role: 'system', content: 'Kamu host trading LIVE. Jawab SINGKAT 10-15 kata. Santai, friendly, kadang lucu.' },
-                { role: 'user', content: comment }
-            ],
-            max_tokens: 30,
-            temperature: 0.7
-        })
-    });
-    const data = await response.json();
-    return data.choices[0].message.content.substring(0, 100);
-}
-
-// ==========================================
-//  USER HELPERS (Avatar + Color + Level)
-// ==========================================
-function getUserAvatar(username) {
-    if (!userAvatars[username]) {
-        const avatars = ['','','','','','','','','','','','','','','','','','','',''];
-        userAvatars[username] = avatars[Math.floor(Math.random() * avatars.length)];
-    }
-    return userAvatars[username];
-}
-
-function getUserColor(username) {
-    if (!userColors[username]) {
-        const colors = ['#f59e0b','#10b981','#3b82f6','#a855f7','#ec4899','#f97316','#06b6d4','#84cc16','#ef4444','#8b5cf6'];
-        userColors[username] = colors[Math.floor(Math.random() * colors.length)];
-    }
-    return userColors[username];
-}
-
-function getUserLevel(username) {
-    const count = userMsgCount[username] || 1;
-    if (count >= 50) return { name:'LEGEND', color:'#f59e0b', icon:'' };
-    if (count >= 20) return { name:'VIP', color:'#a855f7', icon:'' };
-    if (count >= 5)  return { name:'REGULAR', color:'#3b82f6', icon:'' };
-    return { name:'NEW', color:'#6b7280', icon:'' };
-}
-
-// ==========================================
-//  ADD CHAT � CINEMATIC BUBBLE
-// ==========================================
-function addChatMessage(username, comment, type) {
-    const chatContainer = document.getElementById('liveChat');
-    const bubble = document.createElement('div');
-    
-    if (type === 'user') {
-        userMsgCount[username] = (userMsgCount[username] || 0) + 1;
-    }
-    
-    const userColor = getUserColor(username);
-    const level = getUserLevel(username);
-    const avatar = getUserAvatar(username);
-    
-    let badge = '';
-    if (type === 'admin') badge = '<span style="background:linear-gradient(135deg,#10b981,#34d399);color:#000;font-size:7px;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:700;animation:pulse-gold 2s infinite"> LIVE</span>';
-    else if (type === 'ai') badge = '<span style="background:#f59e0b;color:#000;font-size:7px;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:700"> AI</span>';
-    else badge = `<span style="font-size:8px;background:${level.color}20;color:${level.color};padding:1px 5px;border-radius:3px;margin-left:3px;border:1px solid ${level.color}40">${level.icon} ${level.name}</span>`;
-    
-    bubble.style.cssText = 'padding:6px 10px;margin:4px 0;border-radius:10px;font-size:11px;line-height:1.5;animation:slideUp 0.3s ease-out;transition:all 0.3s;position:relative;';
-    
-    if (type === 'ai') {
-        bubble.style.background = 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.03))';
-        bubble.style.borderLeft = '3px solid #f59e0b';
-        bubble.innerHTML = '<span style="font-size:14px"></span> <b style="color:#f59e0b">AI</b>' + badge + ': <span style="color:#e2e8f0">' + comment + '</span>';
-        bubble.classList.add('ai-bubble');
-    } else if (type === 'admin') {
-        bubble.style.background = 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.03))';
-        bubble.style.borderLeft = '3px solid #10b981';
-        bubble.style.boxShadow = '0 0 15px rgba(16,185,129,0.15)';
-        bubble.innerHTML = '<span style="font-size:14px"></span> <b style="color:#10b981">Host</b>' + badge + ': <span style="color:#d1fae5">' + comment + '</span>';
-    } else {
-        bubble.style.background = 'rgba(255,255,255,0.02)';
-        bubble.style.borderLeft = '3px solid ' + userColor;
-        bubble.innerHTML = '<span style="font-size:14px">' + avatar + '</span> <b style="color:' + userColor + '">@' + username + '</b>' + badge + ': <span style="color:#d1d5db">' + comment + '</span>';
-        
-        if (userMsgCount[username] <= 1) {
-            bubble.style.boxShadow = '0 0 20px ' + userColor + '40';
-            playSound('horn');
-        } else {
-            playSound('coin');
-        }
-        
-        if (username !== ' AI Host') {
-            onNewComment(username, comment);
-        }
-    }
-    
-    chatContainer.appendChild(bubble);
-    chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
-    
-    while (chatContainer.children.length > 200) {
-        chatContainer.removeChild(chatContainer.firstChild);
-    }
-}
+function addChatMessage(username,comment,type){const chatContainer=document.getElementById('liveChat');const bubble=document.createElement('div');if(type==='user'){userMsgCount[username]=(userMsgCount[username]||0)+1}const userColor=getUserColor(username);const level=getUserLevel(username);const avatar=getUserAvatar(username);let badge='';if(type==='admin')badge='<span style="background:linear-gradient(135deg,#10b981,#34d399);color:#000;font-size:7px;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:700;animation:pulse-gold 2s infinite">🔴 LIVE</span>';else if(type==='ai')badge='<span style="background:#f59e0b;color:#000;font-size:7px;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:700">🤖 AI</span>';else badge=`<span style="font-size:8px;background:${level.color}20;color:${level.color};padding:1px 5px;border-radius:3px;margin-left:3px;border:1px solid ${level.color}40">${level.icon} ${level.name}</span>`;bubble.style.cssText='padding:6px 10px;margin:4px 0;border-radius:10px;font-size:11px;line-height:1.5;animation:slideUp 0.3s ease-out;transition:all 0.3s;position:relative';if(type==='ai'){bubble.style.background='linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.03))';bubble.style.borderLeft='3px solid #f59e0b';bubble.innerHTML='<span style="font-size:14px">🤖</span> <b style="color:#f59e0b">AI</b>'+badge+': <span style="color:#e2e8f0">'+comment+'</span>';bubble.classList.add('ai-bubble')}else if(type==='admin'){bubble.style.background='linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.03))';bubble.style.borderLeft='3px solid #10b981';bubble.style.boxShadow='0 0 15px rgba(16,185,129,0.15)';bubble.innerHTML='<span style="font-size:14px">📢</span> <b style="color:#10b981">Host</b>'+badge+': <span style="color:#d1fae5">'+comment+'</span>'}else{bubble.style.background='rgba(255,255,255,0.02)';bubble.style.borderLeft='3px solid '+userColor;bubble.innerHTML='<span style="font-size:14px">'+avatar+'</span> <b style="color:'+userColor+'">@'+username+'</b>'+badge+': <span style="color:#d1d5db">'+comment+'</span>';if(userMsgCount[username]<=1){bubble.style.boxShadow='0 0 20px '+userColor+'40';playSound('horn')}else{playSound('coin')}if(username!=='🤖 AI Host'){onNewComment(username,comment)}}chatContainer.appendChild(bubble);chatContainer.scrollTo({top:chatContainer.scrollHeight,behavior:'smooth'});while(chatContainer.children.length>200){chatContainer.removeChild(chatContainer.firstChild)}}
 
 // ==========================================
 // LISTEN FIREBASE CHAT
 // ==========================================
-function listenFirebaseChat() {
-    db.ref('broadcast_chat').limitToLast(20).on('child_added', snap => {
-        const d = snap.val();
-        if (d.username !== ' AI Host' && d.username !== ' Host') {
-            addChatMessage(d.username, d.comment, 'user');
-        }
-    });
-}
-
+function listenFirebaseChat(){db.ref('broadcast_chat').limitToLast(20).on('child_added',snap=>{const d=snap.val();if(d.username!=='🤖 AI Host'&&d.username!=='📢 Host'){addChatMessage(d.username,d.comment,'user')}})}
 
 
 // ==========================================
@@ -1064,62 +651,58 @@ function killGladiator(gladId, reason, finalProfit) {
 // ==========================================
 // 📊 UPDATE HARGA GLADIATOR (dari trailing)
 // ==========================================
+let gladiatorPriceInterval = null;
+
 function updateGladiatorPrices() {
-    db.ref('trailing/' + CONFIG.adminLicense + '/XAU_USD').on('value', snap => {
-        const data = snap.val() || {};
-        const positions = data.positions || [];
-        
-        positions.forEach(pos => {
-            // Cari gladiator yang cocok
-            const glad = gladiators.find(g => 
-                g.status === 'alive' && 
-                Math.abs(g.entry - pos.entry) < 1 && 
-                g.dir === pos.dir
-            );
+    if (gladiatorPriceInterval) clearInterval(gladiatorPriceInterval);
+    gladiatorPriceInterval = setInterval(() => {
+        db.ref('trailing/' + CONFIG.adminLicense + '/XAU_USD').once('value', snap => {
+            const data = snap.val() || {};
+            const positions = data.positions || [];
             
-            if (glad && pos.active) {
-                glad.currentPrice = pos.currentPrice || glad.currentPrice;
-                glad.profit = pos.profit || 0;
-                
-                // Update HP
-                const distToSL = Math.abs(glad.currentPrice - glad.sl);
-                const totalDist = Math.abs(glad.entry - glad.sl);
-                glad.hp = Math.max(0, Math.min(100, (distToSL / totalDist) * 100));
-                
-                // Update status
-                if (glad.profit > 0 && glad.hp > 50) {
-                    glad.status = 'winning';
-                } else if (glad.hp < 20) {
-                    glad.status = 'dying';
-                }
-                
-                // Auto-kill kalau SL tersentuh
-                if (glad.hp <= 5 && glad.status !== 'dead') {
-                    killGladiator(glad.id, 'SL tersentuh', glad.profit);
-                }
-            }
-            
-            // Deteksi posisi yang sudah close
-            if (glad && !pos.active && glad.status !== 'dead') {
-                killGladiator(glad.id, 'Posisi ditutup', pos.profit || 0);
-            }
-        });
-        
-        // Deteksi gladiator tanpa posisi
-        gladiators.forEach(g => {
-            if (g.status === 'alive' || g.status === 'winning' || g.status === 'dying') {
-                const exists = positions.find(p => 
-                    Math.abs(p.entry - g.entry) < 1 && p.dir === g.dir
+            positions.forEach(pos => {
+                const glad = gladiators.find(g => 
+                    g.status !== 'dead' && 
+                    Math.abs(g.entry - pos.entry) < 1 && 
+                    g.dir === pos.dir
                 );
-                if (!exists && Date.now() - g.spawnedAt > 60000) {
-                    killGladiator(g.id, 'Menghilang dari arena', g.profit);
+                
+                if (glad && pos.active) {
+                    glad.currentPrice = pos.currentPrice || glad.currentPrice;
+                    glad.profit = pos.profit || 0;
+                    
+                    const distToSL = Math.abs(glad.currentPrice - glad.sl);
+                    const totalDist = Math.abs(glad.entry - glad.sl);
+                    glad.hp = Math.max(0, Math.min(100, (distToSL / totalDist) * 100));
+                    
+                    if (glad.profit > 0 && glad.hp > 50) glad.status = 'winning';
+                    else if (glad.hp < 20) glad.status = 'dying';
+                    
+                    if (glad.hp <= 5 && glad.status !== 'dead') {
+                        killGladiator(glad.id, 'SL tersentuh', glad.profit);
+                    }
                 }
-            }
+                
+                if (glad && !pos.active && glad.status !== 'dead') {
+                    killGladiator(glad.id, 'Posisi ditutup', pos.profit || 0);
+                }
+            });
+            
+            gladiators.forEach(g => {
+                if (g.status === 'alive' || g.status === 'winning' || g.status === 'dying') {
+                    const exists = positions.find(p => 
+                        Math.abs(p.entry - g.entry) < 1 && p.dir === g.dir
+                    );
+                    if (!exists && Date.now() - g.spawnedAt > 60000) {
+                        killGladiator(g.id, 'Menghilang dari arena', g.profit);
+                    }
+                }
+            });
+            
+            renderGladiatorCards();
+            updateStadium();
         });
-        
-        renderGladiatorCards();
-        updateStadium();
-    });
+    }, 5000);
 }
 
 // ==========================================
@@ -1392,19 +975,6 @@ function checkSignals() {
 // ==========================================
 // 🔥 STREAK
 // ==========================================
-function updateStreak(){
-    db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{
-        const d=snap.val()||{};const pos=d.positions||[];
-        const wins=pos.filter(p=>(p.profit||0)>0).length;
-        streakCount=wins;
-        const icons=['','🔥','🔥🔥','🔥🔥🔥','🔥🔥🔥🔥','🔥🔥🔥🔥🔥','💥💥','💥💥💥','🌟'];
-        document.getElementById('streakIcon').textContent=icons[Math.min(wins,icons.length-1)];
-        document.getElementById('streakNumber').textContent=wins;
-        document.getElementById('streakProgress').style.width=Math.min(wins*10,100)+'%';
-        document.getElementById('streakMultiplier').textContent=(wins>=10?'5x':wins>=7?'3x':wins>=5?'2x':'1x')+' MULTIPLIER';
-        if(wins>=5&&wins>streakCount-1){spawnFireParticles();playTone('triangle',523,0.12,0.25);speak(wins+' kemenangan berturut-turut!');}
-    });
-}
 function spawnFireParticles(){
     const c=document.getElementById('fireParticles');
     for(let i=0;i<10;i++){
@@ -1415,6 +985,83 @@ function spawnFireParticles(){
         p.style.width='6px';p.style.height='6px';p.style.borderRadius='50%';
         c.appendChild(p);setTimeout(()=>p.remove(),1500);
     }
+}
+
+// ==========================================
+// 📊 ALL STATS — GABUNGAN (1 listener saja)
+// ==========================================
+let lastStreakSpoken = 0;
+let lastCrashSpoken = 0;
+
+function updateAllStats() {
+    db.ref('trailing/' + CONFIG.adminLicense + '/XAU_USD').on('value', snap => {
+        const d = snap.val() || {};
+        const pos = d.positions || [];
+        const wins = pos.filter(p => (p.profit || 0) > 0).length;
+        const pl = pos.reduce((s, p) => s + (p.profit || 0), 0);
+        const wr = pos.length > 0 ? Math.round((wins / pos.length) * 100) : 0;
+        
+        // 🔥 STREAK
+        streakCount = wins;
+        const icons = ['', '🔥', '🔥🔥', '🔥🔥🔥', '🔥🔥🔥🔥', '🔥🔥🔥🔥🔥', '💥💥', '💥💥💥', '🌟'];
+        document.getElementById('streakIcon').textContent = icons[Math.min(wins, icons.length - 1)] || '🔥';
+        document.getElementById('streakNumber').textContent = wins;
+        document.getElementById('streakProgress').style.width = Math.min(wins * 10, 100) + '%';
+        document.getElementById('streakMultiplier').textContent = (wins >= 10 ? '5x' : wins >= 7 ? '3x' : wins >= 5 ? '2x' : '1x') + ' MULTIPLIER';
+        
+        // 🔥 STREAK TTS — hanya 1x per 5 menit
+        if (wins >= 5 && wins > streakCount - 1 && Date.now() - lastStreakSpoken > 300000) {
+            lastStreakSpoken = Date.now();
+            spawnFireParticles();
+            playTone('triangle', 523, 0.12, 0.25);
+            speak(wins + ' kemenangan berturut-turut!');
+        }
+        
+        // 🔥 GHOST vs YOU
+        document.getElementById('ghostWR').textContent = wr + '%';
+        document.getElementById('ghostPL').textContent = (pl >= 0 ? '+' : '') + '$' + pl.toFixed(0);
+        document.getElementById('youWR').textContent = Math.max(0, wr - 7) + '%';
+        document.getElementById('youPL').textContent = (pl >= 0 ? '+' : '') + '$' + (pl * 0.8).toFixed(0);
+        document.getElementById('ghostComment').textContent = wr >= 70 ? '👻 "Aku terlalu kuat!"' : wr >= 50 ? '👻 "Lumayan profit!"' : '👻 "Sabar, pasar lagi sulit"';
+        
+        // 🔥 HEADER STATS
+        document.getElementById('btmPositions').textContent = pos.length;
+        document.getElementById('btmPL').textContent = (pl >= 0 ? '+' : '') + '$' + pl.toFixed(2);
+        document.getElementById('btmPL').className = pl >= 0 ? 'text-profit' : 'text-loss';
+        document.getElementById('btmWR').textContent = pos.length > 0 ? wr + '%' : '0%';
+        
+        // 🔥 CRASH — hanya 1x per 1 menit
+        if (pl < -500 && Date.now() - lastCrashSpoken > 60000) {
+            lastCrashSpoken = Date.now();
+            document.getElementById('crashOverlay').style.display = 'block';
+            document.getElementById('crashAmount').textContent = '-$' + Math.abs(pl).toFixed(0);
+            playTone('sawtooth', 80, 0.3, 0.5);
+            speak('WASPADA! Kerugian mencapai ' + Math.abs(pl).toFixed(0) + ' dollar!');
+            setTimeout(() => { document.getElementById('crashOverlay').style.display = 'none'; }, 5000);
+        }
+    });
+    
+    // 🔥 RANKINGS (listener terpisah karena beda path)
+    db.ref('live_votes/rankings').orderByChild('xp').limitToLast(5).on('value', snap => {
+        const data = snap.val();
+        const c = document.getElementById('apexRankings');
+        if (data) {
+            const entries = Object.entries(data).sort((a, b) => (b[1].xp || 0) - (a[1].xp || 0));
+            const medals = { 0: '🥇', 1: '🥈', 2: '🥉', 3: '4.', 4: '5.' };
+            let h = '';
+            entries.forEach(([k, v], i) => {
+                h += medals[i] + ' ' + (v.username || k) + ' Lv.' + (Math.floor((v.xp || 0) / 100) + 1) + '<br>';
+            });
+            c.innerHTML = h || 'No rankings';
+        }
+    });
+    
+    // 🔥 HARGA FALLBACK (tetap jalan)
+    setInterval(() => {
+        document.getElementById('headerPrice').textContent = '$4348.18';
+        document.getElementById('headerChange').textContent = '+0.32%';
+        document.getElementById('headerChange').className = 'text-profit';
+    }, 5000);
 }
 
 // ==========================================
@@ -1434,31 +1081,6 @@ function updatePriceRace(){
 // ==========================================
 // 👻 GHOST + RANKINGS
 // ==========================================
-function updateGhostAndRankings(){
-    db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{
-        const d=snap.val()||{};const pos=d.positions||[];
-        const total=pos.length;const wins=pos.filter(p=>(p.profit||0)>0).length;
-        const wr=total>0?Math.round((wins/total)*100):0;
-        const pl=pos.reduce((s,p)=>s+(p.profit||0),0);
-        document.getElementById('ghostWR').textContent=wr+'%';
-        document.getElementById('ghostPL').textContent=(pl>=0?'+':'')+'$'+pl.toFixed(0);
-        document.getElementById('youWR').textContent=Math.max(0,wr-7)+'%';
-        document.getElementById('youPL').textContent=(pl>=0?'+':'')+'$'+(pl*0.8).toFixed(0);
-        document.getElementById('ghostComment').textContent=wr>=70?'👻 "Aku terlalu kuat!"':wr>=50?'👻 "Lumayan profit!"':'👻 "Sabar, pasar lagi sulit"';
-    });
-    db.ref('live_votes/rankings').orderByChild('xp').limitToLast(5).on('value',snap=>{
-        const data=snap.val();const c=document.getElementById('apexRankings');
-        if(data){
-            const entries=Object.entries(data).sort((a,b)=>(b[1].xp||0)-(a[1].xp||0));
-            const medals={0:'🥇',1:'🥈',2:'🥉',3:'4.',4:'5.'};
-            let h='';
-            entries.forEach(([k,v],i)=>{
-                h+=medals[i]+' '+(v.username||k)+' Lv.'+(Math.floor((v.xp||0)/100)+1)+'<br>';
-            });
-            c.innerHTML=h||'No rankings';
-        }
-    });
-}
 
 // ==========================================
 // 🎁 LOOT BOX
@@ -1502,19 +1124,6 @@ function spawnConfetti(){
 // ==========================================
 // 💥 CRASH
 // ==========================================
-function checkCrash(){
-    db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{
-        const d=snap.val()||{};const pos=d.positions||[];
-        const pl=pos.reduce((s,p)=>s+(p.profit||0),0);
-        if(pl<-500){
-            document.getElementById('crashOverlay').style.display='block';
-            document.getElementById('crashAmount').textContent='-$'+Math.abs(pl).toFixed(0);
-            playTone('sawtooth',80,0.3,0.5);
-            speak('WASPADA! Kerugian mencapai '+Math.abs(pl).toFixed(0)+' dollar!');
-            setTimeout(()=>document.getElementById('crashOverlay').style.display='none',5000);
-        }
-    });
-}
 
 // ==========================================
 // 🔊 AUDIO
@@ -1542,23 +1151,7 @@ function updateAllTimers(){
 // ==========================================
 // HEADER UPDATES
 // ==========================================
-function updateHeaderStats(){
-    db.ref('trailing/'+CONFIG.adminLicense+'/XAU_USD').on('value',snap=>{
-        const d=snap.val()||{};const pos=d.positions||[];
-        document.getElementById('btmPositions').textContent=pos.length;
-        const pl=pos.reduce((s,p)=>s+(p.profit||0),0);
-        document.getElementById('btmPL').textContent=(pl>=0?'+':'')+'$'+pl.toFixed(2);
-        document.getElementById('btmPL').className=pl>=0?'text-profit':'text-loss';
-        const wins=pos.filter(p=>(p.profit||0)>0).length;
-        document.getElementById('btmWR').textContent=pos.length>0?Math.round((wins/pos.length)*100)+'%':'0%';
-    });
-    // Harga dari ticker panel utama (fallback)
-    setInterval(()=>{
-        document.getElementById('headerPrice').textContent='$4348.18';
-        document.getElementById('headerChange').textContent='+0.32%';
-        document.getElementById('headerChange').className='text-profit';
-    },5000);
-}
+
 
 // ==========================================
 // SIGNAL OVERLAY
@@ -1815,21 +1408,16 @@ function triggerEntryEvent(signal) {
 function init(){
     initChart();
     preloadVoices();
-    checkSignals();  //  TAMBAHKAN INI
+    checkSignals();
     renderGladiatorCards();
     renderHallOfFame();
     updateStadium();
     updateSeasonStats();
-    updateStreak();
-    updateGhostAndRankings();
-    updateHeaderStats();
-    checkCrash();
+    updateAllStats();
     listenFirebaseChat();
     setInterval(updateAllTimers,1000);
     setInterval(updatePriceRace,2000);
     setInterval(updateStadium,3000);
-    setInterval(updateStreak,5000);
-    setInterval(updateGhostAndRankings,10000);
     setInterval(updateCountdownOverlay, 1000);
     updateChartDimensions();
     setInterval(updateChartDimensions, 3000);
