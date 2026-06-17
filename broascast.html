@@ -270,6 +270,16 @@
         <span style="font-size:10px;color:#10b981">⚔️ LIVE</span>
     </div>
 
+    <!-- 🚪 GRAND ENTRANCE OVERLAY -->
+    <div id="welcomeOverlay" style="position:absolute;top:0;left:0;right:0;bottom:0;z-index:50;pointer-events:none;display:none;align-items:center;justify-content:center">
+        <div id="welcomeCard" style="background:rgba(10,5,20,0.95);border:1px solid rgba(168,85,247,0.4);border-radius:16px;padding:16px 24px;text-align:center;animation:bounceIn 0.5s ease-out;box-shadow:0 0 40px rgba(168,85,247,0.3)">
+            <div style="font-size:32px;margin-bottom:8px" id="welcomeAvatar">🐶</div>
+            <div style="font-size:9px;color:#a855f7;letter-spacing:2px;margin-bottom:4px">⚔️ A NEW CHALLENGER APPEARS ⚔️</div>
+            <div style="font-size:14px;font-weight:700;color:white" id="welcomeName">@username</div>
+            <div style="font-size:9px;color:#6b7280;margin-top:4px">Selamat bergabung di Arena!</div>
+        </div>
+    </div>
+
     <!-- 🏟️ STADIUM VIEW -->
     <div id="stadiumView" class="glass-light" style="margin:8px;padding:10px;border-radius:12px;text-align:center;position:relative;overflow:hidden;border:1px solid rgba(168,85,247,0.2)">
         <div style="font-size:9px;color:#a855f7;margin-bottom:4px">🏟️ THE COLOSSEUM</div>
@@ -289,6 +299,50 @@
             <div>COLOSSEUM KOSONG</div>
             <div style="font-size:9px;margin-top:4px">Menunggu EA membuka posisi baru...</div>
         </div>
+    </div>
+
+    <!-- 🔮 THE ORACLE'S ALTAR -->
+    <div class="glass-light" id="oracleAltar" style="margin:8px;padding:0;border-radius:16px;text-align:center;position:relative;overflow:hidden;min-height:150px;border:1px solid rgba(168,85,247,0.3);background:linear-gradient(180deg, rgba(10,5,20,0.95) 0%, rgba(5,2,10,0.98) 100%)">
+        
+        <!-- Asap mistis -->
+        <div id="altarSmoke" style="position:absolute;inset:0;pointer-events:none;opacity:0.3">
+            <div style="position:absolute;bottom:0;left:20%;width:60%;height:60%;background:radial-gradient(ellipse at center, rgba(168,85,247,0.2) 0%, transparent 70%);animation:float 4s ease-in-out infinite"></div>
+            <div style="position:absolute;bottom:0;left:10%;width:40%;height:40%;background:radial-gradient(ellipse at center, rgba(245,158,11,0.15) 0%, transparent 70%);animation:float 5s ease-in-out 1s infinite"></div>
+        </div>
+        
+        <!-- Lingkaran sihir -->
+        <div id="altarRing" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90px;height:90px;border:1px solid rgba(168,85,247,0.2);border-radius:50%;transition:all 0.5s">
+            <div style="position:absolute;inset:-3px;border-radius:50%;border:2px solid transparent;border-top-color:rgba(245,158,11,0.3);animation:rainbowSpin 4s linear infinite"></div>
+            <div style="position:absolute;inset:-6px;border-radius:50%;border:2px solid transparent;border-bottom-color:rgba(168,85,247,0.3);animation:rainbowSpin 6s linear infinite reverse"></div>
+        </div>
+        
+        <!-- Rune simbol -->
+        <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:8px;color:#a855f7;letter-spacing:6px;opacity:0.6">⚝ ⬡ ⬟ ⬢ ⬠ ⬡ ⚝</div>
+        
+        <!-- Konten utama -->
+        <div id="altarContent" style="position:relative;z-index:2;padding:22px 14px 14px">
+            <div style="font-size:9px;color:#a855f7;letter-spacing:3px;margin-bottom:10px">🔮 THE ORACLE'S ALTAR</div>
+            
+            <div id="altarSignal">
+                <div style="font-size:32px;margin-bottom:6px">🔮</div>
+                <div style="font-size:10px;color:#6b7280">Menunggu ramalan...</div>
+                <div style="font-size:8px;color:#a855f7;margin-top:6px" id="altarCountdown"></div>
+            </div>
+            
+            <!-- Ramalan tersembunyi (muncul saat ada sinyal) -->
+            <div id="altarProphecy" style="display:none;animation:oracleReveal 0.8s ease-out">
+                <div style="font-size:12px;font-weight:800;margin-bottom:8px" id="altarDir"></div>
+                <div style="font-size:9px;color:#6b7280;line-height:1.5">
+                    <div>💰 Entry: <b style="color:white" id="altarEntry">-</b></div>
+                    <div>🛑 SL: <b style="color:#ef4444" id="altarSL">-</b></div>
+                    <div>🎯 TT: <b style="color:#f59e0b" id="altarTT">-</b></div>
+                </div>
+                <div style="margin-top:8px;font-size:8px;color:#a855f7;font-style:italic" id="altarWisdom"></div>
+            </div>
+        </div>
+        
+        <!-- Glow effect saat update -->
+        <div id="altarGlow" style="position:absolute;inset:0;background:radial-gradient(circle at center, rgba(168,85,247,0.4) 0%, transparent 70%);opacity:0;transition:opacity 0.3s;pointer-events:none"></div>
     </div>
 
     <!-- 🏆 HALL OF FAME -->
@@ -374,15 +428,6 @@
         </div>
     </div>
 
-    <!-- 🎁 LOOT BOX -->
-    <div class="glass-light" style="margin:8px;padding:14px;border-radius:12px;text-align:center;position:relative;overflow:hidden">
-        <div id="lootGlow" style="position:absolute;inset:0;pointer-events:none;transition:box-shadow 0.5s"></div>
-        <div style="font-size:10px;font-weight:700;margin-bottom:4px">🎁 MYSTERY BOX</div>
-        <div style="font-size:50px;cursor:pointer;transition:transform 0.3s" id="lootBoxIcon" onclick="openLootBox()">📦</div>
-        <div style="font-size:9px;color:#6b7280" id="lootTimer">Next: --</div>
-        <div style="font-size:11px;color:#f59e0b;font-weight:700;margin-top:4px" id="lootPrize"></div>
-    </div>
-
     <!-- 💬 LIVE CHAT -->
     <div class="glass-light" style="margin:8px;padding:10px;border-radius:12px;display:flex;flex-direction:column">
         <div style="font-size:10px;font-weight:700;margin-bottom:6px">💬 LIVE CHAT</div>
@@ -423,7 +468,7 @@ let currentPair='XAUUSD',currentInterval='15',tvWidget=null;
 let adminBuyVotes=0,adminSellVotes=0;
 let ttsEnabled=true;
 let currentScene='normal';
-let streakCount=0,lootCD=1800;
+let streakCount=0;
 // ==========================================
 // 🔥 CACHE SYSTEM — Data tetap tampil walau Firebase lambat
 // ==========================================
@@ -1072,24 +1117,7 @@ function updateAllStats() {
 // 🔥 SYNC GLADIATORS WITH POSITIONS
 // ==========================================
 function syncGladiatorsWithPositions(allPositions) {
-    // Hapus gladiators yang sudah tidak ada di posisi
-    gladiators = gladiators.filter(g => {
-        const exists = allPositions.find(p => 
-            Math.abs(p.entry - g.entry) < 1 && p.dir === g.dir
-        );
-        if (!exists && g.status !== 'dead') {
-            // Pindah ke Hall of Fame
-            fallenGladiators.push(g);
-            if (g.profit > 0) seasonStats.wins++;
-            else seasonStats.losses++;
-            seasonStats.profit += g.profit;
-            seasonStats.battles++;
-            return false;
-        }
-        return true;
-    });
-    
-    // Tambah gladiators baru
+    // 🔥 Hanya update, jangan recreate
     allPositions.forEach(pos => {
         const exists = gladiators.find(g => 
             g.status !== 'dead' && 
@@ -1097,26 +1125,20 @@ function syncGladiatorsWithPositions(allPositions) {
             g.dir === pos.dir
         );
         
-        if (!exists && pos.dir) {
-            // Buat gladiator baru
+        if (!exists && pos.dir && pos.active) {
+            // Buat gladiator baru HANYA kalau benar-benar belum ada
             const gladId = 'GLAD-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 4);
             const names = ['MAXIMUS', 'SPARTACUS', 'TITAN', 'PHANTOM', 'VIPER', 'SHADOW', 'BLADE', 'STORM', 'FROST', 'EMBER'];
             const name = names[Math.floor(Math.random() * names.length)];
             
             const gladiator = {
-                id: gladId,
-                name: name,
-                dir: pos.dir,
-                entry: pos.entry || 0,
-                sl: pos.sl || 0,
+                id: gladId, name: name, dir: pos.dir,
+                entry: pos.entry || 0, sl: pos.sl || 0,
                 trailStart: pos.trailStart || 0,
                 currentPrice: pos.currentPrice || pos.entry || 0,
-                profit: pos.profit || 0,
-                hp: 100,
+                profit: pos.profit || 0, hp: 100,
                 maxHp: Math.abs((pos.entry || 0) - (pos.sl || 1)) || 100,
-                status: pos.active ? 'alive' : 'dead',
-                backers: 0,
-                spawnedAt: Date.now(),
+                status: 'alive', backers: 0, spawnedAt: Date.now(),
                 title: 'ROOKIE',
                 color: pos.dir === 'BUY' ? '#10b981' : '#ef4444',
                 emblem: pos.dir === 'BUY' ? '🐂' : '🐻',
@@ -1126,7 +1148,7 @@ function syncGladiatorsWithPositions(allPositions) {
             gladiators.push(gladiator);
             seasonStats.battles++;
         } else if (exists) {
-            // Update gladiator yang sudah ada
+            // 🔥 HANYA UPDATE, jangan recreate
             exists.currentPrice = pos.currentPrice || exists.currentPrice;
             exists.profit = pos.profit || 0;
             exists.sl = pos.sl || exists.sl;
@@ -1139,11 +1161,22 @@ function syncGladiatorsWithPositions(allPositions) {
             if (pos.active && exists.profit > 0 && exists.hp > 50) exists.status = 'winning';
             else if (pos.active && exists.hp < 20) exists.status = 'dying';
             else if (pos.active) exists.status = 'alive';
-            else exists.status = 'dead';
+            else {
+                // Posisi close → kill
+                exists.status = 'dead';
+                exists.profit = pos.profit || 0;
+                fallenGladiators.push(exists);
+                if (exists.profit > 0) seasonStats.wins++;
+                else seasonStats.losses++;
+                seasonStats.profit += exists.profit;
+            }
         }
     });
     
-    // Update tampilan
+    // 🔥 Hapus gladiator yang statusnya dead dari array aktif
+    gladiators = gladiators.filter(g => g.status !== 'dead');
+    
+    // 🔥 Update tampilan (render ulang)
     renderGladiatorCards();
     renderHallOfFame();
     updateStadium();
@@ -1202,21 +1235,83 @@ function updatePriceRace(){
 // ==========================================
 
 // ==========================================
-// 🎁 LOOT BOX
+// 🔮 THE ORACLE'S ALTAR
 // ==========================================
-function openLootBox(){
-    playTone('sine',600,0.1,0.2);
-    const prizes=['🎁 Free Trial','🏅 Badge','📢 Shoutout','💎 VIP','🎯 2x XP','😢 Nothing'];
-    const r=Math.floor(Math.random()*prizes.length);
-    document.getElementById('lootBoxIcon').style.transform='scale(1.3) rotate(15deg)';
-    document.getElementById('lootGlow').style.boxShadow='0 0 40px #f59e0b';
-    setTimeout(()=>{
-        document.getElementById('lootBoxIcon').style.transform='scale(1) rotate(0)';
-        document.getElementById('lootGlow').style.boxShadow='none';
-        document.getElementById('lootPrize').textContent='🎉 '+prizes[r]+'!';
-        if(prizes[r]!=='😢 Nothing')spawnConfetti();
-        speak('Box dibuka! Hadiah: '+prizes[r]);
-    },600);
+let lastAltarCandle = 0;
+const altarWisdom = [
+    "The market speaks in whispers...",
+    "Fortune favors the patient...",
+    "The charts have spoken...",
+    "As above, so below...",
+    "The trend is your ally...",
+    "Patience reveals the path...",
+    "The oracle sees all...",
+    "Trust the process..."
+];
+
+function updateOracleAltar() {
+    const currentCandle = Math.floor(Date.now() / 900000);
+    updateAltarCountdown();
+    
+    if (currentCandle === lastAltarCandle) return;
+    
+    db.ref('signals/' + CONFIG.adminLicense + '/XAU_USD/1').once('value', snap => {
+        const s = snap.val();
+        if (!s || !s.dir) return;
+        
+        lastAltarCandle = currentCandle;
+        
+        const altar = document.getElementById('oracleAltar');
+        const ring = document.getElementById('altarRing');
+        const glow = document.getElementById('altarGlow');
+        
+        altar.style.animation = 'shake 0.5s ease-in-out';
+        ring.style.width = '130px';
+        ring.style.height = '130px';
+        ring.style.borderColor = 'rgba(245,158,11,0.5)';
+        glow.style.opacity = '1';
+        playSound('horn');
+        
+        setTimeout(() => {
+            document.getElementById('altarSignal').style.display = 'none';
+            const prophecy = document.getElementById('altarProphecy');
+            prophecy.style.display = 'block';
+            
+            const dirColor = s.dir === 'BUY' ? '#10b981' : '#ef4444';
+            document.getElementById('altarDir').innerHTML = `<span style="color:${dirColor};font-size:16px">${s.dir} XAU/USD</span>`;
+            document.getElementById('altarEntry').textContent = '$' + parseFloat(s.entry).toFixed(2);
+            document.getElementById('altarSL').textContent = '$' + parseFloat(s.sl).toFixed(2);
+            document.getElementById('altarTT').textContent = '$' + (parseFloat(s.trailStart) || 0).toFixed(2);
+            document.getElementById('altarWisdom').textContent = '"' + altarWisdom[Math.floor(Math.random() * altarWisdom.length)] + '"';
+            
+            spawnOracleParticles();
+            playSound('victory');
+            
+            setTimeout(() => {
+                altar.style.animation = '';
+                ring.style.width = '90px';
+                ring.style.height = '90px';
+                ring.style.borderColor = 'rgba(168,85,247,0.2)';
+                glow.style.opacity = '0';
+            }, 2000);
+        }, 600);
+    });
+}
+
+function updateAltarCountdown() {
+    const now = new Date();
+    const mins = now.getMinutes();
+    const secs = now.getSeconds();
+    const currentCandle = Math.floor(mins / 15) * 15;
+    const nextCandle = (currentCandle + 15) % 60;
+    let minsLeft = nextCandle - mins;
+    if (minsLeft <= 0) minsLeft += 15;
+    const totalSecs = minsLeft * 60 - secs;
+    const mm = Math.floor(totalSecs / 60);
+    const ss = totalSecs % 60;
+    
+    const el = document.getElementById('altarCountdown');
+    if (el) el.textContent = 'Ramalan berikutnya: ' + String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
 }
 
 // ==========================================
@@ -1263,8 +1358,6 @@ function updateAllTimers(){
     document.getElementById('headerTimer').textContent=timeStr;
     document.getElementById('btmTimer').textContent=timeStr;
     // Loot box
-    lootCD--;if(lootCD<=0)lootCD=1800;
-    document.getElementById('lootTimer').textContent='Next: '+Math.floor(lootCD/60)+'m '+lootCD%60+'s';
 }
 
 // ==========================================
@@ -1533,10 +1626,12 @@ function init(){
     updateStadium();
     updateSeasonStats();
     updateAllStats();
+    updateOracleAltar();
     listenFirebaseChat();
     setInterval(updateAllTimers,1000);
     setInterval(updatePriceRace,2000);
     setInterval(updateStadium,3000);
+    setInterval(updateOracleAltar,30000);
     setInterval(updateCountdownOverlay, 1000);
     updateChartDimensions();
     setInterval(updateChartDimensions, 3000);
