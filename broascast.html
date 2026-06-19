@@ -10,6 +10,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- THE GALA — Premium Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://s3.tradingview.com/tv.js"></script>
     <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','sans-serif']},colors:{primary:{400:'#fb923c',500:'#f97316',600:'#ea580c'},accent:{400:'#fbbf24',500:'#f59e0b',600:'#d97706'},surface:{50:'#fafafa',100:'#f5f5f5',200:'#e5e5e5',700:'#1f1f1f',800:'#171717',900:'#0a0a0a',950:'#050505'},profit:'#10b981',loss:'#ef4444',neutral:'#6b7280'}}}}</script>
     <style>
@@ -74,6 +76,132 @@
         @keyframes fadeIn{0%{opacity:0}100%{opacity:1}}
         @keyframes shimmerText{0%{background-position:-200% 0}100%{background-position:200% 0}}
         .shimmer-text{background:linear-gradient(90deg,#f59e0b,#a855f7,#f59e0b);background-size:200% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmerText 2s linear infinite}
+        /* THE GALA v2.0 — Minified Complete CSS */
+        :root{--gala-bg:#06060b;--gala-gold:#c8a84e;--gala-gold-light:#e0c878;--gala-white:#f0ede5;--gala-platinum:#b8b8b0;--gala-card-bg:rgba(20,18,14,0.6);--gala-border:rgba(200,168,78,0.12);--gala-border-active:rgba(200,168,78,0.5)}
+        @keyframes galaFadeIn{0%{opacity:0;transform:scale(.97)}100%{opacity:1;transform:scale(1)}}
+        @keyframes galaSlideUp{0%{opacity:0;transform:translateY(40px)}100%{opacity:1;transform:translateY(0)}}
+        @keyframes galaPulse{0%,100%{box-shadow:0 0 20px rgba(200,168,78,.15)}50%{box-shadow:0 0 50px rgba(200,168,78,.5)}}
+        @keyframes galaRouletteSpin{0%{transform:rotate(0deg)}100%{transform:rotate(1800deg)}}
+        @keyframes galaCardFlip{0%{transform:rotateY(0) scale(1)}40%{transform:rotateY(90deg) scale(1.05)}100%{transform:rotateY(0) scale(1)}}
+        @keyframes galaDiamondBreak{0%{transform:scale(1);opacity:1;filter:brightness(1)}40%{transform:scale(1.4);opacity:.8;filter:brightness(2)}100%{transform:scale(0);opacity:0;filter:brightness(3)}}
+        @keyframes galaDiamondWinner{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.08)}}
+        @keyframes galaCurtainOpen{0%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 50% 0 50%)}}
+        @keyframes galaCurtainClose{0%{clip-path:inset(0 50% 0 50%)}100%{clip-path:inset(0 0 0 0)}}
+        @keyframes galaStarGlow{0%,100%{box-shadow:0 0 4px #fff,0 0 8px rgba(200,168,78,.4);transform:scale(1)}50%{box-shadow:0 0 15px #fff,0 0 30px rgba(200,168,78,.8),0 0 50px rgba(247,231,206,.4);transform:scale(1.8)}}
+        @keyframes galaBorderGlow{0%,100%{border-color:rgba(200,168,78,.2)}50%{border-color:rgba(200,168,78,.8)}}
+        @keyframes galaSpotlightChange{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:scale(1)}}
+        @keyframes galaRayRotate{0%{transform:translate(-50%,-50%) rotate(0deg)}100%{transform:translate(-50%,-50%) rotate(360deg)}}
+        @keyframes galaTextShimmer{0%{background-position:-300% 0}100%{background-position:300% 0}}
+
+        .gala-container{position:fixed;inset:0;z-index:200;background:var(--gala-bg);display:none;font-family:'Inter',sans-serif;overflow:hidden}.gala-container.active{display:flex;flex-direction:column}
+        .gala-curtain{position:absolute;inset:0;background:linear-gradient(180deg,#140a0a 0%,#2d0f0f 40%,#1a0a0a 100%);z-index:300;display:flex;align-items:center;justify-content:center;clip-path:inset(0 0 0 0);animation:galaCurtainOpen 1.2s ease-in-out forwards;animation-delay:.6s;pointer-events:none}.gala-curtain.closing{animation:galaCurtainClose 1s ease-in-out forwards;animation-delay:0s}
+        .gala-curtain-text{font-family:'Playfair Display',serif;font-size:clamp(32px,6vw,64px);font-weight:900;background:linear-gradient(90deg,#c8a84e,#f7e7ce,#c8a84e);background-size:300% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:galaTextShimmer 3s linear infinite;letter-spacing:12px;text-transform:uppercase;filter:drop-shadow(0 0 20px rgba(200,168,78,.4))}
+        .gala-content{flex:1;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;opacity:0;animation:galaFadeIn .8s ease-out forwards;animation-delay:1.6s}
+        .gala-content::-webkit-scrollbar,.gala-pro-chat-list::-webkit-scrollbar{width:3px}
+        .gala-content::-webkit-scrollbar-track,.gala-pro-chat-list::-webkit-scrollbar-track{background:transparent}
+        .gala-content::-webkit-scrollbar-thumb,.gala-pro-chat-list::-webkit-scrollbar-thumb{background:rgba(200,168,78,.15);border-radius:2px}
+        .gala-close-btn{position:absolute;top:24px;right:24px;width:40px;height:40px;border-radius:50%;background:rgba(200,168,78,.08);border:1px solid rgba(200,168,78,.25);color:var(--gala-gold);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .35s cubic-bezier(.25,.8,.25,1.2);z-index:310}.gala-close-btn:hover{background:rgba(200,168,78,.18);border-color:rgba(200,168,78,.5);transform:rotate(90deg);box-shadow:0 0 20px rgba(200,168,78,.2)}
+
+        .gala-pro-lobby{display:none;flex-direction:column;align-items:center;padding:24px 20px 30px;min-height:100vh;animation:galaFadeIn .5s ease-out}.gala-pro-lobby.active{display:flex}
+        .gala-pro-header{text-align:center;margin-bottom:24px}
+        .gala-pro-title{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,44px);font-weight:900;background:linear-gradient(90deg,#c8a84e,#f7e7ce,#c8a84e);background-size:300% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:galaTextShimmer 3s linear infinite;letter-spacing:6px}
+        .gala-pro-subtitle{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--gala-platinum);letter-spacing:4px;font-style:italic;margin-top:2px}
+        .gala-pro-viewers{font-size:11px;color:var(--gala-gold);margin-top:8px;letter-spacing:1px;opacity:.8}
+        .gala-pro-grid{display:flex;gap:14px;max-width:1050px;width:100%;flex-wrap:wrap}
+        .gala-pro-left{flex:1.2;min-width:340px;display:flex;flex-direction:column;gap:14px}
+        .gala-pro-right{flex:.85;min-width:280px;display:flex;flex-direction:column;gap:14px}
+
+.gala-pro-spotlight{background:var(--gala-card-bg);border:1px solid var(--gala-border);border-radius:18px;padding:22px 18px;text-align:center;position:relative;overflow:hidden;min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gala-pro-spotlight::before{content:'';position:absolute;top:-60%;left:50%;transform:translate(-50%,-50%);width:200%;height:200%;background:radial-gradient(ellipse at center,rgba(200,168,78,.06) 0%,transparent 55%);pointer-events:none;animation:galaRayRotate 20s linear infinite}
+.gala-pro-spotlight-label{font-family:'Playfair Display',serif;font-size:14px;color:var(--gala-gold);letter-spacing:3px;margin-bottom:14px;position:relative;z-index:1}
+.gala-pro-spotlight-content{position:relative;z-index:1;transition:all .4s ease}.gala-pro-spotlight-content.changing{animation:galaSpotlightChange .4s ease-out}
+.gala-pro-spotlight-frame{width:85px;height:85px;border-radius:50%;border:2px solid var(--gala-gold);overflow:hidden;margin:0 auto 10px;box-shadow:0 0 35px rgba(200,168,78,.3)}
+.gala-pro-spotlight-frame img{width:100%;height:100%;object-fit:cover}
+.gala-pro-spotlight-name{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gala-white)}
+.gala-pro-spotlight-badge{font-size:10px;color:var(--gala-platinum);margin-top:2px}
+.gala-pro-spotlight-roses{font-size:10px;color:var(--gala-gold);margin-top:4px}
+
+.gala-pro-mosaic{background:var(--gala-card-bg);border:1px solid var(--gala-border);border-radius:16px;padding:14px}
+.gala-pro-mosaic-label{font-family:'Playfair Display',serif;font-size:13px;color:var(--gala-gold);letter-spacing:2px;margin-bottom:10px}
+.gala-pro-mosaic-grid{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;max-height:130px;overflow:hidden}
+.gala-pro-mosaic-item{width:30px;height:30px;border-radius:50%;overflow:hidden;border:1px solid rgba(200,168,78,.25);flex-shrink:0;transition:all .4s}.gala-pro-mosaic-item:hover{transform:scale(1.8);z-index:5;border-color:var(--gala-gold);box-shadow:0 0 15px rgba(200,168,78,.4)}
+.gala-pro-mosaic-item img{width:100%;height:100%;object-fit:cover}
+
+.gala-pro-chat{background:var(--gala-card-bg);border:1px solid var(--gala-border);border-radius:16px;padding:14px;flex:1;display:flex;flex-direction:column;max-height:280px}
+.gala-pro-chat-label{font-family:'Playfair Display',serif;font-size:13px;color:var(--gala-gold);letter-spacing:2px;margin-bottom:10px}
+.gala-pro-chat-list{flex:1;overflow-y:auto;font-size:10px;color:#d1d5db;line-height:1.5;padding-right:3px}
+.gala-pro-chat-item{display:flex;gap:7px;margin-bottom:9px;align-items:flex-start;animation:galaSlideUp .3s ease-out}
+.gala-pro-chat-avatar{width:26px;height:26px;border-radius:50%;overflow:hidden;border:1px solid rgba(200,168,78,.3);flex-shrink:0}
+.gala-pro-chat-avatar img{width:100%;height:100%;object-fit:cover}
+.gala-pro-chat-name{font-weight:600;color:#f0ede5;font-size:9px}.gala-pro-chat-time{font-size:7px;color:#6b7280;margin-left:4px}
+.gala-pro-chat-text{color:#d1d5db;font-size:9px;line-height:1.35;margin-top:1px}
+
+.gala-pro-btn-games{width:100%;padding:14px;background:linear-gradient(135deg,rgba(200,168,78,.18),rgba(200,168,78,.06));border:1px solid rgba(200,168,78,.35);border-radius:14px;color:var(--gala-gold);font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;letter-spacing:3px;cursor:pointer;transition:all .35s cubic-bezier(.25,.8,.25,1.2);text-transform:uppercase;position:relative;overflow:hidden}
+.gala-pro-btn-games::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(200,168,78,.1),transparent);transition:left .5s}
+.gala-pro-btn-games:hover{background:rgba(200,168,78,.25);border-color:var(--gala-border-active);box-shadow:0 0 35px rgba(200,168,78,.25);transform:translateY(-2px)}.gala-pro-btn-games:hover::before{left:100%}
+.gala-pro-btn-back{width:100%;padding:10px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;color:#8b8b80;font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:2px;cursor:pointer;transition:all .3s}.gala-pro-btn-back:hover{border-color:rgba(255,255,255,.15);color:#c8a84e}
+
+.gala-game-lobby{display:none;flex-direction:column;align-items:center;padding:30px 20px 40px;min-height:100vh;animation:galaFadeIn .5s ease-out}.gala-game-lobby.active{display:flex}
+.gala-game-lobby-title{font-family:'Playfair Display',serif;font-size:clamp(24px,4vw,38px);font-weight:900;color:var(--gala-gold);letter-spacing:6px;margin-bottom:4px}
+.gala-game-lobby-subtitle{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--gala-platinum);letter-spacing:3px;font-style:italic;margin-bottom:28px}
+.gala-game-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:800px;width:100%;margin-bottom:24px}
+@media(max-width:650px){.gala-game-grid{grid-template-columns:repeat(2,1fr)}}
+.gala-game-card{background:var(--gala-card-bg);border:1px solid var(--gala-border);border-radius:16px;padding:20px 14px;text-align:center;cursor:pointer;transition:all .35s cubic-bezier(.25,.8,.25,1.2);position:relative;overflow:hidden}
+.gala-game-card:hover{transform:translateY(-4px);border-color:var(--gala-border-active);box-shadow:0 15px 40px rgba(200,168,78,.08)}
+.gala-game-card::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(200,168,78,.04),transparent);transition:left .6s}.gala-game-card:hover::after{left:100%}
+.gala-game-icon{font-size:40px;margin-bottom:8px;transition:transform .3s}.gala-game-card:hover .gala-game-icon{transform:scale(1.15)}
+.gala-game-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--gala-white);margin-bottom:3px}
+.gala-game-desc{font-size:10px;color:var(--gala-platinum);margin-bottom:10px;opacity:.7}
+.gala-game-play-btn{display:inline-block;padding:7px 20px;background:linear-gradient(135deg,rgba(200,168,78,.15),rgba(200,168,78,.04));border:1px solid rgba(200,168,78,.3);border-radius:20px;color:var(--gala-gold);font-family:'Montserrat',sans-serif;font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;transition:all .3s}
+.gala-game-card:hover .gala-game-play-btn{background:rgba(200,168,78,.25);border-color:var(--gala-border-active)}
+.gala-game-highlights{max-width:800px;width:100%;background:var(--gala-card-bg);border:1px solid var(--gala-border);border-radius:14px;padding:16px 22px}
+.gala-game-highlights-title{font-family:'Playfair Display',serif;font-size:14px;color:var(--gala-gold);margin-bottom:8px;letter-spacing:2px}
+.gala-game-highlight-item{font-size:10px;color:var(--gala-platinum);margin:4px 0;opacity:.75}
+
+.gala-game-view{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:85vh;padding:20px;animation:galaFadeIn .4s ease-out}.gala-game-view.active{display:flex}
+.gala-game-view-title{font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,38px);font-weight:900;color:var(--gala-gold);text-align:center;margin-bottom:24px;letter-spacing:4px}
+.gala-back-btn{position:absolute;top:24px;left:24px;padding:9px 18px;background:rgba(200,168,78,.08);border:1px solid rgba(200,168,78,.25);border-radius:20px;color:var(--gala-gold);font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:2px;cursor:pointer;transition:all .3s;z-index:5}.gala-back-btn:hover{background:rgba(200,168,78,.18);border-color:var(--gala-border-active)}
+.gala-action-btn{padding:11px 26px;background:linear-gradient(135deg,rgba(200,168,78,.18),rgba(200,168,78,.05));border:1px solid rgba(200,168,78,.35);border-radius:22px;color:var(--gala-gold);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;cursor:pointer;transition:all .35s;text-transform:uppercase}.gala-action-btn:hover{background:rgba(200,168,78,.28);box-shadow:0 0 25px rgba(200,168,78,.2)}
+
+.gala-winner-frame{width:90px;height:90px;border-radius:50%;border:2px solid var(--gala-gold);overflow:hidden;margin:0 auto 10px;box-shadow:0 0 35px rgba(200,168,78,.35);animation:galaPulse 2s ease-in-out infinite}.gala-winner-frame img{width:100%;height:100%;object-fit:cover}
+.gala-winner-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gala-gold)}
+.gala-winner-badge{font-size:11px;color:var(--gala-platinum);margin-top:3px}
+
+.gala-roulette-container{position:relative;display:inline-block;margin-bottom:10px}
+.gala-roulette-pointer{position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:28px solid var(--gala-gold);filter:drop-shadow(0 0 8px rgba(200,168,78,.5));z-index:5}
+.gala-roulette-wheel{width:260px;height:260px;border-radius:50%;border:6px solid var(--gala-gold);background:radial-gradient(circle at 30% 30%,#2a2a3a,#12121f);box-shadow:0 0 50px rgba(200,168,78,.25),inset 0 0 40px rgba(0,0,0,.6)}.gala-roulette-wheel.spinning{animation:galaRouletteSpin 3.5s cubic-bezier(.15,.65,.1,.98)}
+.gala-roulette-winner{margin-top:20px;text-align:center;display:none}.gala-roulette-winner.show{display:block;animation:galaSlideUp .4s ease-out}
+
+.gala-diamond-arena{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
+.gala-diamond-player{text-align:center;transition:all .5s cubic-bezier(.25,.8,.25,1.2)}.gala-diamond-player.eliminated{opacity:.25;transform:scale(.75);filter:grayscale(.8)}.gala-diamond-player.winner-anim{animation:galaDiamondWinner 1.5s ease-in-out infinite}
+.gala-diamond-frame{width:70px;height:70px;border-radius:50%;border:2px solid var(--gala-platinum);overflow:hidden;margin:0 auto 6px;position:relative;transition:all .5s}.gala-diamond-player.winner-anim .gala-diamond-frame{border-color:var(--gala-gold);box-shadow:0 0 30px rgba(200,168,78,.5)}
+.gala-diamond-frame img{width:100%;height:100%;object-fit:cover}
+.gala-diamond-gem{position:absolute;top:-12px;right:-4px;font-size:20px;transition:all .4s}.gala-diamond-gem.breaking{animation:galaDiamondBreak .7s ease-in forwards}
+.gala-diamond-name{font-size:10px;color:var(--gala-white);font-weight:600}.gala-diamond-status{font-size:8px;color:var(--gala-gold);margin-top:1px}
+
+.gala-deck-area{text-align:center}
+.gala-card-display{width:160px;height:220px;background:linear-gradient(135deg,#1a1a2e,#252540);border:3px solid var(--gala-gold);border-radius:14px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;box-shadow:0 15px 40px rgba(200,168,78,.15)}.gala-card-display.flipping{animation:galaCardFlip .7s ease-in-out}
+.gala-card-back{font-size:50px;color:var(--gala-gold)}.gala-card-face-img{width:100%;height:100%;object-fit:cover;border-radius:11px}
+.gala-deck-winner{display:none;text-align:center;margin-top:16px}.gala-deck-winner.show{display:block;animation:galaSlideUp .4s ease-out}
+
+.gala-constellation-sky{width:100%;max-width:750px;height:350px;position:relative;overflow:hidden;background:radial-gradient(ellipse at center,#151d30 0%,#090910 75%);border-radius:18px;border:1px solid var(--gala-border);margin-bottom:10px}
+.gala-constellation-star{position:absolute;border-radius:50%;overflow:hidden;border:1px solid rgba(200,168,78,.2);transition:all .7s cubic-bezier(.25,.8,.25,1.2)}.gala-constellation-star.glowing{animation:galaStarGlow 2.5s ease-in-out infinite;z-index:5;border-color:rgba(200,168,78,.6)!important}
+.gala-constellation-star img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.gala-constellation-star-info{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);padding:3px 10px;border-radius:10px;font-size:8px;color:var(--gala-gold);border:1px solid rgba(200,168,78,.3);display:none;white-space:nowrap}.gala-constellation-star.glowing .gala-constellation-star-info{display:block}
+
+.gala-ballot-timer{font-size:32px;font-weight:900;color:var(--gala-gold);font-family:'Playfair Display',serif;margin-bottom:14px;letter-spacing:2px}
+.gala-ballot-nominees{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:14px}
+.gala-ballot-card{text-align:center;padding:14px;background:var(--gala-card-bg);border:1px solid var(--gala-border);border-radius:14px;transition:all .3s;min-width:100px}.gala-ballot-card.leading{border-color:var(--gala-gold);box-shadow:0 0 30px rgba(200,168,78,.25);animation:galaBorderGlow 2s ease-in-out infinite}
+.gala-ballot-frame{width:60px;height:60px;border-radius:50%;overflow:hidden;margin:0 auto 6px;border:2px solid var(--gala-platinum)}.gala-ballot-card.leading .gala-ballot-frame{border-color:var(--gala-gold)}
+.gala-ballot-frame img{width:100%;height:100%;object-fit:cover}
+.gala-ballot-name{font-size:10px;font-weight:600;color:var(--gala-white)}.gala-ballot-votes{font-size:16px;font-weight:700;color:var(--gala-gold);margin-top:3px}
+.gala-ballot-bar{width:100%;height:5px;background:rgba(255,255,255,.04);border-radius:3px;margin-top:5px;overflow:hidden}.gala-ballot-bar-fill{height:100%;background:linear-gradient(90deg,var(--gala-gold),#f7e7ce);border-radius:3px;transition:width .4s}
+
+.gala-mosaic-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;max-width:750px;margin-bottom:10px}
+.gala-mosaic-item{width:36px;height:36px;border-radius:5px;overflow:hidden;border:1px solid rgba(200,168,78,.18);transition:all .45s cubic-bezier(.25,.8,.25,1.2);flex-shrink:0}.gala-mosaic-item.highlighted{transform:scale(2.2);z-index:8;border-color:var(--gala-gold);box-shadow:0 0 25px rgba(200,168,78,.5);border-radius:7px}
+.gala-mosaic-item img{width:100%;height:100%;object-fit:cover}
+
+@media(max-width:768px){.gala-pro-grid{flex-direction:column}.gala-pro-left,.gala-pro-right{min-width:auto}.gala-pro-mosaic-grid{max-height:100px}.gala-pro-chat{max-height:180px}.gala-roulette-wheel{width:200px;height:200px}.gala-diamond-arena{gap:12px}.gala-diamond-frame{width:55px;height:55px}.gala-constellation-sky{height:240px}}
     </style>
 </head>
 <body class="bg-surface-950 text-white font-sans">
@@ -122,6 +250,7 @@
             <span>⏱ <b class="text-accent-400" id="headerTimer">--:--</b></span>
             <button onclick="toggleTTS()" class="glass" style="padding:4px 10px;border-radius:8px;font-size:10px">🔊</button>
             <button onclick="toggleScene()" class="glass" style="padding:4px 10px;border-radius:8px;font-size:10px">🎬</button>
+            <button onclick="openGala()" class="glass" style="padding:4px 10px;border-radius:8px;font-size:10px;background:rgba(200,168,78,0.2);border:1px solid rgba(200,168,78,0.4);color:#c8a84e;">🎬 GALA</button>
             <button onclick="window.location.href='index.html'" class="glass" style="padding:4px 10px;border-radius:8px;font-size:10px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#f59e0b">🏠 Panel</button>
         </div>
     </div>
@@ -431,7 +560,7 @@
     <!-- 💬 LIVE CHAT -->
     <div class="glass-light" style="margin:8px;padding:10px;border-radius:12px;display:flex;flex-direction:column">
         <div style="font-size:10px;font-weight:700;margin-bottom:6px">💬 LIVE CHAT</div>
-        <div id="liveChat" style="font-size:11px;color:#d1d5db;line-height:1.6;max-height:180px;overflow-y:auto;margin-bottom:8px;padding:4px;background:rgba(0,0,0,0.2);border-radius:8px;position:relative">
+     <div id="liveChat" onclick="openGala()" style="font-size:11px;color:#d1d5db;line-height:1.6;max-height:180px;overflow-y:auto;margin-bottom:8px;padding:4px;background:rgba(0,0,0,0.2);border-radius:8px;position:relative;cursor:pointer;">
             <div>Waiting for comments...</div>
         </div>
         <div style="display:flex;gap:6px">
@@ -446,6 +575,231 @@
 </div>
 
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- THE GALA: PRESTIGE EDITION — COMPLETE HTML                   -->
+<!-- Ditambahkan pada: LANGKAH 3                                 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="gala-container" id="galaContainer">
+    
+    <!-- CURTAIN -->
+    <div class="gala-curtain" id="galaCurtain">
+        <span class="gala-curtain-text">THE GALA</span>
+    </div>
+    
+    <!-- CLOSE BUTTON -->
+    <button class="gala-close-btn" onclick="closeGala()">✕</button>
+    
+    <!-- CONTENT -->
+    <div class="gala-content" id="galaContent">
+        
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- PROFESSIONAL LOBBY (Tampilan Pertama)           -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <div class="gala-pro-lobby active" id="galaProLobby">
+            
+            <!-- HEADER -->
+            <div class="gala-pro-header">
+                <div class="gala-pro-title">THE GALA</div>
+                <div class="gala-pro-subtitle">✦ Live Audience Experience ✦</div>
+                <div class="gala-pro-viewers" id="galaProViewers">👥 -- distinguished guests watching</div>
+            </div>
+            
+            <!-- GRID -->
+            <div class="gala-pro-grid">
+                
+                <!-- LEFT -->
+                <div class="gala-pro-left">
+                    
+                    <!-- SPOTLIGHT -->
+                    <div class="gala-pro-spotlight">
+                        <div class="gala-pro-spotlight-label">✦ SPOTLIGHT ✦</div>
+                        <div class="gala-pro-spotlight-content" id="galaProSpotlightContent">
+                            <div class="gala-pro-spotlight-frame">
+                                <img src="https://i.pravatar.cc/150?u=spotlight" alt="" id="galaProSpotlightImg">
+                            </div>
+                            <div class="gala-pro-spotlight-name" id="galaProSpotlightName">—</div>
+                            <div class="gala-pro-spotlight-badge" id="galaProSpotlightBadge">💎 Elite Member</div>
+                            <div class="gala-pro-spotlight-roses" id="galaProSpotlightRoses">🌹 -- Roses</div>
+                        </div>
+                    </div>
+                    
+                    <!-- MINI MOSAIC -->
+                    <div class="gala-pro-mosaic">
+                        <div class="gala-pro-mosaic-label">📸 Distinguished Guests</div>
+                        <div class="gala-pro-mosaic-grid" id="galaProMiniMosaic"></div>
+                    </div>
+                    
+                </div>
+                
+                <!-- RIGHT -->
+                <div class="gala-pro-right">
+                    
+                    <!-- CHAT -->
+                    <div class="gala-pro-chat">
+                        <div class="gala-pro-chat-label">💬 The Conversation</div>
+                        <div class="gala-pro-chat-list" id="galaProChatList">
+                            <div style="text-align:center;color:#6b7280;padding:20px;font-size:10px;">The floor is quiet...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- GAMES BUTTON -->
+                    <button class="gala-pro-btn-games" onclick="openGameLobby()">
+                        🎮 ENTER THE GAMES
+                    </button>
+                    
+                    <!-- BACK TO TRADING -->
+                    <button class="gala-pro-btn-back" onclick="closeGala()">
+                        ← KEMBALI KE TRADING
+                    </button>
+                    
+                </div>
+                
+            </div>
+            
+        </div>
+        
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- GAME LOBBY (Setelah klik ENTER THE GAMES)      -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <div class="gala-game-lobby" id="galaGameLobby">
+            <div class="gala-game-lobby-title">🎮 THE GAMES</div>
+            <div class="gala-game-lobby-subtitle">✦ Prestige Edition ✦</div>
+            
+            <div class="gala-game-grid">
+                <div class="gala-game-card" onclick="openGalaGame('roulette')">
+                    <div class="gala-game-icon">🎯</div>
+                    <div class="gala-game-name">Velvet Roulette</div>
+                    <div class="gala-game-desc">Roda emas memilih tamu kehormatan</div>
+                    <span class="gala-game-play-btn">▶ Mainkan</span>
+                </div>
+                <div class="gala-game-card" onclick="openGalaGame('diamond')">
+                    <div class="gala-game-icon">💎</div>
+                    <div class="gala-game-name">Diamond Hand</div>
+                    <div class="gala-game-desc">Bertahan dengan berlian virtual</div>
+                    <span class="gala-game-play-btn">▶ Mainkan</span>
+                </div>
+                <div class="gala-game-card" onclick="openGalaGame('deck')">
+                    <div class="gala-game-icon">🃏</div>
+                    <div class="gala-game-name">Golden Deck</div>
+                    <div class="gala-game-desc">Kartu emas memilih pemenang</div>
+                    <span class="gala-game-play-btn">▶ Mainkan</span>
+                </div>
+                <div class="gala-game-card" onclick="openGalaGame('constellation')">
+                    <div class="gala-game-icon">🌟</div>
+                    <div class="gala-game-name">Constellation</div>
+                    <div class="gala-game-desc">Bintang-bintang penonton berkilau</div>
+                    <span class="gala-game-play-btn">▶ Mainkan</span>
+                </div>
+                <div class="gala-game-card" onclick="openGalaGame('ballot')">
+                    <div class="gala-game-icon">🏆</div>
+                    <div class="gala-game-name">Grand Ballot</div>
+                    <div class="gala-game-desc">Voting tamu terbaik malam ini</div>
+                    <span class="gala-game-play-btn">▶ Mainkan</span>
+                </div>
+                <div class="gala-game-card" onclick="openGalaGame('mosaic')">
+                    <div class="gala-game-icon">📸</div>
+                    <div class="gala-game-name">Audience Mosaic</div>
+                    <div class="gala-game-desc">Galeri seluruh tamu kehormatan</div>
+                    <span class="gala-game-play-btn">▶ Lihat</span>
+                </div>
+            </div>
+            
+            <div class="gala-game-highlights">
+                <div class="gala-game-highlights-title">✦ Tonight's Highlights ✦</div>
+                <div class="gala-game-highlight-item" id="galaHighlightGuests">👥 -- distinguished guests</div>
+                <div class="gala-game-highlight-item" id="galaHighlightRoses">🌹 -- roses received</div>
+                <div class="gala-game-highlight-item" id="galaHighlightTop">🏆 -- — Honor Roll #1</div>
+            </div>
+            
+            <button class="gala-pro-btn-back" onclick="backToProLobby()" style="margin-top:16px;max-width:300px;">
+                ← KEMBALI KE LOBBY
+            </button>
+        </div>
+        
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- VELVET ROULETTE                                -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <div class="gala-game-view" id="galaGameRoulette">
+            <button class="gala-back-btn" onclick="backToProLobby()">← LOBBY</button>
+            <div class="gala-game-view-title">🎯 Velvet Roulette</div>
+            <div class="gala-roulette-container">
+                <div class="gala-roulette-pointer"></div>
+                <div class="gala-roulette-wheel" id="rouletteWheel"></div>
+            </div>
+            <button class="gala-action-btn" onclick="spinRoulette()" id="rouletteSpinBtn" style="margin-top:20px;">🎰 PUTAR RODA</button>
+            <div class="gala-roulette-winner" id="rouletteWinner">
+                <div class="gala-winner-frame"><img src="" alt="" id="rouletteWinnerImg"></div>
+                <div class="gala-winner-name" id="rouletteWinnerName">—</div>
+                <div class="gala-winner-badge" id="rouletteWinnerBadge">—</div>
+            </div>
+        </div>
+        
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- DIAMOND HAND                                   -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <div class="gala-game-view" id="galaGameDiamond">
+            <button class="gala-back-btn" onclick="backToProLobby()">← LOBBY</button>
+            <div class="gala-game-view-title">💎 Diamond Hand</div>
+            <div class="gala-diamond-arena" id="diamondArena"></div>
+            <button class="gala-action-btn" onclick="startDiamondChallenge()" id="diamondStartBtn" style="margin-top:20px;">💎 MULAI</button>
+            <div id="diamondResult" style="margin-top:18px;text-align:center;display:none;"></div>
+        </div>
+        
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- GOLDEN DECK                                    -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <div class="gala-game-view" id="galaGameDeck">
+            <button class="gala-back-btn" onclick="backToProLobby()">← LOBBY</button>
+            <div class="gala-game-view-title">🃏 Golden Deck</div>
+            <div class="gala-deck-area">
+                <div class="gala-card-display" id="cardDisplay">
+                    <span class="gala-card-back" id="cardContent">🂠</span>
+                </div>
+                <button class="gala-action-btn" onclick="drawCard()" id="drawCardBtn">🃏 TARIK KARTU</button>
+                <div class="gala-deck-winner" id="deckWinner">
+                    <div class="gala-winner-frame"><img src="" alt="" id="deckWinnerImg"></div>
+                    <div class="gala-winner-name" id="deckWinnerName">—</div>
+                    <div class="gala-winner-badge" id="deckWinnerBadge">—</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- CONSTELLATION                                  -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <div class="gala-game-view" id="galaGameConstellation">
+            <button class="gala-back-btn" onclick="backToProLobby()">← LOBBY</button>
+            <div class="gala-game-view-title">🌟 Constellation</div>
+            <div class="gala-constellation-sky" id="constellationSky"></div>
+            <button class="gala-action-btn" onclick="toggleConstellation()" id="constellationBtn" style="margin-top:16px;">🌟 MULAI</button>
+        </div>
+        
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- GRAND BALLOT                                   -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <div class="gala-game-view" id="galaGameBallot">
+            <button class="gala-back-btn" onclick="backToProLobby()">← LOBBY</button>
+            <div class="gala-game-view-title">🏆 Grand Ballot</div>
+            <div class="gala-ballot-timer" id="ballotTimer">00:45</div>
+            <div class="gala-ballot-nominees" id="ballotNominees"></div>
+            <button class="gala-action-btn" onclick="startBallot()" id="ballotStartBtn">🗳️ MULAI VOTING</button>
+            <div id="ballotWinner" style="margin-top:18px;text-align:center;display:none;"></div>
+        </div>
+        
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- AUDIENCE MOSAIC                                -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <div class="gala-game-view" id="galaGameMosaic">
+            <button class="gala-back-btn" onclick="backToProLobby()">← LOBBY</button>
+            <div class="gala-game-view-title">📸 Audience Mosaic</div>
+            <div class="gala-mosaic-grid" id="mosaicGrid"></div>
+            <button class="gala-action-btn" onclick="refreshMosaic()" style="margin-top:16px;">🔄 REFRESH</button>
+        </div>
+        
+    </div>
+</div>
+<!-- ═══════════════════ AKHIR HTML THE GALA ═══════════════════════ -->
 
 <script>
 // ==========================================
@@ -619,6 +973,14 @@ function playSound(type) {
 function spawnGladiatorFromSignal(signal) {
     if (!signal || !signal.dir) return;
     
+    // 🔥 CEK DUPLIKAT — jangan spawn kalau gladiator dengan entry & dir yang sama sudah ada
+    const exists = gladiators.find(g => 
+        g.status !== 'dead' && 
+        Math.abs(g.entry - parseFloat(signal.entry)) < 2 && 
+        g.dir === signal.dir
+    );
+    if (exists) return;
+    
     const gladId = 'GLAD-' + Date.now().toString(36).toUpperCase();
     const names = ['MAXIMUS', 'SPARTACUS', 'TITAN', 'PHANTOM', 'VIPER', 'SHADOW', 'BLADE', 'STORM', 'FROST', 'EMBER'];
     const name = names[Math.floor(Math.random() * names.length)];
@@ -634,7 +996,7 @@ function spawnGladiatorFromSignal(signal) {
         profit: 0,
         hp: 100,
         maxHp: Math.abs((parseFloat(signal.entry) || 2650) - (parseFloat(signal.sl) || 2640)),
-        status: 'alive', // alive, winning, dying, dead, champion
+        status: 'alive',
         backers: 0,
         spawnedAt: Date.now(),
         title: 'ROOKIE',
@@ -646,19 +1008,11 @@ function spawnGladiatorFromSignal(signal) {
     gladiators.push(gladiator);
     seasonStats.battles++;
     
-    // Visual
     renderGladiatorCards();
     updateStadium();
     playSound('spawn');
-    
-    // AI Commentary
     commentatorSpeak(`${name} memasuki arena! ${gladiator.dir} di $${gladiator.entry.toFixed(2)} dengan ${gladiator.weapon}!`);
-    
-    // Chat
     addChatMessage('🏛️ Arena', `⚔️ ${name} (${gladiator.dir}) lahir di $${gladiator.entry.toFixed(2)} | SL: $${gladiator.sl.toFixed(2)}`, 'ai');
-    
-    // Auto-update tiap 5 detik
-    updateGladiatorPrices();
 }
 
 // ==========================================
@@ -1007,6 +1361,9 @@ function updateAllStats() {
                 totalTrails: xauData.totalTrails || 0,
                 activeTrails: xauData.activeTrails || 0,
                 totalProfitLocked: xauData.totalProfitLocked || 0,
+                todayWins: xauData.todayWins || 0,
+                todayLosses: xauData.todayLosses || 0,
+                todayProfit: xauData.todayProfit || 0,
                 updated: now
             };
             cacheLastValid.xau = now;
@@ -1020,6 +1377,9 @@ function updateAllStats() {
                 totalTrails: btcData.totalTrails || 0,
                 activeTrails: btcData.activeTrails || 0,
                 totalProfitLocked: btcData.totalProfitLocked || 0,
+                todayWins: btcData.todayWins || 0,
+                todayLosses: btcData.todayLosses || 0,
+                todayProfit: btcData.todayProfit || 0,
                 updated: now
             };
             cacheLastValid.btc = now;
@@ -1034,20 +1394,25 @@ function updateAllStats() {
             ? btcData 
             : (positionCache.btc.positions.length > 0 ? positionCache.btc : null);
         
+        // ✅ DATA DARI FIELD BARU (todayWins, todayLosses, todayProfit)
+        const todayWins = (xauData.todayWins || 0) + (btcData.todayWins || 0);
+        const todayLosses = (xauData.todayLosses || 0) + (btcData.todayLosses || 0);
+        const todayProfit = (xauData.todayProfit || 0) + (btcData.todayProfit || 0);
+        const totalTrades = todayWins + todayLosses;
+        const wr = totalTrades > 0 ? Math.round((todayWins / totalTrades) * 100) : 0;
+        
         // Update header stats
         const allPositions = [
             ...(xauRender?.positions || []), 
             ...(btcRender?.positions || [])
         ];
         
-        const wins = allPositions.filter(p => (p.profit || 0) > 0).length;
-        const pl = allPositions.reduce((s, p) => s + (p.profit || 0), 0);
-        const wr = allPositions.length > 0 ? Math.round((wins / allPositions.length) * 100) : 0;
-        
         document.getElementById('btmPositions').textContent = allPositions.length;
-        document.getElementById('btmPL').textContent = (pl >= 0 ? '+' : '') + '$' + pl.toFixed(2);
-        document.getElementById('btmPL').className = pl >= 0 ? 'text-profit' : 'text-loss';
-        document.getElementById('btmWR').textContent = allPositions.length > 0 ? wr + '%' : '0%';
+        document.getElementById('btmWins').textContent = todayWins;
+        document.getElementById('btmLosses').textContent = todayLosses;
+        document.getElementById('btmPL').textContent = (todayProfit >= 0 ? '+' : '') + '$' + todayProfit.toFixed(2);
+        document.getElementById('btmPL').className = todayProfit >= 0 ? 'text-profit' : 'text-loss';
+        document.getElementById('btmWR').textContent = totalTrades > 0 ? wr + '%' : '0%';
         
         // Update Gladiator Cards (pakai XAU + BTC)
         const allGladiators = [
@@ -1059,18 +1424,18 @@ function updateAllStats() {
         syncGladiatorsWithPositions(allGladiators);
         
         // Update streak
-        streakCount = wins;
+        streakCount = todayWins;
         const icons = ['', '🔥', '🔥🔥', '🔥🔥🔥', '🔥🔥🔥🔥', '🔥🔥🔥🔥🔥', '💥💥', '💥💥💥', '🌟'];
-        document.getElementById('streakIcon').textContent = icons[Math.min(wins, icons.length - 1)] || '🔥';
-        document.getElementById('streakNumber').textContent = wins;
-        document.getElementById('streakProgress').style.width = Math.min(wins * 10, 100) + '%';
-        document.getElementById('streakMultiplier').textContent = (wins >= 10 ? '5x' : wins >= 7 ? '3x' : wins >= 5 ? '2x' : '1x') + ' MULTIPLIER';
+        document.getElementById('streakIcon').textContent = icons[Math.min(todayWins, icons.length - 1)] || '🔥';
+        document.getElementById('streakNumber').textContent = todayWins;
+        document.getElementById('streakProgress').style.width = Math.min(todayWins * 10, 100) + '%';
+        document.getElementById('streakMultiplier').textContent = (todayWins >= 10 ? '5x' : todayWins >= 7 ? '3x' : todayWins >= 5 ? '2x' : '1x') + ' MULTIPLIER';
         
         // Ghost vs You
         document.getElementById('ghostWR').textContent = wr + '%';
-        document.getElementById('ghostPL').textContent = (pl >= 0 ? '+' : '') + '$' + pl.toFixed(0);
+        document.getElementById('ghostPL').textContent = (todayProfit >= 0 ? '+' : '') + '$' + todayProfit.toFixed(0);
         document.getElementById('youWR').textContent = Math.max(0, wr - 7) + '%';
-        document.getElementById('youPL').textContent = (pl >= 0 ? '+' : '') + '$' + (pl * 0.8).toFixed(0);
+        document.getElementById('youPL').textContent = (todayProfit >= 0 ? '+' : '') + '$' + (todayProfit * 0.8).toFixed(0);
         document.getElementById('ghostComment').textContent = wr >= 70 ? '👻 "Aku terlalu kuat!"' : wr >= 50 ? '👻 "Lumayan profit!"' : '👻 "Sabar, pasar lagi sulit"';
         
         // Connection indicator
@@ -1643,6 +2008,50 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('headerViewers').textContent=Math.floor(Math.random()*50+20);
     speak('AetherTrade Broadcast System siap! Selamat datang di live streaming trading.');
 });
+
+// ═══════════════════════════════════════
+// THE GALA v2.0 — CONTROLLER
+// ═══════════════════════════════════════
+let galaAudience=[],galaActive=!1,galaCurrentGame=null,proLobbyInterval=null,proLobbySpotlightIdx=0,diamondInterval=null,constellationInterval=null,ballotInterval=null,mosaicInterval=null,diamondPlayers=[],ballotTimeLeft=45,ballotNominees=[],ballotVotes=[];
+function loadGalaAudience(){if(typeof db!=='undefined'){db.ref('broadcast_chat').limitToLast(150).once('value').then(snap=>{const data=snap.val(),seen=new Set(),temp=[];if(data){Object.values(data).forEach(msg=>{if(msg.username&&!seen.has(msg.username)&&msg.username!=='🤖 AI Host'&&msg.username!=='📢 Host'){seen.add(msg.username);temp.push({id:'user_'+temp.length+'_'+Date.now(),name:msg.username,nickname:msg.username.replace('@',''),profileUrl:'https://i.pravatar.cc/150?u='+encodeURIComponent(msg.username),status:['Elite','VIP','Supreme','Pro','Basic'][Math.floor(Math.random()*5)],roses:Math.floor(Math.random()*2000),joinTime:msg.timestamp||Date.now()});}});}galaAudience=temp.length>0?temp:generateDummyAudience();updateAllLobbyUI();}).catch(()=>{galaAudience=generateDummyAudience();updateAllLobbyUI();});}else{galaAudience=generateDummyAudience();updateAllLobbyUI();}}
+function generateDummyAudience(){const arr=[],statuses=['Supreme','Elite','Elite','VIP','VIP','Pro','Pro','Basic','Basic','Basic'];for(let i=1;i<=35;i++){arr.push({id:'dummy_'+i,name:'Tamu Kehormatan '+i,nickname:'tamu_'+i,profileUrl:'https://i.pravatar.cc/150?img='+((i%70)+1),status:statuses[i%statuses.length],roses:Math.floor(Math.random()*3000)+100,joinTime:Date.now()-Math.floor(Math.random()*7200000)});}return arr;}
+function updateAllLobbyUI(){updateProLobbySpotlight();updateProLobbyMiniMosaic();updateProLobbyChat();updateProLobbyViewers();updateGameLobbyHighlights();}
+function openGala(){const container=document.getElementById('galaContainer');if(!container)return;loadGalaAudience();container.classList.add('active');container.style.display='flex';const curtain=document.getElementById('galaCurtain');if(curtain){curtain.classList.remove('closing');curtain.style.animation='none';curtain.offsetHeight;curtain.style.animation='galaCurtainOpen 1.2s ease-in-out forwards';curtain.style.animationDelay='0.6s';}const content=document.getElementById('galaContent');if(content){content.style.animation='none';content.offsetHeight;content.style.animation='galaFadeIn 0.8s ease-out forwards';content.style.animationDelay='1.6s';}galaActive=!0;galaCurrentGame=null;stopAllGalaGames();showProLobby();startProLobbyCycle();if(typeof ttsEnabled!=='undefined')ttsEnabled=!1;console.log('🎬 THE GALA opened —',galaAudience.length,'guests');}
+function closeGala(){const container=document.getElementById('galaContainer'),curtain=document.getElementById('galaCurtain');if(!container)return;stopAllGalaGames();stopProLobbyCycle();if(curtain){curtain.classList.add('closing');curtain.style.animation='galaCurtainClose 1s ease-in-out forwards';}setTimeout(()=>{container.classList.remove('active');container.style.display='none';galaActive=!1;galaCurrentGame=null;if(typeof ttsEnabled!=='undefined')ttsEnabled=!0;},1000);}
+function showProLobby(){hideAllViews();const el=document.getElementById('galaProLobby');if(el){el.classList.add('active');el.style.display='flex';}galaCurrentGame=null;}
+function showGameLobby(){hideAllViews();const el=document.getElementById('galaGameLobby');if(el){el.classList.add('active');el.style.display='flex';}galaCurrentGame=null;updateGameLobbyHighlights();}
+function showGameView(n){hideAllViews();const el=document.getElementById('galaGame'+n.charAt(0).toUpperCase()+n.slice(1));if(el){el.classList.add('active');el.style.display='flex';}galaCurrentGame=n;}
+function hideAllViews(){['galaProLobby','galaGameLobby'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('active');el.style.display='none';}});document.querySelectorAll('.gala-game-view').forEach(v=>{v.classList.remove('active');v.style.display='none';});}
+function openGameLobby(){stopProLobbyCycle();stopAllGalaGames();showGameLobby();}
+function backToProLobby(){stopAllGalaGames();showProLobby();startProLobbyCycle();updateAllLobbyUI();}
+function openGalaGame(n){stopProLobbyCycle();stopAllGalaGames();showGameView(n);switch(n){case'roulette':initRoulette();break;case'diamond':initDiamond();break;case'deck':initDeck();break;case'constellation':initConstellation();break;case'ballot':initBallot();break;case'mosaic':initMosaic();break;}}
+function startProLobbyCycle(){stopProLobbyCycle();updateAllLobbyUI();proLobbyInterval=setInterval(()=>{updateProLobbySpotlight();updateProLobbyChat();updateProLobbyViewers();},7000);}
+function stopProLobbyCycle(){if(proLobbyInterval){clearInterval(proLobbyInterval);proLobbyInterval=null;}}
+function updateProLobbySpotlight(){if(!galaAudience.length)return;const p=galaAudience[proLobbySpotlightIdx%galaAudience.length];proLobbySpotlightIdx++;const c=document.getElementById('galaProSpotlightContent');if(!c)return;c.classList.add('changing');setTimeout(()=>{const i=document.getElementById('galaProSpotlightImg'),n=document.getElementById('galaProSpotlightName'),b=document.getElementById('galaProSpotlightBadge'),r=document.getElementById('galaProSpotlightRoses');if(i)i.src=p.profileUrl;if(n)n.textContent=p.name;if(b)b.textContent='💎 '+p.status+' Member';if(r)r.textContent='🌹 '+p.roses.toLocaleString()+' Roses';c.classList.remove('changing');},200);}
+function updateProLobbyMiniMosaic(){const g=document.getElementById('galaProMiniMosaic');if(!g)return;const c=Math.min(galaAudience.length,42);g.innerHTML=galaAudience.slice(0,c).map(p=>'<div class="gala-pro-mosaic-item"><img src="'+p.profileUrl+'" alt="'+p.name+'" loading="lazy"></div>').join('');}
+function updateProLobbyChat(){const c=document.getElementById('galaProChatList');if(!c)return;if(typeof db!=='undefined'){db.ref('broadcast_chat').limitToLast(6).once('value').then(snap=>{const d=snap.val();if(d){const ms=Object.values(d).filter(m=>m.username&&m.username!=='🤖 AI Host'&&m.username!=='📢 Host').slice(-6).reverse();if(ms.length>0){c.innerHTML=ms.map(m=>{const p=galaAudience.find(a=>a.name===m.username),av=p?p.profileUrl:'https://i.pravatar.cc/150?u='+encodeURIComponent(m.username),t=m.timestamp?timeAgo(m.timestamp):'';return'<div class="gala-pro-chat-item"><div class="gala-pro-chat-avatar"><img src="'+av+'" alt=""></div><div><div><span class="gala-pro-chat-name">'+m.username+'</span><span class="gala-pro-chat-time">'+t+'</span></div><div class="gala-pro-chat-text">'+escapeHtml(m.comment||'')+'</div></div></div>';}).join('');return;}}c.innerHTML='<div style="text-align:center;color:#6b7280;padding:20px;font-size:10px;">The floor is quiet...</div>';}).catch(()=>{c.innerHTML='<div style="text-align:center;color:#6b7280;padding:20px;font-size:10px;">The floor is quiet...</div>';});}}
+function updateProLobbyViewers(){const e=document.getElementById('galaProViewers');if(e)e.textContent='👥 '+galaAudience.length+' distinguished guests watching';}
+function updateGameLobbyHighlights(){const t=galaAudience.length,tr=galaAudience.reduce((s,a)=>s+a.roses,0),top=[...galaAudience].sort((a,b)=>b.roses-a.roses)[0],e1=document.getElementById('galaHighlightGuests'),e2=document.getElementById('galaHighlightRoses'),e3=document.getElementById('galaHighlightTop');if(e1)e1.textContent='👥 '+t+' distinguished guests';if(e2)e2.textContent='🌹 '+tr.toLocaleString()+' roses received';if(e3)e3.textContent='🏆 '+(top?top.name:'—')+' — Honor Roll #1';}
+function initRoulette(){const w=document.getElementById('rouletteWheel');if(w)w.classList.remove('spinning');const wd=document.getElementById('rouletteWinner');if(wd)wd.classList.remove('show');const b=document.getElementById('rouletteSpinBtn');if(b){b.style.display='inline-block';b.textContent='🎰 PUTAR RODA';}}
+function spinRoulette(){const w=document.getElementById('rouletteWheel');if(!w||w.classList.contains('spinning'))return;const b=document.getElementById('rouletteSpinBtn'),wd=document.getElementById('rouletteWinner');w.classList.add('spinning');if(b)b.style.display='none';if(wd)wd.classList.remove('show');setTimeout(()=>{w.classList.remove('spinning');const win=galaAudience[Math.floor(Math.random()*galaAudience.length)];if(!win)return;const i=document.getElementById('rouletteWinnerImg'),n=document.getElementById('rouletteWinnerName'),bg=document.getElementById('rouletteWinnerBadge');if(i)i.src=win.profileUrl;if(n)n.textContent=win.name;if(bg)bg.textContent='💎 '+win.status+' Member • 🌹 '+win.roses+' Roses';if(wd)wd.classList.add('show');if(b){b.style.display='inline-block';b.textContent='🎰 PUTAR LAGI';}},3600);}
+function initDiamond(){diamondPlayers=[];const r=document.getElementById('diamondResult');if(r)r.style.display='none';const b=document.getElementById('diamondStartBtn');if(b){b.style.display='inline-block';b.textContent='💎 MULAI';}const sh=[...galaAudience].sort(()=>Math.random()-0.5);diamondPlayers=sh.slice(0,Math.min(5,sh.length)).map(p=>({...p,alive:!0}));renderDiamondArena();}
+function renderDiamondArena(){const a=document.getElementById('diamondArena');if(!a)return;a.innerHTML=diamondPlayers.map(p=>'<div class="gala-diamond-player" id="diamondPlayer_'+p.id+'"><div class="gala-diamond-frame"><img src="'+p.profileUrl+'" alt="'+p.name+'"><span class="gala-diamond-gem" id="diamondGem_'+p.id+'">💎</span></div><div class="gala-diamond-name">'+p.name+'</div><div class="gala-diamond-status" id="diamondStatus_'+p.id+'">💎 Aman</div></div>').join('');}
+function startDiamondChallenge(){const b=document.getElementById('diamondStartBtn'),r=document.getElementById('diamondResult');if(b)b.style.display='none';if(r)r.style.display='none';diamondPlayers.forEach(p=>p.alive=!0);renderDiamondArena();diamondInterval=setInterval(()=>{const al=diamondPlayers.filter(p=>p.alive);if(al.length<=1){clearInterval(diamondInterval);diamondInterval=null;if(al.length===1){const w=al[0];if(r){r.style.display='block';r.innerHTML='<div class="gala-winner-frame"><img src="'+w.profileUrl+'" alt="'+w.name+'"></div><div class="gala-winner-name">'+w.name+'</div><div class="gala-winner-badge">💎 Diamond Hand Champion!</div>';}const pd=document.getElementById('diamondPlayer_'+w.id);if(pd)pd.classList.add('winner-anim');}if(b){b.style.display='inline-block';b.textContent='💎 MAIN LAGI';}return;}const v=al[Math.floor(Math.random()*al.length)];v.alive=!1;const g=document.getElementById('diamondGem_'+v.id);if(g)g.classList.add('breaking');const pd=document.getElementById('diamondPlayer_'+v.id);if(pd)pd.classList.add('eliminated');const s=document.getElementById('diamondStatus_'+v.id);if(s)s.textContent='💥 Tersingkir';},1800);}
+function initDeck(){const cd=document.getElementById('cardDisplay');if(cd)cd.classList.remove('flipping');const cc=document.getElementById('cardContent');if(cc)cc.innerHTML='🂠';const wd=document.getElementById('deckWinner');if(wd)wd.classList.remove('show');const b=document.getElementById('drawCardBtn');if(b){b.style.display='inline-block';b.textContent='🃏 TARIK KARTU';}}
+function drawCard(){const cd=document.getElementById('cardDisplay');if(!cd||cd.classList.contains('flipping'))return;const b=document.getElementById('drawCardBtn'),wd=document.getElementById('deckWinner');cd.classList.add('flipping');if(b)b.style.display='none';if(wd)wd.classList.remove('show');setTimeout(()=>{cd.classList.remove('flipping');const w=galaAudience[Math.floor(Math.random()*galaAudience.length)];if(!w)return;const cc=document.getElementById('cardContent');if(cc)cc.innerHTML='<img src="'+w.profileUrl+'" alt="'+w.name+'" class="gala-card-face-img">';const i=document.getElementById('deckWinnerImg'),n=document.getElementById('deckWinnerName'),bg=document.getElementById('deckWinnerBadge');if(i)i.src=w.profileUrl;if(n)n.textContent=w.name;if(bg)bg.textContent='🃏 Golden Card • '+w.status+' Member';if(wd)wd.classList.add('show');if(b){b.style.display='inline-block';b.textContent='🃏 TARIK LAGI';}},750);}
+function initConstellation(){const sky=document.getElementById('constellationSky');if(!sky)return;sky.innerHTML='';const c=Math.min(galaAudience.length,45);for(let i=0;i<c;i++){const s=document.createElement('div');s.className='gala-constellation-star';const sz=24+Math.random()*28;s.style.cssText='left:'+(Math.random()*90)+'%;top:'+(Math.random()*85)+'%;width:'+sz+'px;height:'+sz+'px;';const p=galaAudience[i%galaAudience.length];s.innerHTML='<img src="'+p.profileUrl+'" alt="'+p.name+'"><div class="gala-constellation-star-info">'+p.name+'</div>';sky.appendChild(s);}const btn=document.getElementById('constellationBtn');if(btn)btn.textContent='🌟 MULAI';}
+function toggleConstellation(){if(constellationInterval){clearInterval(constellationInterval);constellationInterval=null;document.querySelectorAll('.gala-constellation-star').forEach(s=>s.classList.remove('glowing'));const btn=document.getElementById('constellationBtn');if(btn)btn.textContent='🌟 MULAI';}else{const btn=document.getElementById('constellationBtn');if(btn)btn.textContent='⏸️ BERHENTI';constellationInterval=setInterval(()=>{const stars=document.querySelectorAll('.gala-constellation-star');stars.forEach(s=>s.classList.remove('glowing'));const r=stars[Math.floor(Math.random()*stars.length)];if(r)r.classList.add('glowing');},1800);}}
+function initBallot(){const wd=document.getElementById('ballotWinner');if(wd)wd.style.display='none';const b=document.getElementById('ballotStartBtn');if(b){b.style.display='inline-block';b.textContent='🗳️ MULAI VOTING';}const t=document.getElementById('ballotTimer');if(t)t.textContent='00:45';ballotTimeLeft=45;const sh=[...galaAudience].sort(()=>Math.random()-0.5);ballotNominees=sh.slice(0,Math.min(4,sh.length)).map(p=>({...p}));ballotVotes=ballotNominees.map(()=>Math.floor(Math.random()*60)+10);renderBallotNominees();}
+function renderBallotNominees(){const c=document.getElementById('ballotNominees');if(!c)return;const t=ballotVotes.reduce((a,b)=>a+b,0)||1;c.innerHTML=ballotNominees.map((n,i)=>{const pct=Math.round((ballotVotes[i]/t)*100),l=ballotVotes[i]===Math.max(...ballotVotes);return'<div class="gala-ballot-card'+(l?' leading':'')+'"><div class="gala-ballot-frame"><img src="'+n.profileUrl+'" alt="'+n.name+'"></div><div class="gala-ballot-name">'+n.name+'</div><div class="gala-ballot-votes">'+ballotVotes[i]+' suara</div><div class="gala-ballot-bar"><div class="gala-ballot-bar-fill" style="width:'+pct+'%"></div></div><div style="font-size:9px;color:#c8a84e;margin-top:3px;">'+pct+'%</div></div>';}).join('');}
+function startBallot(){const b=document.getElementById('ballotStartBtn'),wd=document.getElementById('ballotWinner');if(b)b.style.display='none';if(wd)wd.style.display='none';ballotTimeLeft=45;ballotInterval=setInterval(()=>{ballotVotes[Math.floor(Math.random()*ballotVotes.length)]+=Math.floor(Math.random()*6)+1;renderBallotNominees();ballotTimeLeft--;const t=document.getElementById('ballotTimer');if(t)t.textContent='00:'+String(ballotTimeLeft).padStart(2,'0');if(ballotTimeLeft<=0){clearInterval(ballotInterval);ballotInterval=null;const wi=ballotVotes.indexOf(Math.max(...ballotVotes)),w=ballotNominees[wi];if(wd&&w){wd.style.display='block';wd.innerHTML='<div class="gala-winner-frame"><img src="'+w.profileUrl+'" alt="'+w.name+'"></div><div class="gala-winner-name">'+w.name+'</div><div class="gala-winner-badge">🏆 Grand Ballot Champion! • '+ballotVotes[wi]+' suara</div>';}if(b){b.style.display='inline-block';b.textContent='🗳️ VOTING LAGI';}}},900);}
+function initMosaic(){refreshMosaic();}
+function refreshMosaic(){const g=document.getElementById('mosaicGrid');if(!g)return;if(mosaicInterval)clearInterval(mosaicInterval);const c=Math.min(galaAudience.length,60);g.innerHTML=galaAudience.slice(0,c).map((p,i)=>'<div class="gala-mosaic-item" id="mosaicItem_'+i+'"><img src="'+p.profileUrl+'" alt="'+p.name+'" loading="lazy"></div>').join('');mosaicInterval=setInterval(()=>{const items=document.querySelectorAll('.gala-mosaic-item');items.forEach(i=>i.classList.remove('highlighted'));const r=items[Math.floor(Math.random()*items.length)];if(r)r.classList.add('highlighted');},1800);}
+function stopAllGalaGames(){if(diamondInterval){clearInterval(diamondInterval);diamondInterval=null;}if(constellationInterval){clearInterval(constellationInterval);constellationInterval=null;}if(ballotInterval){clearInterval(ballotInterval);ballotInterval=null;}if(mosaicInterval){clearInterval(mosaicInterval);mosaicInterval=null;}}
+function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function timeAgo(ts){if(!ts)return'';const d=Date.now()-ts,m=Math.floor(d/60000);if(m<1)return'baru saja';if(m<60)return m+'m';const h=Math.floor(m/60);if(h<24)return h+'h';return Math.floor(h/24)+'d';}
+document.addEventListener('keydown',(e)=>{if(!galaActive)return;if(e.key==='Escape'){if(galaCurrentGame){backToProLobby();}else{closeGala();}}const gk={'1':'roulette','2':'diamond','3':'deck','4':'constellation','5':'ballot','6':'mosaic'},gl=document.getElementById('galaGameLobby');if(gk[e.key]&&gl&&gl.classList.contains('active')){openGalaGame(gk[e.key]);}});
+console.log('🎬 THE GALA v2.0 — Ready');
+
 </script>
 </body>
 </html>

@@ -177,112 +177,64 @@
         </button>
     </div>
 
-    <!-- Positions List -->
-    <div id="positionsList" class="space-y-3">
-        <p class="text-neutral text-center py-8">Register license first.</p>
+    <!-- Pair Tabs untuk Open Positions -->
+    <div class="flex gap-2 mb-2">
+        <button onclick="switchPosPair('XAU/USD')" id="posTabXAU" class="pos-tab glass rounded-full px-4 py-2 text-xs font-medium border-2 border-accent-400 bg-accent-400/10 text-accent-400"><i class="fas fa-coins mr-1"></i>XAU/USD</button>
+        <button onclick="switchPosPair('BTC/USD')" id="posTabBTC" class="pos-tab glass rounded-full px-4 py-2 text-xs font-medium border-2 border-transparent text-neutral hover:text-white"><i class="fab fa-bitcoin mr-1"></i>BTC/USD</button>
     </div>
 
-    <!--  TRAILING MONITOR v4.0 ULTIMATE  -->
+    <!-- Positions List -->
+    <div id="positionsList" class="space-y-3"><p class="text-neutral text-center py-8">Register license first.</p></div>
+
+    <!-- TRAILING MONITOR v4.0 -->
     <div class="glass-light rounded-2xl p-5 mt-6 border-l-4 border-accent-400">
         
         <!-- Header -->
         <div class="flex items-center justify-between mb-5">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center">
-                    <i class="fas fa-flag-checkered text-black"></i>
-                </div>
-                <div>
-                    <h3 class="font-bold text-lg">Trailing Monitor</h3>
-                    <p class="text-xs text-neutral flex items-center gap-2">
-                        <span class="pulse-dot-gold"></span> 
-                        <span id="trailNextCheck">Next check: --</span>
-                    </p>
-                </div>
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-400 to-primary-500 flex items-center justify-center"><i class="fas fa-flag-checkered text-black"></i></div>
+                <div><h3 class="font-bold text-lg">Trailing Monitor</h3><p class="text-xs text-neutral flex items-center gap-2"><span class="pulse-dot-gold"></span><span id="trailNextCheck">Next check: --</span></p></div>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="exportTrailCSV()" class="glass rounded-lg px-3 py-2 text-xs hover:bg-white/10 transition-all" title="Export CSV">
-                    <i class="fas fa-download"></i>
-                </button>
-                <button onclick="copyTrailStatus()" class="glass rounded-lg px-3 py-2 text-xs hover:bg-white/10 transition-all" title="Copy Status">
-                    <i class="fas fa-copy"></i>
-                </button>
-                <button onclick="loadTrailingStatus()" class="glass rounded-lg px-3 py-2 text-xs hover:bg-white/10 transition-all" title="Refresh">
-                    <i class="fas fa-rotate"></i>
-                </button>
+                <button onclick="exportTrailCSV()" class="glass rounded-lg px-3 py-2 text-xs hover:bg-white/10"><i class="fas fa-download"></i></button>
+                <button onclick="copyTrailStatus()" class="glass rounded-lg px-3 py-2 text-xs hover:bg-white/10"><i class="fas fa-copy"></i></button>
+                <button onclick="loadTrailingStatus()" class="glass rounded-lg px-3 py-2 text-xs hover:bg-white/10"><i class="fas fa-rotate"></i></button>
             </div>
         </div>
 
-        <!-- Pair Tabs -->
+        <!-- Trail Pair Tabs -->
         <div class="flex gap-2 mb-4">
-            <button onclick="switchTrailPair('BTC/USD')" id="trailTabBTC" 
-                    class="trail-tab-btn glass rounded-full px-4 py-2 text-sm font-medium border-2 border-accent-400 bg-accent-400/10 text-accent-400">
-                <i class="fab fa-bitcoin mr-1"></i> BTC/USD
-            </button>
-            <button onclick="switchTrailPair('XAU/USD')" id="trailTabXAU" 
-                    class="trail-tab-btn glass rounded-full px-4 py-2 text-sm font-medium border-2 border-transparent text-neutral hover:text-white">
-                <i class="fas fa-coins mr-1"></i> XAU/USD
-            </button>
+            <button onclick="switchTrailPair('BTC/USD')" id="trailTabBTC" class="trail-tab glass rounded-full px-4 py-2 text-xs font-medium border-2 border-accent-400 bg-accent-400/10 text-accent-400"><i class="fab fa-bitcoin mr-1"></i>BTC/USD</button>
+            <button onclick="switchTrailPair('XAU/USD')" id="trailTabXAU" class="trail-tab glass rounded-full px-4 py-2 text-xs font-medium border-2 border-transparent text-neutral hover:text-white"><i class="fas fa-coins mr-1"></i>XAU/USD</button>
         </div>
 
         <!-- Summary Grid -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-            <div class="glass rounded-xl p-4 text-center card-hover">
-                <p class="text-xs text-neutral mb-1">Total Trail</p>
-                <p class="text-2xl font-bold text-white" id="trailTotal">--</p>
-                <p class="text-xs text-neutral mt-1">configured</p>
-            </div>
-            <div class="glass rounded-xl p-4 text-center card-hover border-t-2 border-profit">
-                <p class="text-xs text-neutral mb-1">Active</p>
-                <p class="text-2xl font-bold text-profit" id="trailActive">--</p>
-                <p class="text-xs text-neutral mt-1">trailing</p>
-            </div>
-            <div class="glass rounded-xl p-4 text-center card-hover border-t-2 border-yellow-500">
-                <p class="text-xs text-neutral mb-1">Pending</p>
-                <p class="text-2xl font-bold text-yellow-400" id="trailPending">--</p>
-                <p class="text-xs text-neutral mt-1">waiting trigger</p>
-            </div>
-            <div class="glass rounded-xl p-4 text-center card-hover border-t-2 border-accent-400">
-                <p class="text-xs text-neutral mb-1">Profit Locked</p>
-                <p class="text-2xl font-bold text-accent-400" id="trailProfitLocked">--</p>
-                <p class="text-xs text-neutral mt-1">secured</p>
-            </div>
+            <div class="glass rounded-xl p-4 text-center card-hover"><p class="text-xs text-neutral mb-1">Total Trail</p><p class="text-2xl font-bold text-white" id="trailTotal">--</p></div>
+            <div class="glass rounded-xl p-4 text-center card-hover border-t-2 border-profit"><p class="text-xs text-neutral mb-1">Active</p><p class="text-2xl font-bold text-profit" id="trailActive">--</p></div>
+            <div class="glass rounded-xl p-4 text-center card-hover border-t-2 border-yellow-500"><p class="text-xs text-neutral mb-1">Pending</p><p class="text-2xl font-bold text-yellow-400" id="trailPending">--</p></div>
+            <div class="glass rounded-xl p-4 text-center card-hover border-t-2 border-accent-400"><p class="text-xs text-neutral mb-1">Profit Locked</p><p class="text-2xl font-bold text-accent-400" id="trailProfitLocked">--</p></div>
         </div>
 
-        <!-- Progress Overview -->
+        <!-- Progress -->
         <div class="glass rounded-xl p-4 mb-4">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-xs text-neutral">Overall Trail Activation</span>
-                <span class="text-xs font-bold text-accent-400" id="trailOverallPct">0%</span>
-            </div>
-            <div class="w-full h-3 bg-white/5 rounded-full overflow-hidden">
-                <div id="trailOverallBar" class="h-full rounded-full bg-gradient-to-r from-yellow-500 via-accent-400 to-profit transition-all duration-700" style="width:0%"></div>
-            </div>
+            <div class="flex items-center justify-between mb-2"><span class="text-xs text-neutral">Overall Trail Activation</span><span class="text-xs font-bold text-accent-400" id="trailOverallPct">0%</span></div>
+            <div class="w-full h-3 bg-white/5 rounded-full overflow-hidden"><div id="trailOverallBar" class="h-full rounded-full bg-gradient-to-r from-yellow-500 via-accent-400 to-profit transition-all duration-700" style="width:0%"></div></div>
         </div>
 
-        <!-- Per-Position Detail -->
+        <!-- Detail List -->
         <div class="space-y-2 max-h-[500px] overflow-y-auto" id="trailDetailList">
-            <div class="text-center py-12">
-                <div class="inline-block glass rounded-2xl p-6">
-                    <p class="text-4xl mb-3"></p>
-                    <p class="text-neutral font-medium">Waiting for EA data...</p>
-                    <p class="text-xs text-neutral mt-2">EA uploads trailing status every 15 seconds</p>
-                    <div class="mt-3 flex items-center justify-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-neutral animate-pulse"></span>
-                        <span class="w-2 h-2 rounded-full bg-neutral animate-pulse" style="animation-delay:0.2s"></span>
-                        <span class="w-2 h-2 rounded-full bg-neutral animate-pulse" style="animation-delay:0.4s"></span>
-                    </div>
-                </div>
-            </div>
+            <div class="text-center py-12"><div class="inline-block glass rounded-2xl p-6"><p class="text-4xl mb-3"></p><p class="text-neutral font-medium">Waiting for EA data...</p><p class="text-xs text-neutral mt-2">EA uploads trailing status every 15 seconds</p></div></div>
         </div>
 
         <!-- Legend -->
         <div class="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-white/5 text-xs text-neutral">
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-400"></span> Active</span>
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-orange-400"></span> Close</span>
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-yellow-400"></span> Near</span>
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-400"></span> Mid</span>
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-neutral"></span> Far</span>
-            <span class="flex items-center gap-1.5"><i class="fas fa-clock text-yellow-400"></i> Candle close check</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-400"></span>Active</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-orange-400"></span>Close</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-yellow-400"></span>Near</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-400"></span>Mid</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-neutral"></span>Far</span>
+            <span class="flex items-center gap-1.5"><i class="fas fa-clock text-yellow-400"></i>Candle close check</span>
         </div>
     </div>
 </div>
@@ -1114,7 +1066,13 @@ function loadMarketPositions() {
 function loadSignals(){['XAU_USD','BTC_USD'].forEach(pp=>{const tid=pp==='XAU_USD'?'xauSignalLive':'btcSignalLive';const c=document.getElementById(tid);if(!c)return;c.innerHTML='<p class="text-neutral text-sm">Loading...</p>';db.ref('signals/'+CONFIG.adminLicense+'/'+pp).on('value',snap=>{const data=snap.val();if(data){let h='';for(let s=1;s<=5;s++){const d=data[s];if(d&&d.dir){const em=d.dir==='BUY'?'&#128200;':'&#128201;';const trailActive=d.trailStart>0;const trailClass=trailActive?'trail-active':'trail-inactive';const trailText=trailActive?'Trail: $'+d.trailStart+' (Step: '+d.trailStep+')':'Trail: Inactive';h+='<div class="glass rounded-xl p-3 text-sm mb-2 animate-slideIn '+trailClass+'"><span class="text-2xl">'+em+'</span> <span class="font-bold">'+d.dir+'</span> <span class="text-xs text-neutral">'+(d.strategy||'AI')+'</span><div class="grid grid-cols-2 gap-1 text-xs mt-1"><p>Entry: <b>$'+(d.entry||'-')+'</b></p><p>SL: <span class="text-loss">$'+(d.sl||'-')+'</span></p></div><p class="text-xs text-neutral mt-1">&#128202; '+trailText+'</p></div>'}}c.innerHTML=h||'<p class="text-neutral text-sm">Waiting...</p>'}else c.innerHTML='<p class="text-neutral text-sm">Waiting...</p>'})})}
 
 // POSITIONS — REAL-TIME DARI EA v2.7
-function loadPositions(){const key=State.user.licenseKey||CONFIG.adminLicense;db.ref('trailing/'+CONFIG.adminLicense).on('value',snap=>{const data=snap.val();const c=document.getElementById('positionsList');if(!data||Object.keys(data).length===0){c.innerHTML='<p class="text-neutral text-center py-8">No active positions</p>';return}let h='';let hasPos=false;for(const[pairKey,pairData]of Object.entries(data)){if(pairData&&pairData.positions){pairData.positions.forEach(pos=>{hasPos=true;const dc=pos.dir==='BUY'?'text-profit':'text-loss';const pc=(pos.profit||0)>=0?'text-profit':'text-loss';const tc=pos.active?'trail-active':'trail-inactive';const tt=pos.active?' Trail: $'+(pos.trailStart||0).toFixed(2)+' (active)':'Trail: Not activated';const pairDisplay=pairKey.replace('_','/');h+='<div class="glass rounded-xl p-4 '+tc+'"><div class="flex justify-between"><div><span class="'+dc+' font-bold">'+pos.dir+'</span> <span class="text-sm">'+pairDisplay+'</span><p class="text-xs text-neutral">Entry: $'+(pos.entry||0).toFixed(2)+' | SL: $'+(pos.sl||0).toFixed(2)+' | Ticket: #'+(pos.ticket||'-')+'</p><p class="text-xs text-neutral mt-1"> '+tt+'</p></div><div class="text-right"><p class="font-bold '+pc+'">'+(pos.profit>=0?'+':'')+'$'+(pos.profit||0).toFixed(2)+'</p><p class="text-xs text-neutral">Now: $'+(pos.currentPrice||0).toFixed(2)+'</p></div></div></div>'})}}c.innerHTML=hasPos?h:'<p class="text-neutral text-center py-8">No active positions</p>';const hour=new Date().getHours();const session=hour>=7&&hour<15?' ASIA':hour>=15&&hour<21?' LONDON':hour>=21||hour<7?' NEW YORK':' CLOSED';document.getElementById('sessionIndicator').textContent=session;document.getElementById('posLastUpdate').innerHTML='EA Live: '+new Date().toLocaleTimeString()+' <span class="text-xs text-neutral ml-2">'+session+'</span>'},err=>{console.error(' Positions:',err);document.getElementById('positionsList').innerHTML='<p class="text-neutral text-center py-8">Register license first.</p>'})}
+// ==========================================
+// POSITIONS — DIPISAH XAU/USD & BTC/USD
+// ==========================================
+let currentPositionsPair='XAU/USD';
+function switchPositionsPair(pair){currentPositionsPair=pair;document.querySelectorAll('.pos-pair-tab').forEach(b=>{b.classList.remove('active','border-accent-400','bg-accent-400/10','text-accent-400');b.classList.add('border-transparent','text-neutral');});const at=document.getElementById('posTab'+pair.replace('/USD',''));if(at){at.classList.add('active','border-accent-400','bg-accent-400/10','text-accent-400');at.classList.remove('border-transparent','text-neutral');}loadPositionsByPair(pair);}
+function loadPositions(){loadPositionsByPair(currentPositionsPair);}
+function loadPositionsByPair(pair){const key=State.user.licenseKey||CONFIG.adminLicense;const pairPath=pair.replace('/','_');const c=document.getElementById('positionsList');if(!c)return;db.ref('trailing/'+CONFIG.adminLicense+'/'+pairPath).once('value').then(snap=>{const d=snap.val();if(!d||!d.positions||d.positions.length===0){c.innerHTML='<p class="text-neutral text-center py-8">No active positions for '+pair+'</p>';const h=new Date().getHours();const s=h>=7&&h<15?' ASIA':h>=15&&h<21?' LONDON':h>=21||h<7?' NEW YORK':' CLOSED';document.getElementById('sessionIndicator').textContent=s;document.getElementById('posLastUpdate').innerHTML='EA Live: '+new Date().toLocaleTimeString()+' <span class="text-xs text-neutral ml-2">'+s+'</span>';return;}let h='';const pos=d.positions||[];pos.forEach(p=>{const dc=p.dir==='BUY'?'text-profit':'text-loss';const pc=(p.profit||0)>=0?'text-profit':'text-loss';const tc=p.active?'trail-active':'trail-inactive';const tt=p.active?' Trail: $'+(p.trailStart||0).toFixed(2)+' (active)':'Trail: Not activated';h+='<div class="glass rounded-xl p-4 '+tc+'"><div class="flex justify-between"><div><span class="'+dc+' font-bold">'+p.dir+'</span> <span class="text-sm">'+pair+'</span><p class="text-xs text-neutral">Entry: $'+(p.entry||0).toFixed(2)+' | SL: $'+(p.sl||0).toFixed(2)+' | Ticket: #'+(p.ticket||'-')+'</p><p class="text-xs text-neutral mt-1"> '+tt+'</p></div><div class="text-right"><p class="font-bold '+pc+'">'+(p.profit>=0?'+':'')+'$'+(p.profit||0).toFixed(2)+'</p><p class="text-xs text-neutral">Now: $'+(p.currentPrice||0).toFixed(2)+'</p></div></div></div>';});c.innerHTML=h;const hh=new Date().getHours();const ss=hh>=7&&hh<15?' ASIA':hh>=15&&hh<21?' LONDON':hh>=21||hh<7?' NEW YORK':' CLOSED';document.getElementById('sessionIndicator').textContent=ss;document.getElementById('posLastUpdate').innerHTML='EA Live: '+new Date().toLocaleTimeString()+' <span class="text-xs text-neutral ml-2">'+ss+'</span>';}).catch(err=>{c.innerHTML='<p class="text-neutral text-center py-8">Error loading positions</p>';});}
 function emergencyStop(){if(confirm(' Close ALL positions? This cannot be undone!')){db.ref('signals/'+CONFIG.adminLicense+'/close_all').set({action:'close_all',reason:'Panel Emergency',timestamp:Date.now()});db.ref('trailing/'+CONFIG.adminLicense).remove();showToast(' Emergency stop activated! All positions closing...','warning')}}
 
 // ==========================================
@@ -1435,19 +1393,7 @@ function deleteLicense(key){if(!confirm('Delete '+key+'?'))return;db.ref('licens
 function copyText(arg){let text='';if(typeof arg==='string'&&!document.getElementById(arg)){text=arg;}else{const el=document.getElementById(arg);if(!el)return;text=el.value||el.textContent||'';}copyTextStr(text);}
 function copyTextStr(text){if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>showToast('[OK] Disalin!','success'));}}
 
-// ==========================================
-// TRAILING MONITOR v4.0 — ULTIMATE PROFESSIONAL
-// ==========================================
-let trailCurrentPair='BTC/USD';let trailInterval=null;let trailLivePrices={BTCUSD:0,XAUUSD:0};
-let trailAutoScroll=true;let trailLastActiveCount=0;let trailSoundEnabled=true;
 
-function switchTrailPair(pair){
-    trailCurrentPair=pair;
-    document.querySelectorAll('.trail-tab-btn').forEach(b=>{b.classList.remove('border-accent-400','bg-accent-400/10','text-accent-400');b.classList.add('border-transparent','text-neutral');});
-    const activeTab=document.getElementById('trailTab'+pair.replace('/USD',''));
-    if(activeTab){activeTab.classList.add('border-accent-400','bg-accent-400/10','text-accent-400');activeTab.classList.remove('border-transparent','text-neutral');}
-    trailAutoScroll=true;loadTrailingStatus();
-}
 
 //  LISTEN REAL-TIME KE FIREBASE PRICES (dari EA v2.7)
 function startListeningPrices() {
